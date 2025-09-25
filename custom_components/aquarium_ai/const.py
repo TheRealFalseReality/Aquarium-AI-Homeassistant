@@ -4,19 +4,8 @@ from typing import Final
 DOMAIN: Final = "aquarium_ai"
 
 # Configuration constants
-CONF_AQUARIUM_NAME: Final = "aquarium_name"
+CONF_TANK_NAME: Final = "tank_name"
 CONF_TEMPERATURE_SENSOR: Final = "temperature_sensor"
-CONF_AQUARIUM_TYPE: Final = "aquarium_type"
-CONF_UPDATE_FREQUENCY: Final = "update_frequency"
 
 # Default values
-DEFAULT_FREQUENCY: Final = "Every 6 hours"
-
-# Update frequency options (Label: minutes)
-UPDATE_FREQUENCIES: Final = {
-    "Every hour": 60,
-    "Every 3 hours": 180,
-    "Every 6 hours": 360,
-    "Every 12 hours": 720,
-    "Every 24 hours": 1440,
-}
+DEFAULT_TANK_NAME: Final = "My Aquarium"

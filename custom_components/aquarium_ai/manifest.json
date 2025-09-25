@@ -5,12 +5,11 @@
   "documentation": "https://github.com/TheRealFalseReality/aquarium-ai",
   "issue_tracker": "https://github.com/TheRealFalseReality/aquarium-ai/issues",
   "codeowners": ["@TheRealFalseReality"],
-  "dependencies": ["ai_task"],
-  "iot_class": "cloud_polling",
+  "dependencies": [],
+  "iot_class": "local_polling",
   "homeassistant": "2023.5.0",
   "requirements": [],
-  "version": "1.0.2",
+  "version": "1.0.3",
   "integration_type": "service",
-  "loggers": ["custom_components.aquarium_ai"],
   "icon": "mdi:fish"
 }
