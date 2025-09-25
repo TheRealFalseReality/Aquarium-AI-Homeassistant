@@ -2,7 +2,6 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.const import CONF_SENSORS
 from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
@@ -13,6 +12,7 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     DOMAIN,
+    CONF_SENSORS,
     CONF_AQUARIUM_TYPE,
     CONF_UPDATE_FREQUENCY,
     DEFAULT_FREQUENCY,

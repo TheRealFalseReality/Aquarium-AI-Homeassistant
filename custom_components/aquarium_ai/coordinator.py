@@ -3,6 +3,7 @@ import logging
 from datetime import timedelta
 
 from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -42,7 +43,7 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
         self.config_entry.add_update_listener(self.async_options_updated)
 
     @staticmethod
-    async def async_options_updated(hass: HomeAssistant, entry: config_entries.ConfigEntry):
+    async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry):
         """Handle options update."""
         # This is a placeholder for now, but good practice to have.
         # A more complex integration might reload itself here.
