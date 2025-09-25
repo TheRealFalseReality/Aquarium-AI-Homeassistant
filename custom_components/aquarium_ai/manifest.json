@@ -11,5 +11,6 @@
   "requirements": [],
   "version": "1.0.2",
   "integration_type": "service",
-  "loggers": ["custom_components.aquarium_ai"]
+  "loggers": ["custom_components.aquarium_ai"],
+  "icon": "mdi:fish"
 }
