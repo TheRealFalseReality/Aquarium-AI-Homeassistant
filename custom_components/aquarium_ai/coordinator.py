@@ -52,11 +52,12 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.info("Aquarium AI options updated. Restart Home Assistant for the new update interval to take effect.")
 
     async def _async_update_data(self):
-        # ... (The rest of this function remains exactly the same as before) ...
         """Fetch data from AI Task."""
+        _LOGGER.debug("Starting AI Task data update")
         try:
             aquarium_type = self.config_entry.data[CONF_AQUARIUM_TYPE]
             sensor_entities = self.config_entry.data[CONF_SENSORS]
+            _LOGGER.debug("Aquarium type: %s, Sensor entities: %s", aquarium_type, sensor_entities)
 
             # 1. Build the dynamic prompt
             conditions_list = [f"- Type: {aquarium_type}"]
@@ -69,13 +70,18 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
                         unit = state.attributes.get("unit_of_measurement", "")
                         name = state.attributes.get("friendly_name", entity_id)
                         conditions_list.append(f"- {name}: {value}{unit}")
+                        _LOGGER.debug("Added numeric sensor: %s = %s%s", name, value, unit)
                     except (ValueError, TypeError):
                         # Handle non-numeric values like "Normal", "Good", etc.
                         name = state.attributes.get("friendly_name", entity_id)
                         conditions_list.append(f"- {name}: {state.state}")
+                        _LOGGER.debug("Added text sensor: %s = %s", name, state.state)
+                else:
+                    _LOGGER.warning("Sensor %s is unavailable or unknown", entity_id)
             
             instructions = "Based on the current conditions:\n\n" + "\n".join(conditions_list)
             instructions += "\n\nAnalyse my aquarium conditions and make suggestions on how to improve if needed. Each analysis must be a single, complete sentence under 255 characters."
+            _LOGGER.debug("Generated instructions: %s", instructions)
 
             # 2. Build the dynamic structure
             structure = {}
@@ -100,6 +106,8 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
                 "selector": {"text": None}
             }
             
+            _LOGGER.debug("Generated structure with %d fields: %s", len(structure), list(structure.keys()))
+            
             # 3. Call the service
             service_data = {
                 "task_name": "Aquarium AI Analysis",
@@ -107,6 +115,7 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
                 "structure": structure,
             }
             
+            _LOGGER.debug("Calling ai_task.generate_data service")
             response = await self.hass.services.async_call(
                 "ai_task",
                 "generate_data",
@@ -115,7 +124,17 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
                 return_response=True,
             )
             
-            return response
+            _LOGGER.debug("AI Task response: %s", response)
+            
+            # Extract the data from the response
+            if response and "data" in response:
+                result_data = response["data"]
+                _LOGGER.debug("Extracted data from AI response: %s", result_data)
+                return result_data
+            else:
+                _LOGGER.warning("AI Task response missing 'data' field: %s", response)
+                return response
 
         except Exception as err:
+            _LOGGER.error("Error communicating with AI Task service: %s", err, exc_info=True)
             raise UpdateFailed(f"Error communicating with AI Task service: {err}")

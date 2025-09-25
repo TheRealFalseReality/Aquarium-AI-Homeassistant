@@ -9,5 +9,7 @@
   "iot_class": "cloud_polling",
   "homeassistant": "2023.5.0",
   "requirements": [],
-  "version": "1.0.2"
+  "version": "1.0.2",
+  "integration_type": "service",
+  "loggers": ["custom_components.aquarium_ai"]
 }

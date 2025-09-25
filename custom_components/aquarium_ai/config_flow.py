@@ -1,4 +1,5 @@
 """Config flow for Aquarium AI integration."""
+import logging
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
@@ -8,6 +9,9 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
     EntitySelector,
     EntitySelectorConfig,
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
 )
 
 from .const import (
@@ -20,7 +24,7 @@ from .const import (
     UPDATE_FREQUENCIES,
 )
 
-AQUARIUM_TYPES = ["Marine", "Freshwater - Tropical", "Freshwater - Coldwater", "Brackish"]
+_LOGGER = logging.getLogger(__name__)
 
 class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Aquarium AI."""
@@ -35,20 +39,25 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
+        _LOGGER.debug("Config flow step_user called with input: %s", user_input)
+        
         if user_input is not None:
             # Use the aquarium name as the title
             aquarium_name = user_input.get(CONF_AQUARIUM_NAME, "Aquarium AI")
+            _LOGGER.debug("Creating config entry with title: %s", aquarium_name)
             return self.async_create_entry(title=aquarium_name, data=user_input)
 
         data_schema = vol.Schema({
-            vol.Required(CONF_AQUARIUM_NAME, default="My Aquarium"): str,
-            vol.Required(CONF_AQUARIUM_TYPE): SelectSelector(
-                SelectSelectorConfig(options=AQUARIUM_TYPES, mode=SelectSelectorMode.DROPDOWN)
+            vol.Required(CONF_AQUARIUM_NAME, default="My Aquarium", description="Name for your aquarium setup"): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
-            vol.Required(CONF_SENSORS): EntitySelector(
+            vol.Required(CONF_AQUARIUM_TYPE, default="Freshwater", description="Type of aquarium (e.g., Freshwater, Marine, Brackish)"): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Required(CONF_SENSORS, description="Select the sensor entities you want the AI to analyze"): EntitySelector(
                 EntitySelectorConfig(domain="sensor", multiple=True)
             ),
-            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY): SelectSelector(
+            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY, description="How often should the AI analysis run automatically"): SelectSelector(
                 SelectSelectorConfig(options=list(UPDATE_FREQUENCIES.keys()), mode=SelectSelectorMode.DROPDOWN)
             ),
         })
@@ -65,6 +74,8 @@ class AquariumAIOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
+        _LOGGER.debug("Options flow step_init called with input: %s", user_input)
+        
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
@@ -72,6 +83,7 @@ class AquariumAIOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(
                 CONF_UPDATE_FREQUENCY,
                 default=self.config_entry.options.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY),
+                description="How often should the AI analysis run automatically"
             ): SelectSelector(
                 SelectSelectorConfig(options=list(UPDATE_FREQUENCIES.keys()), mode=SelectSelectorMode.DROPDOWN)
             ),
