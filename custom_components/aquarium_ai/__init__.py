@@ -38,6 +38,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     _LOGGER.debug("Registered update_analysis service")
 
+    # Trigger an immediate update to populate sensors right after setup
+    _LOGGER.debug("Triggering immediate data update after setup")
+    try:
+        await coordinator.async_request_refresh()
+        _LOGGER.debug("Initial data update completed successfully")
+    except Exception as e:
+        _LOGGER.warning("Initial data update failed, will retry on schedule: %s", e)
+
     _LOGGER.info("Aquarium AI integration setup completed successfully")
     return True
 

@@ -46,10 +46,9 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
     @staticmethod
     async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry):
         """Handle options update."""
-        # This is a placeholder for now, but good practice to have.
-        # A more complex integration might reload itself here.
-        # For changing the interval, a restart of HA is simplest.
-        _LOGGER.info("Aquarium AI options updated. Restart Home Assistant for the new update interval to take effect.")
+        _LOGGER.info("Aquarium AI options updated, reloading integration")
+        # Reload the integration to apply changes
+        await hass.config_entries.async_reload(entry.entry_id)
 
     async def _async_update_data(self):
         """Fetch data from AI Task."""

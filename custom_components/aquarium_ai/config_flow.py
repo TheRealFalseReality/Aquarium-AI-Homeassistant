@@ -77,12 +77,59 @@ class AquariumAIOptionsFlowHandler(config_entries.OptionsFlow):
         _LOGGER.debug("Options flow step_init called with input: %s", user_input)
         
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            # Update the config entry data with new values
+            new_data = self.config_entry.data.copy()
+            
+            # Update any changed values
+            if CONF_AQUARIUM_NAME in user_input:
+                new_data[CONF_AQUARIUM_NAME] = user_input[CONF_AQUARIUM_NAME]
+            if CONF_AQUARIUM_TYPE in user_input:
+                new_data[CONF_AQUARIUM_TYPE] = user_input[CONF_AQUARIUM_TYPE] 
+            if CONF_SENSORS in user_input:
+                new_data[CONF_SENSORS] = user_input[CONF_SENSORS]
+            
+            # Update the config entry data
+            self.hass.config_entries.async_update_entry(
+                self.config_entry, data=new_data
+            )
+            
+            # Return options entry for frequency (stored in options, not data)
+            return self.async_create_entry(
+                title="", 
+                data={CONF_UPDATE_FREQUENCY: user_input.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)}
+            )
+
+        # Get current values from config entry
+        current_name = self.config_entry.data.get(CONF_AQUARIUM_NAME, "My Aquarium")
+        current_type = self.config_entry.data.get(CONF_AQUARIUM_TYPE, "Freshwater")
+        current_sensors = self.config_entry.data.get(CONF_SENSORS, [])
+        current_frequency = self.config_entry.options.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
 
         options_schema = vol.Schema({
             vol.Required(
+                CONF_AQUARIUM_NAME,
+                default=current_name,
+                description="Name for your aquarium setup"
+            ): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Required(
+                CONF_AQUARIUM_TYPE,
+                default=current_type,
+                description="Type of aquarium (e.g., Freshwater, Marine, Brackish)"
+            ): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Required(
+                CONF_SENSORS,
+                default=current_sensors,
+                description="Select the sensor entities you want the AI to analyze"
+            ): EntitySelector(
+                EntitySelectorConfig(domain="sensor", multiple=True)
+            ),
+            vol.Required(
                 CONF_UPDATE_FREQUENCY,
-                default=self.config_entry.options.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY),
+                default=current_frequency,
                 description="How often should the AI analysis run automatically"
             ): SelectSelector(
                 SelectSelectorConfig(options=list(UPDATE_FREQUENCIES.keys()), mode=SelectSelectorMode.DROPDOWN)

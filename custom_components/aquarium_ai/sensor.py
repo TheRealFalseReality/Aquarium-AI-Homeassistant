@@ -66,9 +66,13 @@ class AquariumAIBaseSensor(CoordinatorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
             name=aquarium_name,
-            manufacturer="Your Name",
+            manufacturer="Aquarium AI",
             entry_type="service",
         )
+        
+        # Set entity registry options
+        self._attr_entity_registry_enabled_default = True
+        self._attr_should_poll = False
 
 class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
     """Representation of an Aquarium AI Analysis sensor."""
@@ -83,9 +87,15 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
         # Ensure the entity has a proper state class for text sensors
         self._attr_state_class = None
         self._attr_device_class = None
+        self._attr_icon = "mdi:fish"
         
         _LOGGER.debug("Initialized sensor %s with key: %s, unique_id: %s", 
                      self._attr_name, analysis_key, self.unique_id)
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added."""
+        return True
 
     @property
     def native_value(self):
@@ -103,10 +113,10 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
                     return str_value
                 else:
                     _LOGGER.debug("Sensor %s has None value for key %s", self._attr_name, self._analysis_key)
-                    return "No data"
+                    return "Waiting for analysis..."
             else:
                 _LOGGER.debug("Sensor %s has no coordinator data", self._attr_name)
-                return "No data"
+                return "Waiting for analysis..."
         except Exception as e:
             _LOGGER.error("Error getting native_value for sensor %s: %s", self._attr_name, e, exc_info=True)
             return "Error"
@@ -115,9 +125,8 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
     def available(self):
         """Return True if entity is available."""
         try:
-            available = self.coordinator.last_update_success
-            _LOGGER.debug("Sensor %s availability: %s", self._attr_name, available)
-            return available
+            # Entity is always available, even if coordinator hasn't updated yet
+            return True
         except Exception as e:
             _LOGGER.error("Error checking availability for sensor %s: %s", self._attr_name, e, exc_info=True)
             return False
@@ -126,10 +135,15 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
     def extra_state_attributes(self):
         """Return extra state attributes."""
         try:
-            return {
+            attrs = {
                 "analysis_key": self._analysis_key,
-                "last_update": self.coordinator.last_update_success_time,
+                "integration": "Aquarium AI",
             }
+            if self.coordinator.last_update_success_time:
+                attrs["last_update"] = self.coordinator.last_update_success_time.isoformat()
+            if hasattr(self.coordinator, 'last_exception') and self.coordinator.last_exception:
+                attrs["last_error"] = str(self.coordinator.last_exception)
+            return attrs
         except Exception as e:
             _LOGGER.error("Error getting extra_state_attributes for sensor %s: %s", self._attr_name, e, exc_info=True)
-            return {}
+            return {"analysis_key": self._analysis_key}
