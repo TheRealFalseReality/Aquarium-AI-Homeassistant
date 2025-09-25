@@ -7,5 +7,7 @@
   "codeowners": ["@TheRealFalseReality"],
   "dependencies": ["ai_task", "trend"],
   "iot_class": "cloud_polling",
+  "homeassistant": "2023.5.0",
+  "requirements": [],
   "version": "1.0.1"
 }

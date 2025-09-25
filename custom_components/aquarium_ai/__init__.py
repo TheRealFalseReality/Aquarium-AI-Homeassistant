@@ -6,7 +6,7 @@ from homeassistant.const import Platform
 from .const import DOMAIN
 from .coordinator import AquariumAIDataUpdateCoordinator
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
+PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Aquarium AI from a config entry."""
