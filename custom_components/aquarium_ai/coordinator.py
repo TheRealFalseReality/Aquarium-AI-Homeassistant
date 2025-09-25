@@ -88,12 +88,16 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
             for entity_id in sensor_entities:
                 state = self.hass.states.get(entity_id)
                 if state and state.state not in ["unknown", "unavailable"]:
-                    name = state.attributes.get("friendly_name", entity_id).lower().replace(" ", "_")
-                    structure[f"{name}_analysis"] = {
-                        "description": f"An analysis of the aquarium's {state.attributes.get('friendly_name', entity_id)}.",
+                    # Clean up the name to match what we do in sensor.py
+                    friendly_name = state.attributes.get('friendly_name', entity_id)
+                    clean_name = "".join(c for c in friendly_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
+                    analysis_key = f"{clean_name}_analysis"
+                    structure[analysis_key] = {
+                        "description": f"An analysis of the aquarium's {friendly_name}.",
                         "required": True,
                         "selector": {"text": None}
                     }
+                    _LOGGER.debug("Added structure key: %s for entity %s", analysis_key, entity_id)
 
             structure["overall_analysis"] = {
                 "description": "An analysis of the aquarium's overall conditions with all sensors in mind.",
@@ -130,10 +134,40 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
             if response and "data" in response:
                 result_data = response["data"]
                 _LOGGER.debug("Extracted data from AI response: %s", result_data)
+                
+                # Ensure all expected keys have some value to prevent None states
+                expected_keys = list(structure.keys())
+                for key in expected_keys:
+                    if key not in result_data or result_data[key] is None:
+                        result_data[key] = "No analysis available"
+                        _LOGGER.warning("Missing or None value for key %s, setting default", key)
+                
                 return result_data
+            elif response:
+                _LOGGER.warning("AI Task response missing 'data' field, using response directly: %s", response)
+                # If response doesn't have 'data' field, try to use the response directly
+                if isinstance(response, dict):
+                    # Ensure all expected keys have some value
+                    expected_keys = list(structure.keys())
+                    for key in expected_keys:
+                        if key not in response or response[key] is None:
+                            response[key] = "No analysis available"
+                            _LOGGER.warning("Missing or None value for key %s, setting default", key)
+                    return response
+                else:
+                    _LOGGER.error("AI Task response is not a dictionary: %s", type(response))
+                    # Return a fallback structure
+                    fallback_data = {}
+                    for key in structure.keys():
+                        fallback_data[key] = "Service response error"
+                    return fallback_data
             else:
-                _LOGGER.warning("AI Task response missing 'data' field: %s", response)
-                return response
+                _LOGGER.error("AI Task service returned empty response")
+                # Return a fallback structure
+                fallback_data = {}
+                for key in structure.keys():
+                    fallback_data[key] = "No response from AI service"
+                return fallback_data
 
         except Exception as err:
             _LOGGER.error("Error communicating with AI Task service: %s", err, exc_info=True)

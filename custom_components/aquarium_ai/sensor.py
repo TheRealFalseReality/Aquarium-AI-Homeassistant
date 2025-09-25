@@ -1,5 +1,6 @@
 """Sensor platform for Aquarium AI."""
 import logging
+import re
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -25,17 +26,26 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     for entity_id in sensor_entities:
         state = hass.states.get(entity_id)
         if state:
-            name = state.attributes.get("friendly_name", entity_id).lower().replace(" ", "_")
-            response_keys.append(f"{name}_analysis")
-            _LOGGER.debug("Added response key: %s for entity %s", f"{name}_analysis", entity_id)
+            # Clean up the name to avoid issues with special characters
+            friendly_name = state.attributes.get("friendly_name", entity_id)
+            # Create a clean key by removing special characters and replacing spaces
+            clean_name = "".join(c for c in friendly_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
+            analysis_key = f"{clean_name}_analysis"
+            response_keys.append(analysis_key)
+            _LOGGER.debug("Added response key: %s for entity %s (friendly name: %s)", analysis_key, entity_id, friendly_name)
 
+    # Add standard analysis keys
     response_keys.extend(["overall_analysis", "quick_analysis"])
     _LOGGER.debug("Total response keys: %s", response_keys)
 
+    # Create entities with error handling
     for key in response_keys:
-        sensor = AquariumAIAnalysisSensor(coordinator, key)
-        entities.append(sensor)
-        _LOGGER.debug("Created sensor: %s", sensor.name)
+        try:
+            sensor = AquariumAIAnalysisSensor(coordinator, key)
+            entities.append(sensor)
+            _LOGGER.debug("Created sensor: %s with unique_id: %s", sensor.name, sensor.unique_id)
+        except Exception as e:
+            _LOGGER.error("Failed to create sensor for key %s: %s", key, e, exc_info=True)
 
     _LOGGER.debug("Adding %d entities to Home Assistant", len(entities))
     async_add_entities(entities)
@@ -65,22 +75,61 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
     def __init__(self, coordinator: AquariumAIDataUpdateCoordinator, analysis_key: str):
         super().__init__(coordinator, context=analysis_key)
         self._analysis_key = analysis_key
-        self._attr_name = f"Aquarium AI {analysis_key.replace('_', ' ').title()}"
-        _LOGGER.debug("Initialized sensor %s with key: %s", self._attr_name, analysis_key)
+        
+        # Create a cleaner, more readable name
+        display_name = analysis_key.replace('_', ' ').title()
+        self._attr_name = f"Aquarium AI {display_name}"
+        
+        # Ensure the entity has a proper state class for text sensors
+        self._attr_state_class = None
+        self._attr_device_class = None
+        
+        _LOGGER.debug("Initialized sensor %s with key: %s, unique_id: %s", 
+                     self._attr_name, analysis_key, self.unique_id)
 
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        if self.coordinator.data:
-            value = self.coordinator.data.get(self._analysis_key)
-            _LOGGER.debug("Sensor %s returning value: %s", self._attr_name, value)
-            return value
-        _LOGGER.debug("Sensor %s has no coordinator data", self._attr_name)
-        return None
+        try:
+            if self.coordinator.data:
+                value = self.coordinator.data.get(self._analysis_key)
+                # Ensure the value is a string and not too long for HA state
+                if value is not None:
+                    str_value = str(value)
+                    # Limit state length to prevent issues
+                    if len(str_value) > 255:
+                        str_value = str_value[:252] + "..."
+                    _LOGGER.debug("Sensor %s returning value: %s", self._attr_name, str_value[:50] + "..." if len(str_value) > 50 else str_value)
+                    return str_value
+                else:
+                    _LOGGER.debug("Sensor %s has None value for key %s", self._attr_name, self._analysis_key)
+                    return "No data"
+            else:
+                _LOGGER.debug("Sensor %s has no coordinator data", self._attr_name)
+                return "No data"
+        except Exception as e:
+            _LOGGER.error("Error getting native_value for sensor %s: %s", self._attr_name, e, exc_info=True)
+            return "Error"
 
     @property
     def available(self):
         """Return True if entity is available."""
-        available = self.coordinator.last_update_success
-        _LOGGER.debug("Sensor %s availability: %s", self._attr_name, available)
-        return available
+        try:
+            available = self.coordinator.last_update_success
+            _LOGGER.debug("Sensor %s availability: %s", self._attr_name, available)
+            return available
+        except Exception as e:
+            _LOGGER.error("Error checking availability for sensor %s: %s", self._attr_name, e, exc_info=True)
+            return False
+
+    @property
+    def extra_state_attributes(self):
+        """Return extra state attributes."""
+        try:
+            return {
+                "analysis_key": self._analysis_key,
+                "last_update": self.coordinator.last_update_success_time,
+            }
+        except Exception as e:
+            _LOGGER.error("Error getting extra_state_attributes for sensor %s: %s", self._attr_name, e, exc_info=True)
+            return {}
