@@ -14,8 +14,10 @@ from homeassistant.helpers.selector import (
 from .const import (
     DOMAIN,
     CONF_TANK_NAME,
+    CONF_AQUARIUM_TYPE,
     CONF_TEMPERATURE_SENSOR,
     DEFAULT_TANK_NAME,
+    DEFAULT_AQUARIUM_TYPE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -49,6 +51,9 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         data_schema = vol.Schema({
             vol.Required(CONF_TANK_NAME, default=DEFAULT_TANK_NAME): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Required(CONF_AQUARIUM_TYPE, default=DEFAULT_AQUARIUM_TYPE): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
             vol.Required(CONF_TEMPERATURE_SENSOR): EntitySelector(

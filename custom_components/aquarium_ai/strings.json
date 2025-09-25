@@ -3,13 +3,15 @@
     "step": {
       "user": {
         "title": "Aquarium AI Setup",
-        "description": "Configure your aquarium temperature monitoring",
+        "description": "Configure your aquarium AI temperature analysis",
         "data": {
           "tank_name": "Tank Name",
+          "aquarium_type": "Aquarium Type",
           "temperature_sensor": "Temperature Sensor"
         },
         "data_description": {
           "tank_name": "Name for your aquarium tank",
+          "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
           "temperature_sensor": "Select the temperature sensor for your aquarium"
         }
       }
