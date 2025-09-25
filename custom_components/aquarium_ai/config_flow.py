@@ -2,7 +2,6 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from homeassistant.const import CONF_SENSORS
 from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
@@ -13,6 +12,7 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     DOMAIN,
+    CONF_SENSORS,
     CONF_AQUARIUM_TYPE,
     CONF_UPDATE_FREQUENCY,
     DEFAULT_FREQUENCY,
@@ -27,7 +27,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     @staticmethod
-    @callback
+    @callback  
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return AquariumAIOptionsFlowHandler(config_entry)
