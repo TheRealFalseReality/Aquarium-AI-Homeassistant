@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aquarium AI Setup",
+        "description": "Configure your Aquarium AI integration",
+        "data": {
+          "aquarium_name": "Aquarium Name",
+          "aquarium_type": "Aquarium Type",
+          "temperature_sensor": "Temperature Sensor",
+          "update_frequency": "Update Frequency"
+        },
+        "data_description": {
+          "aquarium_name": "Name for your aquarium setup",
+          "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
+          "temperature_sensor": "Select the temperature sensor for your aquarium",
+          "update_frequency": "How often should the AI analysis run automatically"
+        }
+      }
+    },
+    "error": {
+      "sensor_not_found": "The selected temperature sensor could not be found",
+      "sensor_required": "A temperature sensor must be selected"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Aquarium AI Options",
+        "description": "Update your Aquarium AI configuration",
+        "data": {
+          "aquarium_name": "Aquarium Name",
+          "aquarium_type": "Aquarium Type", 
+          "temperature_sensor": "Temperature Sensor",
+          "update_frequency": "Update Frequency"
+        },
+        "data_description": {
+          "aquarium_name": "Name for your aquarium setup",
+          "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
+          "temperature_sensor": "Select the temperature sensor for your aquarium",
+          "update_frequency": "How often should the AI analysis run automatically"
+        }
+      }
+    }
+  }
+}

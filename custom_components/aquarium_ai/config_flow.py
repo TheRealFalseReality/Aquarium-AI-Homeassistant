@@ -41,21 +41,22 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         _LOGGER.debug("Config flow step_user called with input: %s", user_input)
         
+        errors = {}
+        
         if user_input is not None:
-            # Use the aquarium name as the title
-            aquarium_name = user_input.get(CONF_AQUARIUM_NAME, "Aquarium AI")
-            _LOGGER.debug("Creating config entry with title: %s", aquarium_name)
-            return self.async_create_entry(title=aquarium_name, data=user_input)
-
-        # Get all temperature sensors
-        all_sensors = self.hass.states.async_all('sensor')
-        temperature_sensors = [
-            entity.entity_id for entity in all_sensors 
-            if entity.attributes.get('device_class') == 'temperature' or
-               'temperature' in entity.entity_id.lower() or
-               'temp' in entity.entity_id.lower() or
-               entity.attributes.get('unit_of_measurement') in ['°C', '°F', 'C', 'F']
-        ]
+            # Validate the temperature sensor exists
+            temp_sensor = user_input.get(CONF_TEMPERATURE_SENSOR)
+            if temp_sensor:
+                sensor_state = self.hass.states.get(temp_sensor)
+                if not sensor_state:
+                    errors[CONF_TEMPERATURE_SENSOR] = "sensor_not_found"
+                else:
+                    # Use the aquarium name as the title
+                    aquarium_name = user_input.get(CONF_AQUARIUM_NAME, "Aquarium AI")
+                    _LOGGER.debug("Creating config entry with title: %s", aquarium_name)
+                    return self.async_create_entry(title=aquarium_name, data=user_input)
+            else:
+                errors[CONF_TEMPERATURE_SENSOR] = "sensor_required"
 
         data_schema = vol.Schema({
             vol.Required(CONF_AQUARIUM_NAME, default="My Aquarium"): TextSelector(
@@ -79,6 +80,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user", 
             data_schema=data_schema,
+            errors=errors,
             description_placeholders={
                 "aquarium_name": "Name for your aquarium setup",
                 "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
