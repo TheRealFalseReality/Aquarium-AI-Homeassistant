@@ -1,0 +1,11 @@
+{
+  "domain": "aquarium_ai",
+  "name": "Aquarium AI",
+  "config_flow": true,
+  "documentation": "https://github.com/TheRealFalseReality/aquarium-ai",
+  "issue_tracker": "https://github.com/TheRealFalseReality/aquarium-ai/issues",
+  "codeowners": ["@TheRealFalseReality"],
+  "dependencies": ["ai_task", "trend"],
+  "iot_class": "cloud_polling",
+  "version": "1.0.0"
+}
