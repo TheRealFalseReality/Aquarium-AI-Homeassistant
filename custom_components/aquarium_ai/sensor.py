@@ -30,25 +30,50 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
             friendly_name = state.attributes.get("friendly_name", entity_id)
             # Create a clean key by removing special characters and replacing spaces
             clean_name = "".join(c for c in friendly_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
-            analysis_key = f"{clean_name}_analysis"
-            response_keys.append(analysis_key)
-            _LOGGER.debug("Added response key: %s for entity %s (friendly name: %s)", analysis_key, entity_id, friendly_name)
+            # Ensure the key is not empty and doesn't start with numbers
+            if clean_name and not clean_name[0].isdigit():
+                analysis_key = f"{clean_name}_analysis"
+                response_keys.append(analysis_key)
+                _LOGGER.debug("Added response key: %s for entity %s (friendly name: %s)", analysis_key, entity_id, friendly_name)
+            else:
+                # Fallback for problematic names
+                safe_key = f"sensor_{len(response_keys)}_analysis"
+                response_keys.append(safe_key)
+                _LOGGER.debug("Used fallback key: %s for entity %s (friendly name: %s)", safe_key, entity_id, friendly_name)
 
     # Add standard analysis keys
     response_keys.extend(["overall_analysis", "quick_analysis"])
     _LOGGER.debug("Total response keys: %s", response_keys)
 
-    # Create entities with error handling
+    # Create entities with comprehensive error handling
     for key in response_keys:
         try:
+            # Validate the key before creating sensor
+            if not key or not isinstance(key, str):
+                _LOGGER.error("Invalid key for sensor creation: %s", key)
+                continue
+                
             sensor = AquariumAIAnalysisSensor(coordinator, key)
+            
+            # Validate the sensor was created properly
+            if not hasattr(sensor, '_attr_unique_id') or not sensor._attr_unique_id:
+                _LOGGER.error("Sensor created with invalid unique_id: %s", key)
+                continue
+                
+            if not hasattr(sensor, '_attr_name') or not sensor._attr_name:
+                _LOGGER.error("Sensor created with invalid name: %s", key)
+                continue
+                
             entities.append(sensor)
-            _LOGGER.debug("Created sensor: %s with unique_id: %s", sensor.name, sensor.unique_id)
+            _LOGGER.debug("Successfully created sensor: %s with unique_id: %s", sensor.name, sensor.unique_id)
         except Exception as e:
             _LOGGER.error("Failed to create sensor for key %s: %s", key, e, exc_info=True)
 
     _LOGGER.debug("Adding %d entities to Home Assistant", len(entities))
-    async_add_entities(entities)
+    if entities:
+        async_add_entities(entities, update_before_add=False)
+    else:
+        _LOGGER.warning("No entities were created for Aquarium AI integration")
 
 
 class AquariumAIBaseSensor(CoordinatorEntity):
@@ -57,7 +82,10 @@ class AquariumAIBaseSensor(CoordinatorEntity):
         super().__init__(coordinator)
         self._context = context
         self._config_entry = coordinator.config_entry
-        self._attr_unique_id = f"{self._config_entry.entry_id}_{self._context}"
+        
+        # Create a safe unique ID by sanitizing the context
+        safe_context = re.sub(r'[^a-zA-Z0-9_]', '_', context).lower()
+        self._attr_unique_id = f"{self._config_entry.entry_id}_{safe_context}"
         
         # Use the aquarium name from config or fallback to default
         aquarium_name = self._config_entry.data.get(CONF_AQUARIUM_NAME, "Aquarium AI")
@@ -65,7 +93,7 @@ class AquariumAIBaseSensor(CoordinatorEntity):
         # All sensors will be part of the same device in the UI
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=aquarium_name,
+            name=str(aquarium_name),  # Ensure it's a string
             manufacturer="Aquarium AI",
             entry_type="service",
         )
@@ -73,6 +101,10 @@ class AquariumAIBaseSensor(CoordinatorEntity):
         # Set entity registry options
         self._attr_entity_registry_enabled_default = True
         self._attr_should_poll = False
+        
+        # Ensure we have safe attributes set
+        self._attr_entity_category = None
+        self._attr_unit_of_measurement = None
 
 class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
     """Representation of an Aquarium AI Analysis sensor."""
@@ -88,6 +120,9 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
         self._attr_state_class = None
         self._attr_device_class = None
         self._attr_icon = "mdi:fish"
+        
+        # Set a safe initial state to prevent write errors
+        self._attr_native_value = "Initializing..."
         
         _LOGGER.debug("Initialized sensor %s with key: %s, unique_id: %s", 
                      self._attr_name, analysis_key, self.unique_id)
@@ -105,10 +140,13 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
                 value = self.coordinator.data.get(self._analysis_key)
                 # Ensure the value is a string and not too long for HA state
                 if value is not None:
-                    str_value = str(value)
-                    # Limit state length to prevent issues
-                    if len(str_value) > 255:
-                        str_value = str_value[:252] + "..."
+                    str_value = str(value).strip()
+                    # Ensure it's not empty
+                    if not str_value:
+                        return "No analysis data"
+                    # Limit state length to prevent issues (HA limit is 255 chars)
+                    if len(str_value) > 253:
+                        str_value = str_value[:250] + "..."
                     _LOGGER.debug("Sensor %s returning value: %s", self._attr_name, str_value[:50] + "..." if len(str_value) > 50 else str_value)
                     return str_value
                 else:
@@ -119,31 +157,37 @@ class AquariumAIAnalysisSensor(AquariumAIBaseSensor, SensorEntity):
                 return "Waiting for analysis..."
         except Exception as e:
             _LOGGER.error("Error getting native_value for sensor %s: %s", self._attr_name, e, exc_info=True)
-            return "Error"
+            return "Error retrieving data"
 
     @property
     def available(self):
         """Return True if entity is available."""
-        try:
-            # Entity is always available, even if coordinator hasn't updated yet
-            return True
-        except Exception as e:
-            _LOGGER.error("Error checking availability for sensor %s: %s", self._attr_name, e, exc_info=True)
-            return False
+        # Always return True to prevent availability issues during entity creation
+        return True
 
     @property
     def extra_state_attributes(self):
         """Return extra state attributes."""
         try:
             attrs = {
-                "analysis_key": self._analysis_key,
+                "analysis_key": str(self._analysis_key),
                 "integration": "Aquarium AI",
             }
-            if self.coordinator.last_update_success_time:
-                attrs["last_update"] = self.coordinator.last_update_success_time.isoformat()
-            if hasattr(self.coordinator, 'last_exception') and self.coordinator.last_exception:
-                attrs["last_error"] = str(self.coordinator.last_exception)
+            # Only add optional attributes if they exist and are serializable
+            try:
+                if hasattr(self.coordinator, 'last_update_success_time') and self.coordinator.last_update_success_time:
+                    attrs["last_update"] = self.coordinator.last_update_success_time.isoformat()
+            except Exception as e:
+                _LOGGER.debug("Could not add last_update attribute: %s", e)
+                
+            try:
+                if hasattr(self.coordinator, 'last_exception') and self.coordinator.last_exception:
+                    attrs["last_error"] = str(self.coordinator.last_exception)[:200]  # Limit error message length
+            except Exception as e:
+                _LOGGER.debug("Could not add last_error attribute: %s", e)
+                
             return attrs
         except Exception as e:
             _LOGGER.error("Error getting extra_state_attributes for sensor %s: %s", self._attr_name, e, exc_info=True)
-            return {"analysis_key": self._analysis_key}
+            # Return minimal safe attributes
+            return {"analysis_key": str(self._analysis_key)}
