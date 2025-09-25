@@ -5,7 +5,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_SENSORS, CONF_AQUARIUM_NAME
+from .const import DOMAIN, CONF_TEMPERATURE_SENSOR, CONF_AQUARIUM_NAME
 from .coordinator import AquariumAIDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,36 +17,21 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     
     entities = []
     
-    # Create Analysis Sensors
-    sensor_entities = config_entry.data[CONF_SENSORS]
-    _LOGGER.debug("Creating sensors for entities: %s", sensor_entities)
+    # Create temperature analysis sensors (simplified structure)
+    temperature_sensor = config_entry.data[CONF_TEMPERATURE_SENSOR]
+    _LOGGER.debug("Creating sensors for temperature sensor: %s", temperature_sensor)
     
-    # Generate a list of keys for the expected AI response
-    response_keys = []
-    for entity_id in sensor_entities:
-        state = hass.states.get(entity_id)
-        if state:
-            # Clean up the name to avoid issues with special characters
-            friendly_name = state.attributes.get("friendly_name", entity_id)
-            # Create a clean key by removing special characters and replacing spaces
-            clean_name = "".join(c for c in friendly_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
-            # Ensure the key is not empty and doesn't start with numbers
-            if clean_name and not clean_name[0].isdigit():
-                analysis_key = f"{clean_name}_analysis"
-                response_keys.append(analysis_key)
-                _LOGGER.debug("Added response key: %s for entity %s (friendly name: %s)", analysis_key, entity_id, friendly_name)
-            else:
-                # Fallback for problematic names
-                safe_key = f"sensor_{len(response_keys)}_analysis"
-                response_keys.append(safe_key)
-                _LOGGER.debug("Used fallback key: %s for entity %s (friendly name: %s)", safe_key, entity_id, friendly_name)
-
-    # Add standard analysis keys
-    response_keys.extend(["overall_analysis", "quick_analysis"])
-    _LOGGER.debug("Total response keys: %s", response_keys)
+    # Create the three analysis sensors
+    analysis_sensors = [
+        "temperature_analysis",
+        "overall_analysis", 
+        "quick_analysis"
+    ]
+    
+    _LOGGER.debug("Creating analysis sensors: %s", analysis_sensors)
 
     # Create entities with comprehensive error handling
-    for key in response_keys:
+    for key in analysis_sensors:
         try:
             # Validate the key before creating sensor
             if not key or not isinstance(key, str):

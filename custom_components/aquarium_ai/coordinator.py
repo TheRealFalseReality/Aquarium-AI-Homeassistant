@@ -55,65 +55,58 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("Starting AI Task data update")
         try:
             aquarium_type = self.config_entry.data[CONF_AQUARIUM_TYPE]
-            sensor_entities = self.config_entry.data[CONF_SENSORS]
-            _LOGGER.debug("Aquarium type: %s, Sensor entities: %s", aquarium_type, sensor_entities)
+            temperature_sensor = self.config_entry.data[CONF_TEMPERATURE_SENSOR]
+            _LOGGER.debug("Aquarium type: %s, Temperature sensor: %s", aquarium_type, temperature_sensor)
 
-            # 1. Build the dynamic prompt
-            conditions_list = [f"- Type: {aquarium_type}"]
-            for entity_id in sensor_entities:
-                state = self.hass.states.get(entity_id)
-                if state and state.state not in ["unknown", "unavailable"]:
-                    # Try to convert to float, but handle non-numeric values
-                    try:
-                        value = round(float(state.state), 1)
-                        unit = state.attributes.get("unit_of_measurement", "")
-                        name = state.attributes.get("friendly_name", entity_id)
-                        conditions_list.append(f"- {name}: {value}{unit}")
-                        _LOGGER.debug("Added numeric sensor: %s = %s%s", name, value, unit)
-                    except (ValueError, TypeError):
-                        # Handle non-numeric values like "Normal", "Good", etc.
-                        name = state.attributes.get("friendly_name", entity_id)
-                        conditions_list.append(f"- {name}: {state.state}")
-                        _LOGGER.debug("Added text sensor: %s = %s", name, state.state)
-                else:
-                    _LOGGER.warning("Sensor %s is unavailable or unknown", entity_id)
+            # 1. Get temperature data
+            temp_state = self.hass.states.get(temperature_sensor)
+            temperature_info = "Temperature: Unknown"
             
-            instructions = "Based on the current conditions:\n\n" + "\n".join(conditions_list)
-            instructions += "\n\nAnalyse my aquarium conditions and make suggestions on how to improve if needed. Each analysis must be a single, complete sentence under 255 characters."
-            _LOGGER.debug("Generated instructions: %s", instructions)
+            if temp_state and temp_state.state not in ["unknown", "unavailable"]:
+                try:
+                    temp_value = round(float(temp_state.state), 1)
+                    temp_unit = temp_state.attributes.get("unit_of_measurement", "°C")
+                    temp_name = temp_state.attributes.get("friendly_name", "Temperature")
+                    temperature_info = f"{temp_name}: {temp_value}{temp_unit}"
+                    _LOGGER.debug("Temperature data: %s", temperature_info)
+                except (ValueError, TypeError):
+                    temp_name = temp_state.attributes.get("friendly_name", "Temperature")
+                    temperature_info = f"{temp_name}: {temp_state.state}"
+                    _LOGGER.debug("Non-numeric temperature: %s", temperature_info)
+            else:
+                _LOGGER.warning("Temperature sensor %s is unavailable", temperature_sensor)
 
-            # 2. Build the dynamic structure
-            structure = {}
-            for entity_id in sensor_entities:
-                state = self.hass.states.get(entity_id)
-                if state and state.state not in ["unknown", "unavailable"]:
-                    # Clean up the name to match what we do in sensor.py
-                    friendly_name = state.attributes.get('friendly_name', entity_id)
-                    clean_name = "".join(c for c in friendly_name if c.isalnum() or c in (' ', '_')).replace(' ', '_').lower()
-                    analysis_key = f"{clean_name}_analysis"
-                    structure[analysis_key] = {
-                        "description": f"An analysis of the aquarium's {friendly_name}.",
-                        "required": True,
-                        "selector": {"text": None}
-                    }
-                    _LOGGER.debug("Added structure key: %s for entity %s", analysis_key, entity_id)
+            # 2. Build the prompt for temperature analysis
+            instructions = f"""Based on the current aquarium conditions:
+- Type: {aquarium_type}
+- {temperature_info}
 
-            structure["overall_analysis"] = {
-                "description": "An analysis of the aquarium's overall conditions with all sensors in mind.",
-                "required": True,
-                "selector": {"text": None}
-            }
-            structure["quick_analysis"] = {
-                "description": "An analysis of the overall conditions in one or two words (e.g., 'Good', 'Slightly Warm', 'High pH').",
-                "required": True,
-                "selector": {"text": None}
+Analyze the temperature conditions for this {aquarium_type.lower()} aquarium. Consider if the temperature is appropriate for the aquarium type, any potential issues, and provide recommendations. Keep each analysis under 255 characters."""
+
+            # 3. Build the structure for AI response
+            structure = {
+                "temperature_analysis": {
+                    "description": "An analysis of the aquarium's temperature conditions and any recommendations.",
+                    "required": True,
+                    "selector": {"text": None}
+                },
+                "overall_analysis": {
+                    "description": "An overall assessment of the aquarium's current state based on temperature.",
+                    "required": True,
+                    "selector": {"text": None}
+                },
+                "quick_analysis": {
+                    "description": "A quick status in 1-2 words (e.g., 'Good', 'Too Warm', 'Too Cold').",
+                    "required": True,
+                    "selector": {"text": None}
+                }
             }
             
             _LOGGER.debug("Generated structure with %d fields: %s", len(structure), list(structure.keys()))
             
-            # 3. Call the service
+            # 4. Call the AI service
             service_data = {
-                "task_name": "Aquarium AI Analysis",
+                "task_name": "Aquarium Temperature Analysis",
                 "instructions": instructions,
                 "structure": structure,
             }

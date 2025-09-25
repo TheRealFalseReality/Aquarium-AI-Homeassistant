@@ -17,7 +17,7 @@ from homeassistant.helpers.selector import (
 from .const import (
     DOMAIN,
     CONF_AQUARIUM_NAME,
-    CONF_SENSORS,
+    CONF_TEMPERATURE_SENSOR,
     CONF_AQUARIUM_TYPE,
     CONF_UPDATE_FREQUENCY,
     DEFAULT_FREQUENCY,
@@ -47,22 +47,45 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.debug("Creating config entry with title: %s", aquarium_name)
             return self.async_create_entry(title=aquarium_name, data=user_input)
 
+        # Get all temperature sensors
+        all_sensors = self.hass.states.async_all('sensor')
+        temperature_sensors = [
+            entity.entity_id for entity in all_sensors 
+            if entity.attributes.get('device_class') == 'temperature' or
+               'temperature' in entity.entity_id.lower() or
+               'temp' in entity.entity_id.lower() or
+               entity.attributes.get('unit_of_measurement') in ['°C', '°F', 'C', 'F']
+        ]
+
         data_schema = vol.Schema({
-            vol.Required(CONF_AQUARIUM_NAME, default="My Aquarium", description="Name for your aquarium setup"): TextSelector(
+            vol.Required(CONF_AQUARIUM_NAME, default="My Aquarium"): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
-            vol.Required(CONF_AQUARIUM_TYPE, default="Freshwater", description="Type of aquarium (e.g., Freshwater, Marine, Brackish)"): TextSelector(
+            vol.Required(CONF_AQUARIUM_TYPE, default="Freshwater"): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
-            vol.Required(CONF_SENSORS, description="Select the sensor entities you want the AI to analyze"): EntitySelector(
-                EntitySelectorConfig(domain="sensor", multiple=True)
+            vol.Required(CONF_TEMPERATURE_SENSOR): EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="temperature",
+                    multiple=False
+                )
             ),
-            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY, description="How often should the AI analysis run automatically"): SelectSelector(
+            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY): SelectSelector(
                 SelectSelectorConfig(options=list(UPDATE_FREQUENCIES.keys()), mode=SelectSelectorMode.DROPDOWN)
             ),
         })
 
-        return self.async_show_form(step_id="user", data_schema=data_schema)
+        return self.async_show_form(
+            step_id="user", 
+            data_schema=data_schema,
+            description_placeholders={
+                "aquarium_name": "Name for your aquarium setup",
+                "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
+                "temperature_sensor": "Select the temperature sensor for your aquarium",
+                "update_frequency": "How often should the AI analysis run automatically"
+            }
+        )
 
 
 class AquariumAIOptionsFlowHandler(config_entries.OptionsFlow):
@@ -85,8 +108,8 @@ class AquariumAIOptionsFlowHandler(config_entries.OptionsFlow):
                 new_data[CONF_AQUARIUM_NAME] = user_input[CONF_AQUARIUM_NAME]
             if CONF_AQUARIUM_TYPE in user_input:
                 new_data[CONF_AQUARIUM_TYPE] = user_input[CONF_AQUARIUM_TYPE] 
-            if CONF_SENSORS in user_input:
-                new_data[CONF_SENSORS] = user_input[CONF_SENSORS]
+            if CONF_TEMPERATURE_SENSOR in user_input:
+                new_data[CONF_TEMPERATURE_SENSOR] = user_input[CONF_TEMPERATURE_SENSOR]
             
             # Update the config entry data
             self.hass.config_entries.async_update_entry(
@@ -102,38 +125,47 @@ class AquariumAIOptionsFlowHandler(config_entries.OptionsFlow):
         # Get current values from config entry
         current_name = self.config_entry.data.get(CONF_AQUARIUM_NAME, "My Aquarium")
         current_type = self.config_entry.data.get(CONF_AQUARIUM_TYPE, "Freshwater")
-        current_sensors = self.config_entry.data.get(CONF_SENSORS, [])
+        current_sensor = self.config_entry.data.get(CONF_TEMPERATURE_SENSOR, "")
         current_frequency = self.config_entry.options.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
 
         options_schema = vol.Schema({
             vol.Required(
                 CONF_AQUARIUM_NAME,
-                default=current_name,
-                description="Name for your aquarium setup"
+                default=current_name
             ): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
             vol.Required(
                 CONF_AQUARIUM_TYPE,
-                default=current_type,
-                description="Type of aquarium (e.g., Freshwater, Marine, Brackish)"
+                default=current_type
             ): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
             vol.Required(
-                CONF_SENSORS,
-                default=current_sensors,
-                description="Select the sensor entities you want the AI to analyze"
+                CONF_TEMPERATURE_SENSOR,
+                default=current_sensor
             ): EntitySelector(
-                EntitySelectorConfig(domain="sensor", multiple=True)
+                EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="temperature",
+                    multiple=False
+                )
             ),
             vol.Required(
                 CONF_UPDATE_FREQUENCY,
-                default=current_frequency,
-                description="How often should the AI analysis run automatically"
+                default=current_frequency
             ): SelectSelector(
                 SelectSelectorConfig(options=list(UPDATE_FREQUENCIES.keys()), mode=SelectSelectorMode.DROPDOWN)
             ),
         })
 
-        return self.async_show_form(step_id="init", data_schema=options_schema)
+        return self.async_show_form(
+            step_id="init", 
+            data_schema=options_schema,
+            description_placeholders={
+                "aquarium_name": "Name for your aquarium setup",
+                "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
+                "temperature_sensor": "Select the temperature sensor for your aquarium",
+                "update_frequency": "How often should the AI analysis run automatically"
+            }
+        )
