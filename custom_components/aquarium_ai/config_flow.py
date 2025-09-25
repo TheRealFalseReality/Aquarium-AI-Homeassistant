@@ -12,6 +12,7 @@ from homeassistant.helpers.selector import (
 
 from .const import (
     DOMAIN,
+    CONF_AQUARIUM_NAME,
     CONF_SENSORS,
     CONF_AQUARIUM_TYPE,
     CONF_UPDATE_FREQUENCY,
@@ -35,9 +36,12 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         if user_input is not None:
-            return self.async_create_entry(title="Aquarium AI", data=user_input)
+            # Use the aquarium name as the title
+            aquarium_name = user_input.get(CONF_AQUARIUM_NAME, "Aquarium AI")
+            return self.async_create_entry(title=aquarium_name, data=user_input)
 
         data_schema = vol.Schema({
+            vol.Required(CONF_AQUARIUM_NAME, default="My Aquarium"): str,
             vol.Required(CONF_AQUARIUM_TYPE): SelectSelector(
                 SelectSelectorConfig(options=AQUARIUM_TYPES, mode=SelectSelectorMode.DROPDOWN)
             ),

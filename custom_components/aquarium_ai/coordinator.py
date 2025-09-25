@@ -8,6 +8,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import (
     DOMAIN,
+    CONF_AQUARIUM_NAME,
     CONF_SENSORS,
     CONF_AQUARIUM_TYPE,
     CONF_UPDATE_FREQUENCY,
@@ -62,10 +63,16 @@ class AquariumAIDataUpdateCoordinator(DataUpdateCoordinator):
             for entity_id in sensor_entities:
                 state = self.hass.states.get(entity_id)
                 if state and state.state not in ["unknown", "unavailable"]:
-                    value = round(float(state.state), 1)
-                    unit = state.attributes.get("unit_of_measurement", "")
-                    name = state.attributes.get("friendly_name", entity_id)
-                    conditions_list.append(f"- {name}: {value}{unit}")
+                    # Try to convert to float, but handle non-numeric values
+                    try:
+                        value = round(float(state.state), 1)
+                        unit = state.attributes.get("unit_of_measurement", "")
+                        name = state.attributes.get("friendly_name", entity_id)
+                        conditions_list.append(f"- {name}: {value}{unit}")
+                    except (ValueError, TypeError):
+                        # Handle non-numeric values like "Normal", "Good", etc.
+                        name = state.attributes.get("friendly_name", entity_id)
+                        conditions_list.append(f"- {name}: {state.state}")
             
             instructions = "Based on the current conditions:\n\n" + "\n".join(conditions_list)
             instructions += "\n\nAnalyse my aquarium conditions and make suggestions on how to improve if needed. Each analysis must be a single, complete sentence under 255 characters."

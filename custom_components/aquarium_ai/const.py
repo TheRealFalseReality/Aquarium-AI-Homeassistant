@@ -4,6 +4,7 @@ from typing import Final
 DOMAIN: Final = "aquarium_ai"
 
 # Configuration constants
+CONF_AQUARIUM_NAME: Final = "aquarium_name"
 CONF_SENSORS: Final = "sensors"
 CONF_AQUARIUM_TYPE: Final = "aquarium_type"
 CONF_UPDATE_FREQUENCY: Final = "update_frequency"

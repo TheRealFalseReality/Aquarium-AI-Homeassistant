@@ -3,7 +3,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_SENSORS
+from .const import DOMAIN, CONF_SENSORS, CONF_AQUARIUM_NAME
 from .coordinator import AquariumAIDataUpdateCoordinator
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -39,10 +39,13 @@ class AquariumAIBaseSensor(CoordinatorEntity):
         self._config_entry = coordinator.config_entry
         self._attr_unique_id = f"{self._config_entry.entry_id}_{self._context}"
         
+        # Use the aquarium name from config or fallback to default
+        aquarium_name = self._config_entry.data.get(CONF_AQUARIUM_NAME, "Aquarium AI")
+        
         # All sensors will be part of the same device in the UI
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name="Aquarium AI",
+            name=aquarium_name,
             manufacturer="Your Name",
             entry_type="service",
         )
