@@ -37,21 +37,12 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             return self.async_create_entry(title="Aquarium AI", data=user_input)
 
-        all_sensors = self.hass.states.async_all('sensor')
-        
-        eligible_sensors = [
-            entity.entity_id
-            for entity in all_sensors
-            if ('unit_of_measurement' in entity.attributes or 
-                entity.attributes.get("device_class") == "ph")
-        ]
-
         data_schema = vol.Schema({
             vol.Required(CONF_AQUARIUM_TYPE): SelectSelector(
                 SelectSelectorConfig(options=AQUARIUM_TYPES, mode=SelectSelectorMode.DROPDOWN)
             ),
             vol.Required(CONF_SENSORS): EntitySelector(
-                EntitySelectorConfig(domain_filter="sensor", include_entities=eligible_sensors, multiple=True)
+                EntitySelectorConfig(domain="sensor", multiple=True)
             ),
             vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY): SelectSelector(
                 SelectSelectorConfig(options=list(UPDATE_FREQUENCIES.keys()), mode=SelectSelectorMode.DROPDOWN)
