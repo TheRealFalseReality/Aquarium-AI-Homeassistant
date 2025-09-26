@@ -14,8 +14,14 @@ from .const import (
     CONF_TANK_NAME, 
     CONF_AQUARIUM_TYPE, 
     CONF_TEMPERATURE_SENSOR,
+    CONF_PH_SENSOR,
+    CONF_SALINITY_SENSOR,
+    CONF_DISSOLVED_OXYGEN_SENSOR,
+    CONF_WATER_LEVEL_SENSOR,
     CONF_UPDATE_FREQUENCY,
+    CONF_AI_TASK,
     DEFAULT_FREQUENCY,
+    DEFAULT_AI_TASK,
     UPDATE_FREQUENCIES,
 )
 
@@ -25,91 +31,171 @@ _LOGGER = logging.getLogger(__name__)
 RUN_ANALYSIS_SCHEMA = vol.Schema({})
 
 
+def format_sensor_value(value, unit=""):
+    """Format sensor value with proper rounding and unit."""
+    try:
+        # Try to convert to float and round to 1 decimal place
+        float_value = float(value)
+        rounded_value = round(float_value, 1)
+        return f"{rounded_value}{unit}"
+    except (ValueError, TypeError):
+        # If it's not a number, return as string (for status values like "Normal", "High", etc.)
+        return f"{value}{unit}"
+
+
+def get_sensor_info(hass, sensor_entity_id, sensor_name):
+    """Get sensor value and unit, properly formatted."""
+    if not sensor_entity_id:
+        return None
+    
+    sensor_state = hass.states.get(sensor_entity_id)
+    if not sensor_state or sensor_state.state in ["unknown", "unavailable"]:
+        return None
+    
+    unit = sensor_state.attributes.get("unit_of_measurement", "")
+    value = sensor_state.state
+    formatted_value = format_sensor_value(value, unit)
+    
+    return {
+        "name": sensor_name,
+        "value": formatted_value,
+        "raw_value": value,
+        "unit": unit
+    }
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Aquarium AI from a config entry."""
     _LOGGER.info("Setting up Aquarium AI integration")
     
     tank_name = entry.data[CONF_TANK_NAME]
     aquarium_type = entry.data[CONF_AQUARIUM_TYPE]
-    temp_sensor = entry.data[CONF_TEMPERATURE_SENSOR]
+    temp_sensor = entry.data.get(CONF_TEMPERATURE_SENSOR)
+    ph_sensor = entry.data.get(CONF_PH_SENSOR)
+    salinity_sensor = entry.data.get(CONF_SALINITY_SENSOR)
+    dissolved_oxygen_sensor = entry.data.get(CONF_DISSOLVED_OXYGEN_SENSOR)
+    water_level_sensor = entry.data.get(CONF_WATER_LEVEL_SENSOR)
     frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
+    ai_task = entry.data.get(CONF_AI_TASK, DEFAULT_AI_TASK)
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
-    async def send_ai_temperature_analysis(now):
-        """Send an AI analysis notification about the current temperature."""
+    # Define sensor mappings
+    sensor_mappings = [
+        (temp_sensor, "Temperature"),
+        (ph_sensor, "pH"),
+        (salinity_sensor, "Salinity"),
+        (dissolved_oxygen_sensor, "Dissolved Oxygen"),
+        (water_level_sensor, "Water Level"),
+    ]
+    
+    async def send_ai_aquarium_analysis(now):
+        """Send an AI analysis notification about all configured sensors."""
         try:
-            sensor_state = hass.states.get(temp_sensor)
-            if sensor_state and sensor_state.state not in ["unknown", "unavailable"]:
-                temp_value = sensor_state.state
-                unit = sensor_state.attributes.get("unit_of_measurement", "")
-                
-                # Prepare AI Task data
-                ai_task_data = {
-                    "task_name": tank_name,
-                    "instructions": f"""Based on the current conditions:
-
-- Type: {aquarium_type}
-- Temperature: {temp_value}{unit}
-
-Analyze my aquarium's temperature conditions and provide recommendations only if needed. Focus specifically on the temperature aspect for this {aquarium_type.lower()} aquarium.""",
-                    "structure": {
-                        "temperature_analysis": {
-                            "description": "An analysis of the aquarium's temperature conditions with recommendations.",
-                            "required": True,
-                            "selector": {"text": None}
-                        }
+            # Collect all available sensor data
+            sensor_data = []
+            analysis_structure = {}
+            
+            for sensor_entity, sensor_name in sensor_mappings:
+                sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
+                if sensor_info:
+                    sensor_data.append(sensor_info)
+                    # Add to AI analysis structure
+                    structure_key = sensor_name.lower().replace(" ", "_") + "_analysis"
+                    analysis_structure[structure_key] = {
+                        "description": f"An analysis of the aquarium's {sensor_name.lower()} conditions with recommendations.",
+                        "required": True,
+                        "selector": {"text": None}
                     }
-                }
-                
-                # Call AI Task service
-                _LOGGER.debug("Calling AI Task service with data: %s", ai_task_data)
-                response = await hass.services.async_call(
-                    "ai_task",
-                    "generate_data",
-                    ai_task_data,
-                    blocking=True,
-                    return_response=True,
-                )
-                
-                # Extract the AI analysis
-                ai_analysis = "No analysis available"
-                if response and "data" in response:
-                    ai_data = response["data"]
-                    if "temperature_analysis" in ai_data:
-                        ai_analysis = ai_data["temperature_analysis"]
-                
-                # Send notification with AI analysis
-                message = f"🌡️ Temperature: {temp_value}{unit}\n\n🤖 AI Analysis:\n{ai_analysis}"
-                
-                await hass.services.async_call(
-                    "persistent_notification",
-                    "create",
-                    {
-                        "title": f"🐠 {tank_name} AI Temperature Analysis",
-                        "message": message,
-                        "notification_id": f"aquarium_ai_{entry.entry_id}",
-                    },
-                )
-                _LOGGER.info("Sent AI temperature analysis notification for %s", tank_name)
+            
+            if not sensor_data:
+                _LOGGER.warning("No valid sensor data available for analysis")
+                return
+            
+            # Build the conditions string for AI instructions
+            conditions_list = [f"- Type: {aquarium_type}"]
+            conditions_list.extend([f"- {info['name']}: {info['value']}" for info in sensor_data])
+            conditions_str = "\n".join(conditions_list)
+            
+            # Add overall analysis to structure
+            analysis_structure["overall_analysis"] = {
+                "description": "A comprehensive analysis of the aquarium's overall health and condition.",
+                "required": True,
+                "selector": {"text": None}
+            }
+            
+            # Prepare AI Task data
+            ai_task_data = {
+                "task_name": tank_name,
+                "instructions": f"""Based on the current conditions:
+
+{conditions_str}
+
+Analyze my aquarium's conditions and provide recommendations only if needed. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health.""",
+                "structure": analysis_structure
+            }
+            
+            # Call AI Task service
+            _LOGGER.debug("Calling AI Task service with data: %s", ai_task_data)
+            response = await hass.services.async_call(
+                "ai_task",
+                ai_task,
+                ai_task_data,
+                blocking=True,
+                return_response=True,
+            )
+            
+            # Extract the AI analysis
+            message_parts = []
+            
+            # Add sensor readings
+            for info in sensor_data:
+                message_parts.append(f"📊 {info['name']}: {info['value']}")
+            
+            message_parts.append("\n🤖 AI Analysis:")
+            
+            if response and "data" in response:
+                ai_data = response["data"]
+                for structure_key in analysis_structure.keys():
+                    if structure_key in ai_data:
+                        analysis_name = structure_key.replace("_analysis", "").replace("_", " ").title()
+                        message_parts.append(f"\n{analysis_name}:\n{ai_data[structure_key]}")
             else:
-                _LOGGER.warning("Temperature sensor %s is unavailable", temp_sensor)
+                message_parts.append("No analysis available")
+            
+            message = "\n".join(message_parts)
+            
+            await hass.services.async_call(
+                "persistent_notification",
+                "create",
+                {
+                    "title": f"🐠 {tank_name} AI Aquarium Analysis",
+                    "message": message,
+                    "notification_id": f"aquarium_ai_{entry.entry_id}",
+                },
+            )
+            _LOGGER.info("Sent AI aquarium analysis notification for %s", tank_name)
+            
         except Exception as err:
-            _LOGGER.error("Error sending AI temperature analysis: %s", err)
+            _LOGGER.error("Error sending AI aquarium analysis: %s", err)
             # Fallback to simple notification if AI fails
             try:
-                sensor_state = hass.states.get(temp_sensor)
-                if sensor_state and sensor_state.state not in ["unknown", "unavailable"]:
-                    temp_value = sensor_state.state
-                    unit = sensor_state.attributes.get("unit_of_measurement", "")
-                    
-                    message = f"Temperature: {temp_value}{unit}\n\n(AI analysis temporarily unavailable)"
+                fallback_message_parts = []
+                
+                for sensor_entity, sensor_name in sensor_mappings:
+                    sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
+                    if sensor_info:
+                        fallback_message_parts.append(f"{sensor_name}: {sensor_info['value']}")
+                
+                if fallback_message_parts:
+                    fallback_message = "\n".join(fallback_message_parts)
+                    fallback_message += "\n\n(AI analysis temporarily unavailable)"
                     
                     await hass.services.async_call(
                         "persistent_notification",
                         "create",
                         {
-                            "title": f"🐠 {tank_name} Temperature Update",
-                            "message": message,
+                            "title": f"🐠 {tank_name} Aquarium Update",
+                            "message": fallback_message,
                             "notification_id": f"aquarium_ai_{entry.entry_id}",
                         },
                     )
@@ -122,16 +208,21 @@ Analyze my aquarium's temperature conditions and provide recommendations only if
         "tank_name": tank_name,
         "aquarium_type": aquarium_type,
         "temp_sensor": temp_sensor,
+        "ph_sensor": ph_sensor,
+        "salinity_sensor": salinity_sensor,
+        "dissolved_oxygen_sensor": dissolved_oxygen_sensor,
+        "water_level_sensor": water_level_sensor,
         "frequency_minutes": frequency_minutes,
-        "analysis_function": send_ai_temperature_analysis,
+        "ai_task": ai_task,
+        "analysis_function": send_ai_aquarium_analysis,
     }
     
     # Send initial AI analysis
-    await send_ai_temperature_analysis(None)
+    await send_ai_aquarium_analysis(None)
     
     # Schedule AI analyses based on configured frequency
     unsub = async_track_time_interval(
-        hass, send_ai_temperature_analysis, timedelta(minutes=frequency_minutes)
+        hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
     )
     
     # Store the unsubscribe function

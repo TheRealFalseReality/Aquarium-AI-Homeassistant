@@ -7,12 +7,18 @@ DOMAIN: Final = "aquarium_ai"
 CONF_TANK_NAME: Final = "tank_name"
 CONF_AQUARIUM_TYPE: Final = "aquarium_type"
 CONF_TEMPERATURE_SENSOR: Final = "temperature_sensor"
+CONF_PH_SENSOR: Final = "ph_sensor"
+CONF_SALINITY_SENSOR: Final = "salinity_sensor"
+CONF_DISSOLVED_OXYGEN_SENSOR: Final = "dissolved_oxygen_sensor"
+CONF_WATER_LEVEL_SENSOR: Final = "water_level_sensor"
 CONF_UPDATE_FREQUENCY: Final = "update_frequency"
+CONF_AI_TASK: Final = "ai_task"
 
 # Default values
 DEFAULT_TANK_NAME: Final = "My Aquarium"
 DEFAULT_AQUARIUM_TYPE: Final = "Freshwater"
 DEFAULT_FREQUENCY: Final = "1_hour"
+DEFAULT_AI_TASK: Final = "generate_data"
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {
@@ -23,3 +29,10 @@ UPDATE_FREQUENCIES: Final = {
     "12_hours": 720,
     "daily": 1440,
 }
+
+# AI Task options
+AI_TASK_OPTIONS: Final = [
+    {"value": "generate_data", "label": "Generate Data"},
+    {"value": "summarize", "label": "Summarize"},
+    {"value": "analyze", "label": "Analyze"},
+]
