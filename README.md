@@ -110,12 +110,18 @@ The integration adds a service that allows you to trigger analysis updates manua
 This service will:
 - Update all AI analysis sensors with fresh analysis
 - Update all status sensors with current readings  
-- Send a notification (if notifications are enabled)
+- Send a notification (based on configuration or override setting)
 
-### Example Automation
+### Service Parameters
 
-This automation runs an analysis every day at 8:00 AM, overriding the schedule you chose in the config.
+The service accepts the following optional parameters:
 
+- **`device`** (optional): The name of the specific tank/device to run analysis on. If not provided, runs analysis on all configured tanks.
+- **`send_notification`** (optional): Boolean to override the notification setting for this analysis. If not provided, uses each tank's configured notification setting.
+
+### Example Automations
+
+**Run analysis on all tanks (backward compatible):**
 ```yaml
 automation:
   - alias: "Run Aquarium AI Analysis Daily at 8 AM"
@@ -124,6 +130,35 @@ automation:
         at: "08:00:00"
     action:
       - service: aquarium_ai.run_analysis
+```
+
+**Run analysis on a specific tank:**
+```yaml
+automation:
+  - alias: "Analyze Reef Tank After Water Change"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.water_change_completed
+        to: "on"
+    action:
+      - service: aquarium_ai.run_analysis
+        data:
+          device: "Reef Tank"
+```
+
+**Run analysis with notification override:**
+```yaml
+automation:
+  - alias: "Emergency Analysis with Notification"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.reef_tank_temperature
+        above: 82
+    action:
+      - service: aquarium_ai.run_analysis
+        data:
+          device: "Reef Tank"
+          send_notification: true
 ```
 
 ---
