@@ -6,7 +6,7 @@ from datetime import timedelta
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import async_track_time_interval, async_call_later
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -30,6 +30,23 @@ _LOGGER = logging.getLogger(__name__)
 
 # Service schema - no parameters needed
 RUN_ANALYSIS_SCHEMA = vol.Schema({})
+
+
+async def _send_notification_if_enabled(hass, auto_notifications, title, message, notification_id, tank_name, log_msg_type="analysis"):
+    """Send notification only if auto-notifications is enabled."""
+    if auto_notifications:
+        await hass.services.async_call(
+            "persistent_notification",
+            "create",
+            {
+                "title": title,
+                "message": message,
+                "notification_id": notification_id,
+            },
+        )
+        _LOGGER.info("Sent %s notification for %s", log_msg_type, tank_name)
+    else:
+        _LOGGER.debug("%s completed for %s (notifications disabled)", log_msg_type.title(), tank_name)
 
 
 def get_overall_status(sensor_data, aquarium_type):
@@ -377,20 +394,16 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
             
             message = "\n".join(message_parts)
             
-            # Only send notification if auto-notifications is enabled
-            if auto_notifications:
-                await hass.services.async_call(
-                    "persistent_notification",
-                    "create",
-                    {
-                        "title": f"🐠 {tank_name} AI Analysis",
-                        "message": message,
-                        "notification_id": f"aquarium_ai_{entry.entry_id}",
-                    },
-                )
-                _LOGGER.info("Sent AI aquarium analysis notification for %s", tank_name)
-            else:
-                _LOGGER.debug("AI analysis completed for %s (notifications disabled)", tank_name)
+            # Send notification using consolidated helper
+            await _send_notification_if_enabled(
+                hass, 
+                auto_notifications,
+                f"🐠 {tank_name} AI Analysis",
+                message,
+                f"aquarium_ai_{entry.entry_id}",
+                tank_name,
+                "AI analysis"
+            )
             
             # Store AI analysis data for sensors to use
             if response and "data" in response:
@@ -438,20 +451,16 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                     fallback_message = f"📋 {overall_status}\n\n" + "\n".join(fallback_message_parts)
                     fallback_message += "\n\n(AI analysis temporarily unavailable)"
                     
-                    # Only send fallback notification if auto-notifications is enabled
-                    if auto_notifications:
-                        await hass.services.async_call(
-                            "persistent_notification",
-                            "create",
-                            {
-                                "title": f"🐠 {tank_name} Aquarium Update",
-                                "message": fallback_message,
-                                "notification_id": f"aquarium_ai_{entry.entry_id}",
-                            },
-                        )
-                        _LOGGER.info("Sent fallback aquarium notification for %s", tank_name)
-                    else:
-                        _LOGGER.debug("AI analysis failed for %s, using fallback data (notifications disabled)", tank_name)
+                    # Send fallback notification using consolidated helper
+                    await _send_notification_if_enabled(
+                        hass,
+                        auto_notifications,
+                        f"🐠 {tank_name} Aquarium Update",
+                        fallback_message,
+                        f"aquarium_ai_{entry.entry_id}",
+                        tank_name,
+                        "fallback analysis"
+                    )
                     
                     # Store fallback sensor data for sensors to use
                     hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = {}
@@ -476,8 +485,14 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Always send initial AI analysis on startup for sensors to work properly
-    await send_ai_aquarium_analysis(None)
+    # Schedule delayed AI analysis on startup to ensure HA is fully ready
+    async def delayed_startup_analysis(now):
+        """Run initial AI analysis after HA is fully started."""
+        _LOGGER.info("Running delayed startup AI analysis for %s", tank_name)
+        await send_ai_aquarium_analysis(None)
+    
+    # Run initial analysis after 60 seconds to ensure HA is fully ready
+    async_call_later(hass, 60, delayed_startup_analysis)
     
     # Schedule AI analyses based on configured frequency - always needed for sensors
     unsub = async_track_time_interval(
