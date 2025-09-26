@@ -119,3 +119,5 @@ This integration is a passion project developed with a "just build it" philosoph
 ## Contributing
 
 Contributions are welcome! If you have an idea for an improvement or have found a bug, please [open an issue](https://github.com/YOUR_GITHUB_USERNAME/aquarium-ai/issues) or submit a pull request.
+
+![Aquarium AI](logo.png)
