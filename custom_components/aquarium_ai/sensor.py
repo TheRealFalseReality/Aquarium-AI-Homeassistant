@@ -375,6 +375,7 @@ class AquariumAIParameterStatus(AquariumAIBaseSensor):
         self._attr_name = f"{tank_name} {sensor_name} Status"
         self._attr_unique_id = f"{config_entry.entry_id}_{sensor_name.lower().replace(' ', '_')}_status"
         self._attr_icon = self._get_sensor_icon(sensor_name)
+        self._attr_extra_state_attributes = {}
         
     def _get_sensor_icon(self, sensor_name: str) -> str:
         """Get appropriate icon for sensor type."""
@@ -386,6 +387,11 @@ class AquariumAIParameterStatus(AquariumAIBaseSensor):
             "Water Level": "mdi:waves",
         }
         return sensor_icons.get(sensor_name, "mdi:chart-line")
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
         
     async def async_update(self) -> None:
         """Update the sensor."""
@@ -395,18 +401,29 @@ class AquariumAIParameterStatus(AquariumAIBaseSensor):
             if not sensor_info:
                 self._state = "Unavailable"
                 self._available = False
+                self._attr_extra_state_attributes = {}
                 return
                 
             self._available = True
             
             # Get simple status
             status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'], self._aquarium_type)
-            self._state = f"{status} ({sensor_info['value']})"
+            self._state = status  # Only the status (Good, OK, Check, etc.)
+            
+            # Add sensor data as attributes
+            self._attr_extra_state_attributes = {
+                "sensor_value": sensor_info['value'],
+                "raw_value": sensor_info['raw_value'],
+                "unit": sensor_info['unit'],
+                "sensor_name": sensor_info['name'],
+                "source_entity": self._sensor_entity,
+            }
                 
         except Exception as err:
             _LOGGER.error("Error updating %s status sensor: %s", self._sensor_name, err)
             self._state = "Status unavailable"
             self._available = False
+            self._attr_extra_state_attributes = {}
 
 
 class AquariumAIQuickStatus(AquariumAIBaseSensor):
