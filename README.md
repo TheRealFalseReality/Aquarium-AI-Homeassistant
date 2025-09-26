@@ -25,7 +25,7 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 
 > [!IMPORTANT]
 > *Important Notice Regarding Home Assistant AI Tasks feature*:  
-> **You must have a gnerative LLM AI installed in you Home Assistant via integrations (see link below), this typially creates an `ai_task.YOUR_PROVIDER` for this integration to use.**
+> **You must have a generative LLM AI installed in you Home Assistant via integrations (see link below), this typially creates an `ai_task.YOUR_PROVIDER` for this integration to use.**
 > 
 Before you can install and use Aquarium AI, you must have the following set up:  
 
