@@ -119,7 +119,7 @@ def get_simple_status(sensor_name, value, unit=""):
                     return "OK"
                 else:
                     return "Check"
-            if unit.lower() in "mS/cm":
+            if unit.lower() in ["mS/cm", "ms/cm"]:
                 # Conductivity ranges: 46.25-53.06 (good), 43.48-55.75 (ok)
                 if 46.25 <= numeric_value <= 53.06:
                     return "Good"
