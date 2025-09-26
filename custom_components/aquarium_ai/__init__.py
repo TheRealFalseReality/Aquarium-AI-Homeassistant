@@ -51,7 +51,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 - Type: {aquarium_type}
 - Temperature: {temp_value}{unit}
 
-Analyze my aquarium's temperature conditions and provide recommendations if needed. Focus specifically on the temperature aspect for this {aquarium_type.lower()} aquarium.""",
+Analyze my aquarium's temperature conditions and provide recommendations only if needed. Focus specifically on the temperature aspect for this {aquarium_type.lower()} aquarium.""",
                     "structure": {
                         "temperature_analysis": {
                             "description": "An analysis of the aquarium's temperature conditions with recommendations.",
