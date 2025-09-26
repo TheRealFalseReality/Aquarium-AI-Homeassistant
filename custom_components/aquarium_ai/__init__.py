@@ -314,7 +314,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 {conditions_str}
 
 Provide analysis for this {aquarium_type.lower()} aquarium. For each parameter analysis, provide brief 1-2 sentence analysis under 200 characters. For overall analysis, provide brief 1-2 sentence health assessment under 200 characters. Only mention recommendations if critical issues exist.
-
+Consider the relationships between different parameters and their impact on aquarium health.
 Always correctly write ph as pH.
 
 IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
