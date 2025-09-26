@@ -40,7 +40,7 @@ def get_overall_status(sensor_data, aquarium_type):
     # Collect all individual sensor statuses
     statuses = []
     for info in sensor_data:
-        status = get_simple_status(info['name'], info['raw_value'], info['unit'])
+        status = get_simple_status(info['name'], info['raw_value'], info['unit'], aquarium_type)
         statuses.append(status)
     
     # Count different status types
@@ -75,7 +75,7 @@ def get_sensor_icon(sensor_name):
     return sensor_icons.get(sensor_name, "📊")
 
 
-def get_simple_status(sensor_name, value, unit=""):
+def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
     """Generate a simple 1-2 word status based on sensor value and type."""
     try:
         # Try to get numeric value for analysis
@@ -100,14 +100,25 @@ def get_simple_status(sensor_name, value, unit=""):
                 else:
                     return "Check"
         
-        # pH status (typically no units)
+        # pH status - tank type dependent
         elif sensor_name == "pH":
-            if 6.8 <= numeric_value <= 7.5:
-                return "Good"
-            elif 6.5 <= numeric_value <= 8.0:
-                return "OK"
+            aquarium_type_lower = aquarium_type.lower()
+            if "saltwater" in aquarium_type_lower or "marine" in aquarium_type_lower or "reef" in aquarium_type_lower:
+                # Saltwater/Marine aquarium pH ranges
+                if 8.0 <= numeric_value <= 8.4:
+                    return "Good"
+                elif 7.8 <= numeric_value <= 8.6:
+                    return "OK"
+                else:
+                    return "Adjust"
             else:
-                return "Adjust"
+                # Freshwater aquarium pH ranges (default)
+                if 6.5 <= numeric_value <= 8.0:
+                    return "Good"
+                elif 6.0 <= numeric_value <= 8.5:
+                    return "OK"
+                else:
+                    return "Adjust"
         
         # Salinity status - handle different units
         elif sensor_name == "Salinity":
@@ -345,7 +356,7 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                         
                         if corresponding_sensor:
                             icon = get_sensor_icon(corresponding_sensor['name'])
-                            status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'])
+                            status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
                             message_parts.append(f"\n{icon} {analysis_name} ({status}):\n{ai_data[structure_key]}")
                         else:
                             message_parts.append(f"\n{analysis_name}:\n{ai_data[structure_key]}")
