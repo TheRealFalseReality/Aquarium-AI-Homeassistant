@@ -1,3 +1,18 @@
 run_analysis:
   name: Run AI Analysis
-  description: Trigger an immediate AI temperature analysis for all configured aquarium integrations
+  description: Trigger an immediate AI analysis for selected or all configured aquarium integrations
+  fields:
+    device:
+      name: Device/Tank Name
+      description: Name of the specific tank/device to run analysis on. If not provided, runs analysis on all configured tanks.
+      required: false
+      example: "My Reef Tank"
+      selector:
+        text:
+    send_notification:
+      name: Send Notification
+      description: Whether to send a notification for this analysis. If not provided, uses the tank's configured notification setting.
+      required: false
+      example: true
+      selector:
+        boolean:

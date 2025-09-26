@@ -28,8 +28,11 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Service schema - no parameters needed
-RUN_ANALYSIS_SCHEMA = vol.Schema({})
+# Service schema with optional parameters for device selection and notification override
+RUN_ANALYSIS_SCHEMA = vol.Schema({
+    vol.Optional("device"): cv.string,  # Tank name to run analysis on (if not provided, runs on all)
+    vol.Optional("send_notification"): cv.boolean,  # Override notification setting (if not provided, uses tank's config)
+})
 
 
 async def _send_notification_if_enabled(hass, auto_notifications, title, message, notification_id, tank_name, log_msg_type="analysis"):
@@ -504,22 +507,58 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
     
     # Register the manual analysis service
     async def run_analysis_service(call: ServiceCall):
-        """Handle the run_analysis service call - runs on all aquarium integrations."""
-        _LOGGER.info("Manual analysis service called")
+        """Handle the run_analysis service call - runs on selected or all aquarium integrations."""
+        device_filter = call.data.get("device")
+        notification_override = call.data.get("send_notification")
         
-        # Run analysis on all configured aquarium integrations
-        if DOMAIN in hass.data:
-            for entry_id, entry_data in hass.data[DOMAIN].items():
-                if "analysis_function" in entry_data:
-                    try:
-                        analysis_function = entry_data["analysis_function"]
-                        tank_name = entry_data.get("tank_name", "Unknown Tank")
-                        await analysis_function(None)
-                        _LOGGER.info("Manual analysis completed for: %s", tank_name)
-                    except Exception as err:
-                        _LOGGER.error("Error running manual analysis for entry %s: %s", entry_id, err)
-        else:
+        _LOGGER.info("Manual analysis service called with device='%s', send_notification=%s", 
+                    device_filter, notification_override)
+        
+        if DOMAIN not in hass.data:
             _LOGGER.warning("No aquarium integrations found to analyze")
+            return
+            
+        # Find matching tanks
+        matching_entries = []
+        for entry_id, entry_data in hass.data[DOMAIN].items():
+            if "analysis_function" not in entry_data:
+                continue
+                
+            tank_name = entry_data.get("tank_name", "Unknown Tank")
+            
+            # If device filter is specified, only run on matching tank
+            if device_filter:
+                if tank_name.lower() != device_filter.lower():
+                    continue
+            
+            matching_entries.append((entry_id, entry_data, tank_name))
+        
+        if not matching_entries:
+            if device_filter:
+                _LOGGER.warning("No aquarium integration found with tank name: %s", device_filter)
+            else:
+                _LOGGER.warning("No aquarium integrations found to analyze")
+            return
+        
+        # Run analysis on matching tanks
+        for entry_id, entry_data, tank_name in matching_entries:
+            try:
+                analysis_function = entry_data["analysis_function"]
+                
+                # Override notification setting if specified
+                if notification_override is not None:
+                    original_auto_notifications = entry_data.get("auto_notifications", DEFAULT_AUTO_NOTIFICATIONS)
+                    entry_data["auto_notifications"] = notification_override
+                    
+                await analysis_function(None)
+                _LOGGER.info("Manual analysis completed for: %s", tank_name)
+                
+                # Restore original notification setting if we overrode it
+                if notification_override is not None:
+                    entry_data["auto_notifications"] = original_auto_notifications
+                    
+            except Exception as err:
+                _LOGGER.error("Error running manual analysis for entry %s (%s): %s", entry_id, tank_name, err)
     
     # Register service only once
     if not hass.services.has_service(DOMAIN, "run_analysis"):
