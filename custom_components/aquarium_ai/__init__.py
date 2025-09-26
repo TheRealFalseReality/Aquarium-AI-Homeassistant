@@ -30,6 +30,83 @@ _LOGGER = logging.getLogger(__name__)
 RUN_ANALYSIS_SCHEMA = vol.Schema({})
 
 
+def get_sensor_icon(sensor_name):
+    """Get appropriate icon for sensor type."""
+    sensor_icons = {
+        "Temperature": "🌡️",
+        "pH": "⚗️", 
+        "Salinity": "🧂",
+        "Dissolved Oxygen": "💨",
+        "Water Level": "📏",
+    }
+    return sensor_icons.get(sensor_name, "📊")
+
+
+def get_simple_status(sensor_name, value, unit=""):
+    """Generate a simple 1-2 word status based on sensor value and type."""
+    try:
+        # Try to get numeric value for analysis
+        numeric_value = float(value)
+        
+        # Temperature status (assuming Celsius, but works for Fahrenheit too)
+        if sensor_name == "Temperature":
+            if 22 <= numeric_value <= 26:
+                return "Good"
+            elif 20 <= numeric_value <= 28:
+                return "OK"
+            else:
+                return "Check"
+        
+        # pH status
+        elif sensor_name == "pH":
+            if 6.8 <= numeric_value <= 7.5:
+                return "Good"
+            elif 6.5 <= numeric_value <= 8.0:
+                return "OK"
+            else:
+                return "Adjust"
+        
+        # Salinity status (assuming ppt or similar)
+        elif sensor_name == "Salinity":
+            if 30 <= numeric_value <= 35:
+                return "Good"
+            elif 28 <= numeric_value <= 37:
+                return "OK"
+            else:
+                return "Check"
+        
+        # Dissolved Oxygen status (assuming mg/L)
+        elif sensor_name == "Dissolved Oxygen":
+            if numeric_value >= 6:
+                return "Good"
+            elif numeric_value >= 4:
+                return "OK"
+            else:
+                return "Low"
+        
+        # Water Level percentage
+        elif sensor_name == "Water Level" and ("%" in str(value) or "%" in unit):
+            if numeric_value >= 80:
+                return "Good"
+            elif numeric_value >= 60:
+                return "OK"
+            else:
+                return "Low"
+        
+        # Default for numeric values
+        return "OK"
+        
+    except (ValueError, TypeError):
+        # For non-numeric values (like "Normal", "High", "Low")
+        value_str = str(value).lower()
+        if value_str in ["normal", "good", "excellent", "ok"]:
+            return "Good"
+        elif value_str in ["high", "low", "warning"]:
+            return "Check"
+        else:
+            return "OK"
+
+
 def format_sensor_value(value, unit=""):
     """Format sensor value with proper rounding and unit."""
     try:
@@ -146,9 +223,11 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
             # Extract the AI analysis
             message_parts = []
             
-            # Add sensor readings
+            # Add sensor readings with icons and status
             for info in sensor_data:
-                message_parts.append(f"📊 {info['name']}: {info['value']}")
+                icon = get_sensor_icon(info['name'])
+                status = get_simple_status(info['name'], info['raw_value'], info['unit'])
+                message_parts.append(f"{icon} {info['name']}: {info['value']} ({status})")
             
             message_parts.append("\n🤖 AI Analysis:")
             
@@ -183,7 +262,9 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
                 for sensor_entity, sensor_name in sensor_mappings:
                     sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
                     if sensor_info:
-                        fallback_message_parts.append(f"{sensor_name}: {sensor_info['value']}")
+                        icon = get_sensor_icon(sensor_info['name'])
+                        status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'])
+                        fallback_message_parts.append(f"{icon} {sensor_info['name']}: {sensor_info['value']} ({status})")
                 
                 if fallback_message_parts:
                     fallback_message = "\n".join(fallback_message_parts)
