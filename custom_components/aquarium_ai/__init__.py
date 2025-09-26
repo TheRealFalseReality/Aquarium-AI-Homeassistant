@@ -81,16 +81,26 @@ def get_simple_status(sensor_name, value, unit=""):
         # Try to get numeric value for analysis
         numeric_value = float(value)
         
-        # Temperature status (assuming Celsius, but works for Fahrenheit too)
+        # Temperature status - handle different units
         if sensor_name == "Temperature":
-            if 22 <= numeric_value <= 26:
-                return "Good"
-            elif 20 <= numeric_value <= 28:
-                return "OK"
+            if unit.lower() in ["°f", "f", "fahrenheit"]:
+                # Convert Fahrenheit ranges: 72-79°F (22-26°C), 68-82°F (20-28°C)  
+                if 72 <= numeric_value <= 79:
+                    return "Good"
+                elif 68 <= numeric_value <= 82:
+                    return "OK"
+                else:
+                    return "Check"
             else:
-                return "Check"
+                # Default to Celsius (°C, C, celsius, or no unit)
+                if 22 <= numeric_value <= 26:
+                    return "Good"
+                elif 20 <= numeric_value <= 28:
+                    return "OK"
+                else:
+                    return "Check"
         
-        # pH status
+        # pH status (typically no units)
         elif sensor_name == "pH":
             if 6.8 <= numeric_value <= 7.5:
                 return "Good"
@@ -99,38 +109,71 @@ def get_simple_status(sensor_name, value, unit=""):
             else:
                 return "Adjust"
         
-        # Salinity status (assuming ppt or similar)
+        # Salinity status - handle different units
         elif sensor_name == "Salinity":
-            if 30 <= numeric_value <= 35:
-                return "Good"
-            elif 28 <= numeric_value <= 37:
-                return "OK"
+            if unit.lower() in ["sg", "specific_gravity"]:
+                # Specific gravity ranges: 1.020-1.025 (good), 1.018-1.027 (ok)
+                if 1.020 <= numeric_value <= 1.025:
+                    return "Good"
+                elif 1.018 <= numeric_value <= 1.027:
+                    return "OK"
+                else:
+                    return "Check"
             else:
-                return "Check"
+                # Default to ppt, psu, or similar salt concentration units
+                if 30 <= numeric_value <= 35:
+                    return "Good"
+                elif 28 <= numeric_value <= 37:
+                    return "OK"
+                else:
+                    return "Check"
         
-        # Dissolved Oxygen status (assuming mg/L)
+        # Dissolved Oxygen status - handle different units
         elif sensor_name == "Dissolved Oxygen":
-            if numeric_value >= 6:
-                return "Good"
-            elif numeric_value >= 4:
-                return "OK"
+            if unit.lower() in ["ppm", "parts_per_million"]:
+                # PPM is similar to mg/L for water
+                if numeric_value >= 6:
+                    return "Good"
+                elif numeric_value >= 4:
+                    return "OK"
+                else:
+                    return "Low"
+            elif unit.lower() in ["%", "percent", "saturation"]:
+                # Percentage saturation
+                if numeric_value >= 80:
+                    return "Good"
+                elif numeric_value >= 60:
+                    return "OK"
+                else:
+                    return "Low"
             else:
-                return "Low"
+                # Default to mg/L
+                if numeric_value >= 6:
+                    return "Good"
+                elif numeric_value >= 4:
+                    return "OK"
+                else:
+                    return "Low"
         
-        # Water Level percentage
-        elif sensor_name == "Water Level" and ("%" in str(value) or "%" in unit):
-            if numeric_value >= 80:
-                return "Good"
-            elif numeric_value >= 60:
-                return "OK"
+        # Water Level - handle percentage or other units
+        elif sensor_name == "Water Level":
+            if unit.lower() in ["%", "percent"] or "%" in str(value):
+                if numeric_value >= 80:
+                    return "Good"
+                elif numeric_value >= 60:
+                    return "OK"
+                else:
+                    return "Low"
             else:
-                return "Low"
+                # For absolute measurements (cm, inches, etc.), we can't easily determine good/bad
+                # without knowing the tank specifications, so default to OK
+                return "OK"
         
         # Default for numeric values
         return "OK"
         
     except (ValueError, TypeError):
-        # For non-numeric values (like "Normal", "High", "Low")
+        # For non-numeric values (like "Normal", "High", "Low")  
         value_str = str(value).lower()
         if value_str in ["normal", "good", "excellent", "ok"]:
             return "Good"
@@ -221,9 +264,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 _LOGGER.warning("No valid sensor data available for analysis")
                 return
             
-            # Build the conditions string for AI instructions
+            # Build the conditions string for AI instructions with explicit units
             conditions_list = [f"- Type: {aquarium_type}"]
-            conditions_list.extend([f"- {info['name']}: {info['value']}" for info in sensor_data])
+            for info in sensor_data:
+                if info['unit']:
+                    conditions_list.append(f"- {info['name']}: {info['raw_value']} {info['unit']}")
+                else:
+                    conditions_list.append(f"- {info['name']}: {info['raw_value']} (no units)")
             conditions_str = "\n".join(conditions_list)
             
             # Add overall analysis to structure
@@ -240,7 +287,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 {conditions_str}
 
-Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health. Always correctly write ph as pH""",
+Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health. Always correctly write ph as pH.
+
+IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
+- Temperature: Consider if values are in Celsius (°C) or Fahrenheit (°F)
+- Salinity: Consider if values are in ppt/psu (parts per thousand) or specific gravity (SG)
+- Dissolved Oxygen: Consider if values are in mg/L, ppm, or percentage saturation
+- Water Level: Consider if values are percentages or absolute measurements
+- pH: Typically has no units (pure number scale 0-14)""",
                 "structure": analysis_structure
             }
             
