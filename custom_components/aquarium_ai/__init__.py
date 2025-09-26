@@ -130,7 +130,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 {conditions_str}
 
-Analyze my aquarium's conditions and provide recommendations only if needed. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health.""",
+Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health.""",
                 "structure": analysis_structure
             }
             
