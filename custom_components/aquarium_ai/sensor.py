@@ -144,25 +144,22 @@ class AquariumAIBaseSensor(SensorEntity):
         self._sensor_mappings = sensor_mappings
         self._state = None
         self._available = True
-        self._unsub = None
         
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
+        # Initial update
         await self.async_update()
-        # Set up periodic updates
-        self._unsub = async_track_time_interval(
-            self._hass, self._async_update_data, timedelta(minutes=self._frequency_minutes)
-        )
         
-    async def async_will_remove_from_hass(self) -> None:
-        """When entity will be removed from hass."""
-        if self._unsub:
-            self._unsub()
-            
-    async def _async_update_data(self, now=None) -> None:
-        """Update sensor data."""
-        await self.async_update()
-        self.async_write_ha_state()
+    def _get_shared_data(self):
+        """Get shared analysis data from the integration."""
+        if DOMAIN in self._hass.data and self._config_entry.entry_id in self._hass.data[DOMAIN]:
+            entry_data = self._hass.data[DOMAIN][self._config_entry.entry_id]
+            return {
+                "sensor_analysis": entry_data.get("sensor_analysis", {}),
+                "sensor_data": entry_data.get("sensor_data", []),
+                "last_update": entry_data.get("last_update")
+            }
+        return {"sensor_analysis": {}, "sensor_data": [], "last_update": None}
         
     @property
     def available(self) -> bool:
@@ -224,7 +221,7 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Get sensor info
+            # Get sensor info to check availability
             sensor_info = get_sensor_info(self._hass, self._sensor_entity, self._sensor_name)
             if not sensor_info:
                 self._state = "Sensor unavailable"
@@ -233,63 +230,18 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
                 
             self._available = True
             
-            # Get all sensor data for context
-            all_sensor_data = []
-            for sensor_entity, sensor_name in self._sensor_mappings:
-                info = get_sensor_info(self._hass, sensor_entity, sensor_name)
-                if info:
-                    all_sensor_data.append(info)
+            # Get shared analysis data
+            shared_data = self._get_shared_data()
+            sensor_analysis = shared_data["sensor_analysis"]
             
-            # Build conditions string
-            conditions_list = [f"- Type: {self._aquarium_type}"]
-            for info in all_sensor_data:
-                if info['unit']:
-                    conditions_list.append(f"- {info['name']}: {info['raw_value']} {info['unit']}")
-                else:
-                    conditions_list.append(f"- {info['name']}: {info['raw_value']} (no units)")
-            conditions_str = "\n".join(conditions_list)
+            # Look for analysis data for this specific sensor
+            analysis_key = f"{self._sensor_name.lower().replace(' ', '_')}_analysis"
             
-            # Prepare AI Task data for brief analysis
-            ai_task_data = {
-                "task_name": f"{self._tank_name} {self._sensor_name}",
-                "instructions": f"""Based on the current conditions:
-
-{conditions_str}
-
-Provide a brief 1-2 sentence analysis of the {self._sensor_name.lower()} for this {self._aquarium_type.lower()} aquarium. Focus specifically on the {self._sensor_name.lower()} parameter. Keep response under 200 characters. Only mention recommendations if critical - otherwise just state the current status. Always correctly write ph as pH.
-
-IMPORTANT: Pay attention to units when evaluating values:
-- Temperature: Consider if values are in Celsius (°C) or Fahrenheit (°F)
-- Salinity: Consider if values are in ppt/psu or specific gravity (SG)
-- Dissolved Oxygen: Consider if values are in mg/L, ppm, or percentage saturation
-- Water Level: Consider if percentages or absolute measurements
-- pH: Typically no units (scale 0-14)""",
-                "structure": {
-                    "analysis": {
-                        "description": f"Brief analysis of {self._sensor_name.lower()} conditions",
-                        "required": True,
-                        "selector": {"text": None}
-                    }
-                }
-            }
-            
-            # Call AI Task service
-            response = await self._hass.services.async_call(
-                "ai_task",
-                "generate_data",
-                {**ai_task_data, "entity_id": self._ai_task},
-                blocking=True,
-                return_response=True,
-            )
-            
-            if response and "data" in response and "analysis" in response["data"]:
-                analysis = response["data"]["analysis"]
-                # Ensure we stay under 255 characters
-                if len(analysis) > 255:
-                    analysis = analysis[:252] + "..."
-                self._state = analysis
+            if analysis_key in sensor_analysis and sensor_analysis[analysis_key]:
+                # Use the AI analysis from the shared update
+                self._state = sensor_analysis[analysis_key]
             else:
-                # Fallback to simple status
+                # Fallback to simple status if no AI analysis available
                 status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'], self._aquarium_type)
                 self._state = f"{sensor_info['name']} is {status} at {sensor_info['value']}"
                 
@@ -322,7 +274,7 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Get all sensor data
+            # Get all sensor data to check availability
             sensor_data = []
             for sensor_entity, sensor_name in self._sensor_mappings:
                 sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
@@ -336,54 +288,13 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
                 
             self._available = True
             
-            # Build conditions string
-            conditions_list = [f"- Type: {self._aquarium_type}"]
-            for info in sensor_data:
-                if info['unit']:
-                    conditions_list.append(f"- {info['name']}: {info['raw_value']} {info['unit']}")
-                else:
-                    conditions_list.append(f"- {info['name']}: {info['raw_value']} (no units)")
-            conditions_str = "\n".join(conditions_list)
+            # Get shared analysis data
+            shared_data = self._get_shared_data()
+            sensor_analysis = shared_data["sensor_analysis"]
             
-            # Prepare AI Task data for brief overall analysis
-            ai_task_data = {
-                "task_name": f"{self._tank_name} Overall",
-                "instructions": f"""Based on the current conditions:
-
-{conditions_str}
-
-Provide a brief 1-2 sentence overall health assessment of this {self._aquarium_type.lower()} aquarium. Keep response under 200 characters. Focus on overall status and only mention critical issues if any. Always correctly write ph as pH.
-
-IMPORTANT: Pay attention to units when evaluating values:
-- Temperature: Consider if values are in Celsius (°C) or Fahrenheit (°F)
-- Salinity: Consider if values are in ppt/psu or specific gravity (SG)
-- Dissolved Oxygen: Consider if values are in mg/L, ppm, or percentage saturation
-- Water Level: Consider if percentages or absolute measurements
-- pH: Typically no units (scale 0-14)""",
-                "structure": {
-                    "analysis": {
-                        "description": "Brief overall aquarium health assessment",
-                        "required": True,
-                        "selector": {"text": None}
-                    }
-                }
-            }
-            
-            # Call AI Task service
-            response = await self._hass.services.async_call(
-                "ai_task",
-                "generate_data",
-                {**ai_task_data, "entity_id": self._ai_task},
-                blocking=True,
-                return_response=True,
-            )
-            
-            if response and "data" in response and "analysis" in response["data"]:
-                analysis = response["data"]["analysis"]
-                # Ensure we stay under 255 characters
-                if len(analysis) > 255:
-                    analysis = analysis[:252] + "..."
-                self._state = analysis
+            if "overall_analysis" in sensor_analysis and sensor_analysis["overall_analysis"]:
+                # Use the AI analysis from the shared update
+                self._state = sensor_analysis["overall_analysis"]
             else:
                 # Fallback to simple overall status
                 self._state = get_overall_status(sensor_data, self._aquarium_type)
@@ -415,12 +326,17 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Get all sensor data
-            sensor_data = []
-            for sensor_entity, sensor_name in self._sensor_mappings:
-                sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
-                if sensor_info:
-                    sensor_data.append(sensor_info)
+            # Try to get shared sensor data first (more efficient)
+            shared_data = self._get_shared_data()
+            sensor_data = shared_data["sensor_data"]
+            
+            # If no shared data, get fresh sensor data
+            if not sensor_data:
+                sensor_data = []
+                for sensor_entity, sensor_name in self._sensor_mappings:
+                    sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
+                    if sensor_info:
+                        sensor_data.append(sensor_info)
             
             if not sensor_data:
                 self._state = "No sensors configured"
@@ -514,12 +430,17 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Get all sensor data
-            sensor_data = []
-            for sensor_entity, sensor_name in self._sensor_mappings:
-                sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
-                if sensor_info:
-                    sensor_data.append(sensor_info)
+            # Try to get shared sensor data first (more efficient)
+            shared_data = self._get_shared_data()
+            sensor_data = shared_data["sensor_data"]
+            
+            # If no shared data, get fresh sensor data
+            if not sensor_data:
+                sensor_data = []
+                for sensor_entity, sensor_name in self._sensor_mappings:
+                    sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
+                    if sensor_info:
+                        sensor_data.append(sensor_info)
             
             if not sensor_data:
                 self._state = "No Data"

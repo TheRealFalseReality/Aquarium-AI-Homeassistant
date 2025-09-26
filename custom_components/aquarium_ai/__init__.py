@@ -278,10 +278,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
                 if sensor_info:
                     sensor_data.append(sensor_info)
-                    # Add to AI analysis structure
+                    # Add to AI analysis structure for both notifications and sensors
                     structure_key = sensor_name.lower().replace(" ", "_") + "_analysis"
                     analysis_structure[structure_key] = {
-                        "description": f"An analysis of the aquarium's {sensor_name.lower()} conditions with recommendations.",
+                        "description": f"Brief 1-2 sentence analysis of the aquarium's {sensor_name.lower()} conditions (under 200 characters).",
                         "required": True,
                         "selector": {"text": None}
                     }
@@ -301,7 +301,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             
             # Add overall analysis to structure
             analysis_structure["overall_analysis"] = {
-                "description": "A comprehensive analysis of the aquarium's overall health and condition.",
+                "description": "Brief 1-2 sentence overall aquarium health assessment (under 200 characters).",
                 "required": True,
                 "selector": {"text": None}
             }
@@ -313,9 +313,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 {conditions_str}
 
-Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary, nor "No adjustments are needed". 
-Focus on all available parameters for this {aquarium_type.lower()} aquarium. 
-Consider the relationships between different parameters and their impact on aquarium health. 
+Provide analysis for this {aquarium_type.lower()} aquarium. For each parameter analysis, provide brief 1-2 sentence analysis under 200 characters. For overall analysis, provide brief 1-2 sentence health assessment under 200 characters. Only mention recommendations if critical issues exist.
+
 Always correctly write ph as pH.
 
 IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
@@ -386,6 +385,32 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
             )
             _LOGGER.info("Sent AI aquarium analysis notification for %s", tank_name)
             
+            # Store AI analysis data for sensors to use
+            if response and "data" in response:
+                ai_data = response["data"]
+                
+                # Store sensor analysis data
+                sensor_analysis_data = {}
+                for structure_key in analysis_structure.keys():
+                    if structure_key in ai_data:
+                        analysis_text = ai_data[structure_key]
+                        # Ensure we stay under 255 characters
+                        if len(analysis_text) > 255:
+                            analysis_text = analysis_text[:252] + "..."
+                        sensor_analysis_data[structure_key] = analysis_text
+                
+                # Store overall analysis with brief version for sensors
+                if "overall_analysis" in ai_data:
+                    overall_analysis = ai_data["overall_analysis"]
+                    if len(overall_analysis) > 255:
+                        overall_analysis = overall_analysis[:252] + "..."
+                    sensor_analysis_data["overall_analysis"] = overall_analysis
+                
+                # Store the analysis data and sensor data in hass.data for sensors to access
+                hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = sensor_analysis_data
+                hass.data[DOMAIN][entry.entry_id]["sensor_data"] = sensor_data
+                hass.data[DOMAIN][entry.entry_id]["last_update"] = now
+            
         except Exception as err:
             _LOGGER.error("Error sending AI aquarium analysis: %s", err)
             # Fallback to simple notification if AI fails
@@ -415,6 +440,11 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                             "notification_id": f"aquarium_ai_{entry.entry_id}",
                         },
                     )
+                    
+                    # Store fallback sensor data for sensors to use
+                    hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = {}
+                    hass.data[DOMAIN][entry.entry_id]["sensor_data"] = fallback_sensor_data
+                    hass.data[DOMAIN][entry.entry_id]["last_update"] = now
             except Exception as fallback_err:
                 _LOGGER.error("Error sending fallback notification: %s", fallback_err)
     
