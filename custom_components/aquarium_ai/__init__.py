@@ -377,16 +377,20 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
             
             message = "\n".join(message_parts)
             
-            await hass.services.async_call(
-                "persistent_notification",
-                "create",
-                {
-                    "title": f"🐠 {tank_name} AI Aquarium Analysis",
-                    "message": message,
-                    "notification_id": f"aquarium_ai_{entry.entry_id}",
-                },
-            )
-            _LOGGER.info("Sent AI aquarium analysis notification for %s", tank_name)
+            # Only send notification if auto-notifications is enabled
+            if auto_notifications:
+                await hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "title": f"🐠 {tank_name} AI Analysis",
+                        "message": message,
+                        "notification_id": f"aquarium_ai_{entry.entry_id}",
+                    },
+                )
+                _LOGGER.info("Sent AI aquarium analysis notification for %s", tank_name)
+            else:
+                _LOGGER.debug("AI analysis completed for %s (notifications disabled)", tank_name)
             
             # Store AI analysis data for sensors to use
             if response and "data" in response:
@@ -434,15 +438,20 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                     fallback_message = f"📋 {overall_status}\n\n" + "\n".join(fallback_message_parts)
                     fallback_message += "\n\n(AI analysis temporarily unavailable)"
                     
-                    await hass.services.async_call(
-                        "persistent_notification",
-                        "create",
-                        {
-                            "title": f"🐠 {tank_name} Aquarium Update",
-                            "message": fallback_message,
-                            "notification_id": f"aquarium_ai_{entry.entry_id}",
-                        },
-                    )
+                    # Only send fallback notification if auto-notifications is enabled
+                    if auto_notifications:
+                        await hass.services.async_call(
+                            "persistent_notification",
+                            "create",
+                            {
+                                "title": f"🐠 {tank_name} Aquarium Update",
+                                "message": fallback_message,
+                                "notification_id": f"aquarium_ai_{entry.entry_id}",
+                            },
+                        )
+                        _LOGGER.info("Sent fallback aquarium notification for %s", tank_name)
+                    else:
+                        _LOGGER.debug("AI analysis failed for %s, using fallback data (notifications disabled)", tank_name)
                     
                     # Store fallback sensor data for sensors to use
                     hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = {}
@@ -467,18 +476,15 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Send initial AI analysis only if auto-notifications is enabled
-    if auto_notifications:
-        await send_ai_aquarium_analysis(None)
+    # Always send initial AI analysis on startup for sensors to work properly
+    await send_ai_aquarium_analysis(None)
     
-    # Schedule AI analyses based on configured frequency only if auto-notifications is enabled
-    unsub = None
-    if auto_notifications:
-        unsub = async_track_time_interval(
-            hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
-        )
+    # Schedule AI analyses based on configured frequency - always needed for sensors
+    unsub = async_track_time_interval(
+        hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
+    )
     
-    # Store the unsubscribe function (will be None if auto-notifications is disabled)
+    # Store the unsubscribe function
     hass.data[DOMAIN][entry.entry_id]["unsub"] = unsub
     
     # Register the manual analysis service
