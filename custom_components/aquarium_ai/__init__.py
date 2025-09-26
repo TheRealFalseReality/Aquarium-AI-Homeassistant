@@ -6,7 +6,7 @@ from datetime import timedelta
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import async_track_time_interval, async_call_later
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
@@ -30,6 +30,23 @@ _LOGGER = logging.getLogger(__name__)
 
 # Service schema - no parameters needed
 RUN_ANALYSIS_SCHEMA = vol.Schema({})
+
+
+async def _send_notification_if_enabled(hass, auto_notifications, title, message, notification_id, tank_name, log_msg_type="analysis"):
+    """Send notification only if auto-notifications is enabled."""
+    if auto_notifications:
+        await hass.services.async_call(
+            "persistent_notification",
+            "create",
+            {
+                "title": title,
+                "message": message,
+                "notification_id": notification_id,
+            },
+        )
+        _LOGGER.info("Sent %s notification for %s", log_msg_type, tank_name)
+    else:
+        _LOGGER.debug("%s completed for %s (notifications disabled)", log_msg_type.title(), tank_name)
 
 
 def get_overall_status(sensor_data, aquarium_type):
@@ -255,6 +272,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     auto_notifications = entry.data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS)
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
+    # Set up sensor platform
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    
     # Define sensor mappings
     sensor_mappings = [
         (temp_sensor, "Temperature"),
@@ -275,10 +295,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
                 if sensor_info:
                     sensor_data.append(sensor_info)
-                    # Add to AI analysis structure
+                    # Add to AI analysis structure for both notifications and sensors
                     structure_key = sensor_name.lower().replace(" ", "_") + "_analysis"
                     analysis_structure[structure_key] = {
-                        "description": f"An analysis of the aquarium's {sensor_name.lower()} conditions with recommendations.",
+                        "description": f"Brief 1-2 sentence analysis of the aquarium's {sensor_name.lower()} conditions (under 200 characters).",
                         "required": True,
                         "selector": {"text": None}
                     }
@@ -298,7 +318,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             
             # Add overall analysis to structure
             analysis_structure["overall_analysis"] = {
-                "description": "A comprehensive analysis of the aquarium's overall health and condition.",
+                "description": "Brief 1-2 sentence overall aquarium health assessment (under 200 characters).",
                 "required": True,
                 "selector": {"text": None}
             }
@@ -310,9 +330,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 {conditions_str}
 
-Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary, nor "No adjustments are needed". 
-Focus on all available parameters for this {aquarium_type.lower()} aquarium. 
-Consider the relationships between different parameters and their impact on aquarium health. 
+Provide analysis for this {aquarium_type.lower()} aquarium. 
+For each parameter analysis, provide brief 1-2 sentence analysis under 200 characters. 
+For overall analysis, provide brief 1-2 sentence health assessment under 200 characters. 
+Only mention recommendations if critical issues exist.
+Consider the relationships between different parameters and their impact on aquarium health.
 Always correctly write ph as pH.
 
 IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
@@ -372,16 +394,42 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
             
             message = "\n".join(message_parts)
             
-            await hass.services.async_call(
-                "persistent_notification",
-                "create",
-                {
-                    "title": f"🐠 {tank_name} AI Analysis",
-                    "message": message,
-                    "notification_id": f"aquarium_ai_{entry.entry_id}",
-                },
+            # Send notification using consolidated helper
+            await _send_notification_if_enabled(
+                hass, 
+                auto_notifications,
+                f"🐠 {tank_name} AI Analysis",
+                message,
+                f"aquarium_ai_{entry.entry_id}",
+                tank_name,
+                "AI analysis"
             )
-            _LOGGER.info("Sent AI aquarium analysis notification for %s", tank_name)
+            
+            # Store AI analysis data for sensors to use
+            if response and "data" in response:
+                ai_data = response["data"]
+                
+                # Store sensor analysis data
+                sensor_analysis_data = {}
+                for structure_key in analysis_structure.keys():
+                    if structure_key in ai_data:
+                        analysis_text = ai_data[structure_key]
+                        # Ensure we stay under 255 characters
+                        if len(analysis_text) > 255:
+                            analysis_text = analysis_text[:252] + "..."
+                        sensor_analysis_data[structure_key] = analysis_text
+                
+                # Store overall analysis with brief version for sensors
+                if "overall_analysis" in ai_data:
+                    overall_analysis = ai_data["overall_analysis"]
+                    if len(overall_analysis) > 255:
+                        overall_analysis = overall_analysis[:252] + "..."
+                    sensor_analysis_data["overall_analysis"] = overall_analysis
+                
+                # Store the analysis data and sensor data in hass.data for sensors to access
+                hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = sensor_analysis_data
+                hass.data[DOMAIN][entry.entry_id]["sensor_data"] = sensor_data
+                hass.data[DOMAIN][entry.entry_id]["last_update"] = now
             
         except Exception as err:
             _LOGGER.error("Error sending AI aquarium analysis: %s", err)
@@ -403,15 +451,21 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                     fallback_message = f"📋 {overall_status}\n\n" + "\n".join(fallback_message_parts)
                     fallback_message += "\n\n(AI analysis temporarily unavailable)"
                     
-                    await hass.services.async_call(
-                        "persistent_notification",
-                        "create",
-                        {
-                            "title": f"🐠 {tank_name} Aquarium Update",
-                            "message": fallback_message,
-                            "notification_id": f"aquarium_ai_{entry.entry_id}",
-                        },
+                    # Send fallback notification using consolidated helper
+                    await _send_notification_if_enabled(
+                        hass,
+                        auto_notifications,
+                        f"🐠 {tank_name} Aquarium Update",
+                        fallback_message,
+                        f"aquarium_ai_{entry.entry_id}",
+                        tank_name,
+                        "fallback analysis"
                     )
+                    
+                    # Store fallback sensor data for sensors to use
+                    hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = {}
+                    hass.data[DOMAIN][entry.entry_id]["sensor_data"] = fallback_sensor_data
+                    hass.data[DOMAIN][entry.entry_id]["last_update"] = now
             except Exception as fallback_err:
                 _LOGGER.error("Error sending fallback notification: %s", fallback_err)
     
@@ -431,18 +485,21 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Send initial AI analysis only if auto-notifications is enabled
-    if auto_notifications:
+    # Schedule delayed AI analysis on startup to ensure HA is fully ready
+    async def delayed_startup_analysis(now):
+        """Run initial AI analysis after HA is fully started."""
+        _LOGGER.info("Running delayed startup AI analysis for %s", tank_name)
         await send_ai_aquarium_analysis(None)
     
-    # Schedule AI analyses based on configured frequency only if auto-notifications is enabled
-    unsub = None
-    if auto_notifications:
-        unsub = async_track_time_interval(
-            hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
-        )
+    # Run initial analysis after 60 seconds to ensure HA is fully ready
+    async_call_later(hass, 60, delayed_startup_analysis)
     
-    # Store the unsubscribe function (will be None if auto-notifications is disabled)
+    # Schedule AI analyses based on configured frequency - always needed for sensors
+    unsub = async_track_time_interval(
+        hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
+    )
+    
+    # Store the unsubscribe function
     hass.data[DOMAIN][entry.entry_id]["unsub"] = unsub
     
     # Register the manual analysis service
@@ -501,4 +558,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hass.services.has_service(DOMAIN, "run_analysis"):
             hass.services.async_remove(DOMAIN, "run_analysis")
     
-    return True
+    # Unload sensor platform
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])
