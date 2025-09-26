@@ -27,7 +27,7 @@ Before you can install and use Aquarium AI, you must have the following set up:
 
 1. A working **Home Assistant** instance (Version 2023.5+).
 2. **HACS (Home Assistant Community Store)** installed.  
-3. The core **`ai_task`** integration must be enabled and configured in Home Assistant. This integration will not work without it.
+3. The core **`ai_task`** integration must be enabled and configured in Home Assistant. This integration will not work without it. [**AI Task Documentation**](https://www.home-assistant.io/integrations/ai_task)
 4. One or more **aquarium-related sensors** (e.g., temperature, pH, salinity, etc.) available in Home Assistant.
 
 ---
