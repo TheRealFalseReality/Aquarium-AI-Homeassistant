@@ -255,6 +255,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     auto_notifications = entry.data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS)
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
+    # Set up sensor platform
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    
     # Define sensor mappings
     sensor_mappings = [
         (temp_sensor, "Temperature"),
@@ -501,4 +504,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hass.services.has_service(DOMAIN, "run_analysis"):
             hass.services.async_remove(DOMAIN, "run_analysis")
     
-    return True
+    # Unload sensor platform
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])

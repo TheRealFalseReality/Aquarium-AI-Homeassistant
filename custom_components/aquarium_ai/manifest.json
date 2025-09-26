@@ -6,6 +6,7 @@
   "issue_tracker": "https://github.com/TheRealFalseReality/aquarium-ai/issues",
   "codeowners": ["@TheRealFalseReality"],
   "dependencies": ["ai_task"],
+  "platforms": ["sensor"],
   "iot_class": "cloud_polling",
   "homeassistant": "2025.1.0",
   "requirements": [],
