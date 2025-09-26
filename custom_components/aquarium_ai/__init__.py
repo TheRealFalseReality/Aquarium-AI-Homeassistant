@@ -353,13 +353,12 @@ For sensor analysis fields (ending with '_analysis'):
 - Focus on current status and immediate concerns only
 
 For notification analysis fields (ending with '_notification_analysis'):
-- Provide detailed, comprehensive analysis without character limits
-- Include current status, trends, potential issues, relationships with other parameters
-- Provide detailed recommendations and explanations
-- Be thorough and educational for the aquarium owner
+- Provide detailed analysis of the parameter
+- Include current status, potential issues, relationships with other parameters
+- Provide recommendations for improvement only if needed, do not mention if everything is fine. If there are no concerns, issues or recommendations simply state that the parameter is within optimal range.
 
 For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
-For overall_notification_analysis: Comprehensive detailed assessment without character limits.
+For overall_notification_analysis: Detailed assessment without character limits.
 
 Consider the relationships between different parameters and their impact on aquarium health.
 Always correctly write ph as pH.
