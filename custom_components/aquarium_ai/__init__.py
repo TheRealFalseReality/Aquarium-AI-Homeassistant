@@ -21,10 +21,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Service schema
-RUN_ANALYSIS_SCHEMA = vol.Schema({
-    vol.Required("config_entry_id"): cv.string,
-})
+# Service schema - no parameters needed
+RUN_ANALYSIS_SCHEMA = vol.Schema({})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -141,15 +139,22 @@ Analyze my aquarium's temperature conditions and provide recommendations if need
     
     # Register the manual analysis service
     async def run_analysis_service(call: ServiceCall):
-        """Handle the run_analysis service call."""
-        config_entry_id = call.data["config_entry_id"]
+        """Handle the run_analysis service call - runs on all aquarium integrations."""
+        _LOGGER.info("Manual analysis service called")
         
-        if config_entry_id in hass.data[DOMAIN]:
-            analysis_function = hass.data[DOMAIN][config_entry_id]["analysis_function"]
-            await analysis_function(None)
-            _LOGGER.info("Manual analysis triggered for config entry: %s", config_entry_id)
+        # Run analysis on all configured aquarium integrations
+        if DOMAIN in hass.data:
+            for entry_id, entry_data in hass.data[DOMAIN].items():
+                if "analysis_function" in entry_data:
+                    try:
+                        analysis_function = entry_data["analysis_function"]
+                        tank_name = entry_data.get("tank_name", "Unknown Tank")
+                        await analysis_function(None)
+                        _LOGGER.info("Manual analysis completed for: %s", tank_name)
+                    except Exception as err:
+                        _LOGGER.error("Error running manual analysis for entry %s: %s", entry_id, err)
         else:
-            _LOGGER.error("Config entry not found: %s", config_entry_id)
+            _LOGGER.warning("No aquarium integrations found to analyze")
     
     # Register service only once
     if not hass.services.has_service(DOMAIN, "run_analysis"):
