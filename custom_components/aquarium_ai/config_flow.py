@@ -13,6 +13,8 @@ from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    BooleanSelector,
+    BooleanSelectorConfig,
 )
 
 from .const import (
@@ -26,9 +28,12 @@ from .const import (
     CONF_WATER_LEVEL_SENSOR,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
+    CONF_AUTO_NOTIFICATIONS,
     DEFAULT_TANK_NAME,
     DEFAULT_AQUARIUM_TYPE,
     DEFAULT_FREQUENCY,
+    DEFAULT_AUTO_NOTIFICATIONS,
+    UPDATE_FREQUENCIES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -147,6 +152,9 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     domain="ai_task",
                     multiple=False
                 )
+            ),
+            vol.Required(CONF_AUTO_NOTIFICATIONS, default=DEFAULT_AUTO_NOTIFICATIONS): BooleanSelector(
+                BooleanSelectorConfig()
             ),
         })
 
@@ -337,5 +345,11 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                     multiple=False
                 )
             )
+        
+        # Add auto-notifications toggle
+        schema_dict[vol.Required(
+            CONF_AUTO_NOTIFICATIONS,
+            default=current_data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS),
+        )] = BooleanSelector(BooleanSelectorConfig())
         
         return vol.Schema(schema_dict)

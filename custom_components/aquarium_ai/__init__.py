@@ -20,7 +20,9 @@ from .const import (
     CONF_WATER_LEVEL_SENSOR,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
+    CONF_AUTO_NOTIFICATIONS,
     DEFAULT_FREQUENCY,
+    DEFAULT_AUTO_NOTIFICATIONS,
     UPDATE_FREQUENCIES,
 )
 
@@ -153,6 +155,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     water_level_sensor = entry.data.get(CONF_WATER_LEVEL_SENSOR)
     frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
     ai_task = entry.data.get(CONF_AI_TASK)
+    auto_notifications = entry.data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS)
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
     # Define sensor mappings
@@ -223,11 +226,10 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
             # Extract the AI analysis
             message_parts = []
             
-            # Add sensor readings with icons and status
+            # Add sensor readings with icons only (no status labels)
             for info in sensor_data:
                 icon = get_sensor_icon(info['name'])
-                status = get_simple_status(info['name'], info['raw_value'], info['unit'])
-                message_parts.append(f"{icon} {info['name']}: {info['value']} ({status})")
+                message_parts.append(f"{icon} {info['name']}: {info['value']}")
             
             message_parts.append("\n🤖 AI Analysis:")
             
@@ -236,7 +238,19 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
                 for structure_key in analysis_structure.keys():
                     if structure_key in ai_data:
                         analysis_name = structure_key.replace("_analysis", "").replace("_", " ").title()
-                        message_parts.append(f"\n{analysis_name}:\n{ai_data[structure_key]}")
+                        # Find corresponding sensor info for status and icon
+                        corresponding_sensor = None
+                        for info in sensor_data:
+                            if info['name'].lower() == analysis_name.lower():
+                                corresponding_sensor = info
+                                break
+                        
+                        if corresponding_sensor:
+                            icon = get_sensor_icon(corresponding_sensor['name'])
+                            status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'])
+                            message_parts.append(f"\n{icon} {analysis_name} ({status}):\n{ai_data[structure_key]}")
+                        else:
+                            message_parts.append(f"\n{analysis_name}:\n{ai_data[structure_key]}")
             else:
                 message_parts.append("No analysis available")
             
@@ -263,8 +277,7 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
                     sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
                     if sensor_info:
                         icon = get_sensor_icon(sensor_info['name'])
-                        status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'])
-                        fallback_message_parts.append(f"{icon} {sensor_info['name']}: {sensor_info['value']} ({status})")
+                        fallback_message_parts.append(f"{icon} {sensor_info['name']}: {sensor_info['value']}")
                 
                 if fallback_message_parts:
                     fallback_message = "\n".join(fallback_message_parts)
@@ -294,18 +307,22 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
         "water_level_sensor": water_level_sensor,
         "frequency_minutes": frequency_minutes,
         "ai_task": ai_task,
+        "auto_notifications": auto_notifications,
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Send initial AI analysis
-    await send_ai_aquarium_analysis(None)
+    # Send initial AI analysis only if auto-notifications is enabled
+    if auto_notifications:
+        await send_ai_aquarium_analysis(None)
     
-    # Schedule AI analyses based on configured frequency
-    unsub = async_track_time_interval(
-        hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
-    )
+    # Schedule AI analyses based on configured frequency only if auto-notifications is enabled
+    unsub = None
+    if auto_notifications:
+        unsub = async_track_time_interval(
+            hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
+        )
     
-    # Store the unsubscribe function
+    # Store the unsubscribe function (will be None if auto-notifications is disabled)
     hass.data[DOMAIN][entry.entry_id]["unsub"] = unsub
     
     # Register the manual analysis service

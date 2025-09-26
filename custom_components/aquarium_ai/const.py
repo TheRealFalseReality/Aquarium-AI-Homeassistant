@@ -13,11 +13,13 @@ CONF_DISSOLVED_OXYGEN_SENSOR: Final = "dissolved_oxygen_sensor"
 CONF_WATER_LEVEL_SENSOR: Final = "water_level_sensor"
 CONF_UPDATE_FREQUENCY: Final = "update_frequency"
 CONF_AI_TASK: Final = "ai_task"
+CONF_AUTO_NOTIFICATIONS: Final = "auto_notifications"
 
 # Default values
 DEFAULT_TANK_NAME: Final = "My Aquarium"
 DEFAULT_AQUARIUM_TYPE: Final = "Freshwater"
 DEFAULT_FREQUENCY: Final = "1_hour"
+DEFAULT_AUTO_NOTIFICATIONS: Final = True
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {
