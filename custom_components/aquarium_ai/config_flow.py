@@ -228,6 +228,47 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
             ): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT)),
         }
         
+        # Add AI task selector
+        ai_task = current_data.get(CONF_AI_TASK)
+        if ai_task:
+            schema_dict[vol.Required(CONF_AI_TASK, default=ai_task)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="ai_task",
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Required(CONF_AI_TASK)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="ai_task",
+                    multiple=False
+                )
+            )
+        
+        # Add frequency selector
+        schema_dict[vol.Required(
+            CONF_UPDATE_FREQUENCY,
+            default=current_data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY),
+        )] = SelectSelector(
+            SelectSelectorConfig(
+                options=[
+                    {"value": "1_hour", "label": "Every hour"},
+                    {"value": "2_hours", "label": "Every 2 hours"},
+                    {"value": "4_hours", "label": "Every 4 hours"},
+                    {"value": "6_hours", "label": "Every 6 hours"},
+                    {"value": "12_hours", "label": "Every 12 hours"},
+                    {"value": "daily", "label": "Daily"},
+                ],
+                mode=SelectSelectorMode.DROPDOWN
+            )
+        )
+        
+        # Add auto-notifications toggle
+        schema_dict[vol.Required(
+            CONF_AUTO_NOTIFICATIONS,
+            default=current_data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS),
+        )] = BooleanSelector(BooleanSelectorConfig())
+        
         # Add sensor fields only if they have values to avoid "Entity None" error
         temp_sensor = current_data.get(CONF_TEMPERATURE_SENSOR)
         if temp_sensor:
@@ -310,46 +351,5 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                     multiple=False
                 )
             )
-        
-        # Add frequency selector
-        schema_dict[vol.Required(
-            CONF_UPDATE_FREQUENCY,
-            default=current_data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY),
-        )] = SelectSelector(
-            SelectSelectorConfig(
-                options=[
-                    {"value": "1_hour", "label": "Every hour"},
-                    {"value": "2_hours", "label": "Every 2 hours"},
-                    {"value": "4_hours", "label": "Every 4 hours"},
-                    {"value": "6_hours", "label": "Every 6 hours"},
-                    {"value": "12_hours", "label": "Every 12 hours"},
-                    {"value": "daily", "label": "Daily"},
-                ],
-                mode=SelectSelectorMode.DROPDOWN
-            )
-        )
-        
-        # Add AI task selector
-        ai_task = current_data.get(CONF_AI_TASK)
-        if ai_task:
-            schema_dict[vol.Required(CONF_AI_TASK, default=ai_task)] = EntitySelector(
-                EntitySelectorConfig(
-                    domain="ai_task",
-                    multiple=False
-                )
-            )
-        else:
-            schema_dict[vol.Required(CONF_AI_TASK)] = EntitySelector(
-                EntitySelectorConfig(
-                    domain="ai_task",
-                    multiple=False
-                )
-            )
-        
-        # Add auto-notifications toggle
-        schema_dict[vol.Required(
-            CONF_AUTO_NOTIFICATIONS,
-            default=current_data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS),
-        )] = BooleanSelector(BooleanSelectorConfig())
         
         return vol.Schema(schema_dict)
