@@ -46,7 +46,7 @@ def get_overall_status(sensor_data, aquarium_type):
     # Count different status types
     good_count = statuses.count("Good")
     ok_count = statuses.count("OK") 
-    problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low"]])
+    problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low", "High"]])
     
     total_sensors = len(statuses)
     
@@ -151,7 +151,9 @@ def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
         elif sensor_name == "Dissolved Oxygen":
             if unit.lower() in ["ppm", "parts_per_million"]:
                 # PPM is similar to mg/L for water
-                if numeric_value >= 6:
+                if numeric_value >= 12:
+                    return "High"
+                elif numeric_value >= 7:
                     return "Good"
                 elif numeric_value >= 4:
                     return "OK"
@@ -159,7 +161,9 @@ def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
                     return "Low"
             elif unit.lower() in ["%", "percent", "saturation"]:
                 # Percentage saturation
-                if numeric_value >= 80:
+                if numeric_value >= 120:
+                    return "High"
+                elif numeric_value >= 85:
                     return "Good"
                 elif numeric_value >= 60:
                     return "OK"
