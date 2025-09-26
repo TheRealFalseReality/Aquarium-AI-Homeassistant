@@ -240,7 +240,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 {conditions_str}
 
-Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health. Always correctly write ph as pH""",
+Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary. 
+Focus on all available parameters for this {aquarium_type.lower()} aquarium. 
+Consider the relationships between different parameters and their impact on aquarium health. 
+Always correctly write ph as pH""",
+
                 "structure": analysis_structure
             }
             
@@ -259,7 +263,7 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
             
             # Add overall status at the top
             overall_status = get_overall_status(sensor_data, aquarium_type)
-            message_parts.append(f"📋 Status: {overall_status}")
+            message_parts.append(f"📋 {overall_status}")
             message_parts.append("")  # Add blank line
             
             # Add sensor readings with icons only (no status labels)
@@ -296,7 +300,7 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
                 "persistent_notification",
                 "create",
                 {
-                    "title": f"🐠 {tank_name} AI Aquarium Analysis",
+                    "title": f"🐠 {tank_name} AI Analysis",
                     "message": message,
                     "notification_id": f"aquarium_ai_{entry.entry_id}",
                 },
@@ -320,7 +324,7 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
                 if fallback_message_parts:
                     # Add overall status at the top of fallback message too
                     overall_status = get_overall_status(fallback_sensor_data, aquarium_type)
-                    fallback_message = f"📋 Status: {overall_status}\n\n" + "\n".join(fallback_message_parts)
+                    fallback_message = f"📋 {overall_status}\n\n" + "\n".join(fallback_message_parts)
                     fallback_message += "\n\n(AI analysis temporarily unavailable)"
                     
                     await hass.services.async_call(
