@@ -1,0 +1,54 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aquarium AI Setup",
+        "description": "Set up AI-powered aquarium temperature monitoring and analysis. This integration uses AI to analyze your aquarium temperature and provide intelligent recommendations through Home Assistant notifications.",
+        "data": {
+          "tank_name": "Aquarium Name",
+          "aquarium_type": "Aquarium Type", 
+          "temperature_sensor": "Temperature Sensor",
+          "update_frequency": "Update Frequency"
+        },
+        "data_description": {
+          "tank_name": "Enter a custom name for your aquarium (e.g., 'Main Tank', 'Reef Setup', 'Community Tank'). This name will appear in notifications and service calls.",
+          "aquarium_type": "Specify your aquarium type to provide context for AI analysis. Common types include Freshwater, Marine, Brackish, or custom types like 'Cichlid Tank' or 'Reef Aquarium'.",
+          "temperature_sensor": "Choose the temperature sensor entity that monitors your aquarium. Only temperature sensors with proper device class are shown.",
+          "update_frequency": "Select how often the AI should analyze your aquarium temperature and send notifications. Choose based on your monitoring needs - more frequent for sensitive setups, less frequent for stable systems."
+        }
+      }
+    },
+    "error": {
+      "sensor_not_found": "Selected temperature sensor was not found. Please select a valid temperature sensor.",
+      "sensor_required": "Please select a temperature sensor to monitor your aquarium.",
+      "invalid_sensor": "The selected sensor is not a valid temperature sensor.",
+      "no_sensors": "No temperature sensors found. Please ensure you have temperature sensors set up in Home Assistant before configuring this integration."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Aquarium AI Options",
+        "description": "Modify your aquarium monitoring settings. Changes will take effect immediately without restarting Home Assistant.",
+        "data": {
+          "tank_name": "Aquarium Name",
+          "aquarium_type": "Aquarium Type",
+          "temperature_sensor": "Temperature Sensor", 
+          "update_frequency": "Update Frequency"
+        },
+        "data_description": {
+          "tank_name": "Update the name for your aquarium. This name appears in all notifications and can help identify multiple tank setups.",
+          "aquarium_type": "Change your aquarium type to improve AI analysis accuracy. The AI provides different recommendations based on aquarium type (e.g., Marine tanks need different temperature ranges than Freshwater).",
+          "temperature_sensor": "Switch to a different temperature sensor if you've added new sensors or want to monitor a different location in your aquarium.",
+          "update_frequency": "Adjust notification frequency based on your needs. Use shorter intervals during critical periods (water changes, new fish) or longer intervals for stable, established tanks."
+        }
+      }
+    }
+  },
+  "services": {
+    "run_analysis": {
+      "name": "Run AI Analysis",
+      "description": "Manually trigger an immediate AI temperature analysis for all configured aquarium integrations. This is useful for on-demand analysis after water changes, equipment adjustments, or when creating automations."
+    }
+  }
+}

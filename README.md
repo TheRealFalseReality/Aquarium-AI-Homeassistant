@@ -1,10 +1,10 @@
 # Aquarium AI for Home Assistant
 
+![Aquarium AI](logo.png)
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
 **Aquarium AI** is a custom integration for [Home Assistant](https://www.home-assistant.io/) that uses the power of AI to analyze the conditions of your aquarium. It dynamically evaluates your existing sensors, provides clear text-based analyses, and automatically tracks trends in your aquarium's key parameters.
-
-
 
 This integration takes the guesswork out of maintaining a healthy aquatic environment by turning raw sensor data into actionable insights.
 
@@ -25,10 +25,10 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 
 Before you can install and use Aquarium AI, you must have the following set up:
 
-1.  A working **Home Assistant** instance (Version 2023.5+).
-2.  **HACS (Home Assistant Community Store)** installed.
-3.  The core **`ai_task`** integration must be enabled and configured in Home Assistant. This integration will not work without it.
-4.  One or more **aquarium-related sensors** (e.g., temperature, pH, salinity, etc.) available in Home Assistant.
+1. A working **Home Assistant** instance (Version 2023.5+).
+2. **HACS (Home Assistant Community Store)** installed.  
+3. The core **`ai_task`** integration must be enabled and configured in Home Assistant. This integration will not work without it.
+4. One or more **aquarium-related sensors** (e.g., temperature, pH, salinity, etc.) available in Home Assistant.
 
 ---
 
@@ -36,19 +36,19 @@ Before you can install and use Aquarium AI, you must have the following set up:
 
 ### Method 1: HACS (Recommended)
 
-1.  Navigate to the **HACS** section in your Home Assistant.
-2.  Click on **Integrations**, then click the three-dots menu in the top-right and select **"Custom repositories"**.
-3.  Add the URL to this GitHub repository in the "Repository" field.
-4.  Select **"Integration"** for the category and click **"Add"**.
-5.  The "Aquarium AI" integration will now appear in your HACS list. Click on it and then click **"Download"**.
-6.  Restart Home Assistant when prompted.
+1. Navigate to the **HACS** section in your Home Assistant.
+2. Click on **Integrations**, then click the three-dots menu in the top-right and select **"Custom repositories"**.
+3. Add the URL to this GitHub repository in the "Repository" field.
+4. Select **"Integration"** for the category and click **"Add"**.
+5. The "Aquarium AI" integration will now appear in your HACS list. Click on it and then click **"Download"**.
+6. Restart Home Assistant when prompted.
 
 ### Method 2: Manual Installation
 
-1.  Download the latest release from the [Releases page](https://github.com/YOUR_GITHUB_USERNAME/aquarium-ai/releases).
-2.  Unzip the downloaded file.
-3.  Copy the `aquarium_ai` folder (from within the `custom_components` directory) into your Home Assistant's `config/custom_components/` directory.
-4.  Restart Home Assistant.
+1. Download the latest release from the [Releases page](https://github.com/YOUR_GITHUB_USERNAME/aquarium-ai/releases).
+2. Unzip the downloaded file.
+3. Copy the `aquarium_ai` folder (from within the `custom_components` directory) into your Home Assistant's `config/custom_components/` directory.
+4. Restart Home Assistant.
 
 ---
 
@@ -56,14 +56,14 @@ Before you can install and use Aquarium AI, you must have the following set up:
 
 Once installed, the integration must be configured through the UI.
 
-1.  Navigate to **Settings** -> **Devices & Services**.
-2.  Click the **"+ Add Integration"** button in the bottom right.
-3.  Search for **"Aquarium AI"** and click on it.
-4.  A configuration dialog will appear. You will be asked to provide:
+1. Navigate to **Settings** -> **Devices & Services**.
+2. Click the **"+ Add Integration"** button in the bottom right.
+3. Search for **"Aquarium AI"** and click on it.
+4. A configuration dialog will appear. You will be asked to provide:
     * **Aquarium Type**: Select the type of your aquarium (e.g., Marine, Freshwater).
     * **Sensors**: Select all the sensor entities you wish for the AI to analyze.
     * **Update Frequency**: Choose how often you want the analysis to run automatically.
-5.  Click **"Submit"**. The integration will set up all the necessary entities.
+5. Click **"Submit"**. The integration will set up all the necessary entities.
 
 ---
 
@@ -94,7 +94,7 @@ The integration adds a service that allows you to trigger an update manually. Th
 
 **Service:** `aquarium_ai.update_analysis`
 
-#### Example Automation
+### Example Automation
 
 This automation runs an analysis every day at 8:00 AM, overriding the schedule you chose in the config.
 

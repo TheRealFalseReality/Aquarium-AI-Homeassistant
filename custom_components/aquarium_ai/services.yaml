@@ -1,0 +1,3 @@
+run_analysis:
+  name: Run AI Analysis
+  description: Trigger an immediate AI temperature analysis for all configured aquarium integrations
