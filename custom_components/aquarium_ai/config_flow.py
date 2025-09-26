@@ -97,6 +97,12 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     return self.async_create_entry(title=tank_name, data=user_input)
 
         data_schema = vol.Schema({
+            vol.Required(CONF_AI_TASK): EntitySelector(
+                EntitySelectorConfig(
+                    domain="ai_task",
+                    multiple=False
+                )
+            ),
             vol.Required(CONF_TANK_NAME, default=DEFAULT_TANK_NAME): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT)
             ),
@@ -145,12 +151,6 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         {"value": "daily", "label": "Daily"},
                     ],
                     mode=SelectSelectorMode.DROPDOWN
-                )
-            ),
-            vol.Required(CONF_AI_TASK): EntitySelector(
-                EntitySelectorConfig(
-                    domain="ai_task",
-                    multiple=False
                 )
             ),
             vol.Required(CONF_AUTO_NOTIFICATIONS, default=DEFAULT_AUTO_NOTIFICATIONS): BooleanSelector(
