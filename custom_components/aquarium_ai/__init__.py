@@ -289,16 +289,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         try:
             # Collect all available sensor data
             sensor_data = []
-            analysis_structure = {}
+            analysis_structure_sensors = {}
+            analysis_structure_notification = {}
             
             for sensor_entity, sensor_name in sensor_mappings:
                 sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
                 if sensor_info:
                     sensor_data.append(sensor_info)
-                    # Add to AI analysis structure for both notifications and sensors
+                    # Add to AI analysis structure for sensors (brief)
                     structure_key = sensor_name.lower().replace(" ", "_") + "_analysis"
-                    analysis_structure[structure_key] = {
+                    analysis_structure_sensors[structure_key] = {
                         "description": f"Brief 1-2 sentence analysis of the aquarium's {sensor_name.lower()} conditions (under 200 characters).",
+                        "required": True,
+                        "selector": {"text": None}
+                    }
+                    # Add to AI analysis structure for notifications (detailed)
+                    notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
+                    analysis_structure_notification[notification_key] = {
+                        "description": f"Detailed analysis of the aquarium's {sensor_name.lower()} conditions. Provide comprehensive explanation including current status, potential issues, trends, and detailed recommendations if needed.",
                         "required": True,
                         "selector": {"text": None}
                     }
@@ -316,14 +324,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     conditions_list.append(f"- {info['name']}: {info['raw_value']} (no units)")
             conditions_str = "\n".join(conditions_list)
             
-            # Add overall analysis to structure
-            analysis_structure["overall_analysis"] = {
+            # Add overall analysis to both structures
+            analysis_structure_sensors["overall_analysis"] = {
                 "description": "Brief 1-2 sentence overall aquarium health assessment (under 200 characters).",
                 "required": True,
                 "selector": {"text": None}
             }
+            analysis_structure_notification["overall_notification_analysis"] = {
+                "description": "Comprehensive overall aquarium health assessment. Provide detailed summary of all parameters, their relationships, overall tank health, and any recommendations for improvement.",
+                "required": True,
+                "selector": {"text": None}
+            }
             
-            # Prepare AI Task data
+            # Combine both structures for the AI task
+            combined_analysis_structure = {**analysis_structure_sensors, **analysis_structure_notification}
+            
+            # Prepare AI Task data with separate instructions for sensor vs notification analysis
             ai_task_data = {
                 "task_name": tank_name,
                 "instructions": f"""Based on the current conditions:
@@ -331,9 +347,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 {conditions_str}
 
 Provide analysis for this {aquarium_type.lower()} aquarium. 
-For each parameter analysis, provide brief 1-2 sentence analysis under 200 characters. 
-For overall analysis, provide brief 1-2 sentence health assessment under 200 characters. 
-Only mention recommendations if critical issues exist.
+
+For sensor analysis fields (ending with '_analysis'):
+- Provide brief 1-2 sentence analysis under 200 characters
+- Focus on current status and immediate concerns only
+
+For notification analysis fields (ending with '_notification_analysis'):
+- Provide detailed, comprehensive analysis without character limits
+- Include current status, trends, potential issues, relationships with other parameters
+- Provide detailed recommendations and explanations
+- Be thorough and educational for the aquarium owner
+
+For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
+For overall_notification_analysis: Comprehensive detailed assessment without character limits.
+
 Consider the relationships between different parameters and their impact on aquarium health.
 Always correctly write ph as pH.
 
@@ -343,7 +370,7 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
 - Dissolved Oxygen: Consider if values are in mg/L, ppm, or percentage saturation
 - Water Level: Consider if values are percentages or absolute measurements
 - pH: Typically has no units (pure number scale 0-14)""",
-                "structure": analysis_structure
+                "structure": combined_analysis_structure
             }
             
             # Call AI Task service using entity ID
@@ -373,22 +400,28 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
             
             if response and "data" in response:
                 ai_data = response["data"]
-                for structure_key in analysis_structure.keys():
-                    if structure_key in ai_data:
-                        analysis_name = structure_key.replace("_analysis", "").replace("_", " ").title()
+                
+                # Use detailed notification analysis for notifications
+                for sensor_entity, sensor_name in sensor_mappings:
+                    notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
+                    if notification_key in ai_data:
                         # Find corresponding sensor info for status and icon
                         corresponding_sensor = None
                         for info in sensor_data:
-                            if info['name'].lower() == analysis_name.lower():
+                            if info['name'].lower() == sensor_name.lower():
                                 corresponding_sensor = info
                                 break
                         
                         if corresponding_sensor:
                             icon = get_sensor_icon(corresponding_sensor['name'])
                             status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
-                            message_parts.append(f"\n{icon} {analysis_name} ({status}):\n{ai_data[structure_key]}")
+                            message_parts.append(f"\n{icon} {sensor_name} ({status}):\n{ai_data[notification_key]}")
                         else:
-                            message_parts.append(f"\n{analysis_name}:\n{ai_data[structure_key]}")
+                            message_parts.append(f"\n{sensor_name}:\n{ai_data[notification_key]}")
+                
+                # Add overall detailed analysis if available
+                if "overall_notification_analysis" in ai_data:
+                    message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
             else:
                 message_parts.append("No analysis available")
             
@@ -409,12 +442,12 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
             if response and "data" in response:
                 ai_data = response["data"]
                 
-                # Store sensor analysis data
+                # Store sensor analysis data (brief versions for sensors)
                 sensor_analysis_data = {}
-                for structure_key in analysis_structure.keys():
+                for structure_key in analysis_structure_sensors.keys():
                     if structure_key in ai_data:
                         analysis_text = ai_data[structure_key]
-                        # Ensure we stay under 255 characters
+                        # Ensure we stay under 255 characters for sensors
                         if len(analysis_text) > 255:
                             analysis_text = analysis_text[:252] + "..."
                         sensor_analysis_data[structure_key] = analysis_text
