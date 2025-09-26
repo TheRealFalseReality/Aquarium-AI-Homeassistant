@@ -206,6 +206,7 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
         self._attr_name = f"{tank_name} {sensor_name} Analysis"
         self._attr_unique_id = f"{config_entry.entry_id}_{sensor_name.lower().replace(' ', '_')}_analysis"
         self._attr_icon = self._get_sensor_icon(sensor_name)
+        self._attr_extra_state_attributes = {}
         
     def _get_sensor_icon(self, sensor_name: str) -> str:
         """Get appropriate icon for sensor type."""
@@ -217,6 +218,11 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
             "Water Level": "mdi:waves",
         }
         return sensor_icons.get(sensor_name, "mdi:chart-line")
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
         
     async def async_update(self) -> None:
         """Update the sensor."""
@@ -226,6 +232,7 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
             if not sensor_info:
                 self._state = "Sensor unavailable"
                 self._available = False
+                self._attr_extra_state_attributes = {}
                 return
                 
             self._available = True
@@ -240,15 +247,30 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
             if analysis_key in sensor_analysis and sensor_analysis[analysis_key]:
                 # Use the AI analysis from the shared update
                 self._state = sensor_analysis[analysis_key]
+                analysis_source = "AI"
             else:
                 # Fallback to simple status if no AI analysis available
                 status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'], self._aquarium_type)
                 self._state = f"{sensor_info['name']} is {status} at {sensor_info['value']}"
+                analysis_source = "Fallback"
+            
+            # Add attributes with sensor info and analysis metadata
+            self._attr_extra_state_attributes = {
+                "sensor_name": sensor_info['name'],
+                "sensor_value": sensor_info['value'],
+                "raw_value": sensor_info['raw_value'],
+                "unit": sensor_info['unit'],
+                "source_entity": self._sensor_entity,
+                "analysis_source": analysis_source,
+                "aquarium_type": self._aquarium_type,
+                "last_updated": shared_data.get("last_update"),
+            }
                 
         except Exception as err:
             _LOGGER.error("Error updating %s analysis sensor: %s", self._sensor_name, err)
             self._state = "Analysis unavailable"
             self._available = False
+            self._attr_extra_state_attributes = {}
 
 
 class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
@@ -270,6 +292,12 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
         self._attr_name = f"{tank_name} Overall Analysis"
         self._attr_unique_id = f"{config_entry.entry_id}_overall_analysis"
         self._attr_icon = "mdi:fish"
+        self._attr_extra_state_attributes = {}
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
         
     async def async_update(self) -> None:
         """Update the sensor."""
@@ -284,6 +312,7 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
             if not sensor_data:
                 self._state = "No sensor data available"
                 self._available = False
+                self._attr_extra_state_attributes = {}
                 return
                 
             self._available = True
@@ -295,14 +324,36 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
             if "overall_analysis" in sensor_analysis and sensor_analysis["overall_analysis"]:
                 # Use the AI analysis from the shared update
                 self._state = sensor_analysis["overall_analysis"]
+                analysis_source = "AI"
             else:
                 # Fallback to simple overall status
                 self._state = get_overall_status(sensor_data, self._aquarium_type)
+                analysis_source = "Fallback"
+            
+            # Add attributes with all sensor information
+            sensors_info = {}
+            for info in sensor_data:
+                sensors_info[info['name']] = {
+                    "value": info['value'],
+                    "raw_value": info['raw_value'],
+                    "unit": info['unit'],
+                    "status": get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
+                }
+            
+            self._attr_extra_state_attributes = {
+                "sensors": sensors_info,
+                "total_sensors": len(sensor_data),
+                "aquarium_type": self._aquarium_type,
+                "analysis_source": analysis_source,
+                "last_updated": shared_data.get("last_update"),
+                "ai_task": self._ai_task,
+            }
                 
         except Exception as err:
             _LOGGER.error("Error updating overall analysis sensor: %s", err)
             self._state = "Analysis unavailable"
             self._available = False
+            self._attr_extra_state_attributes = {}
 
 
 class AquariumAISimpleStatus(AquariumAIBaseSensor):
@@ -322,6 +373,12 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
         self._attr_name = f"{tank_name} Simple Status"
         self._attr_unique_id = f"{config_entry.entry_id}_simple_status"
         self._attr_icon = "mdi:check-circle"
+        self._attr_extra_state_attributes = {}
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
         
     async def async_update(self) -> None:
         """Update the sensor."""
@@ -341,17 +398,48 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
             if not sensor_data:
                 self._state = "No sensors configured"
                 self._available = False
+                self._attr_extra_state_attributes = {}
                 return
                 
             self._available = True
             
             # Use existing simple status logic
             self._state = get_overall_status(sensor_data, self._aquarium_type)
+            
+            # Collect individual sensor statuses for attributes
+            individual_statuses = {}
+            statuses = []
+            for info in sensor_data:
+                status = get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
+                individual_statuses[info['name']] = {
+                    "status": status,
+                    "value": info['value'],
+                    "unit": info['unit']
+                }
+                statuses.append(status)
+            
+            # Calculate status distribution
+            good_count = statuses.count("Good")
+            ok_count = statuses.count("OK")
+            problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low", "High"]])
+            
+            self._attr_extra_state_attributes = {
+                "individual_statuses": individual_statuses,
+                "status_summary": {
+                    "good": good_count,
+                    "ok": ok_count,
+                    "problems": problem_count,
+                    "total": len(statuses)
+                },
+                "aquarium_type": self._aquarium_type,
+                "last_updated": shared_data.get("last_update"),
+            }
                 
         except Exception as err:
             _LOGGER.error("Error updating simple status sensor: %s", err)
             self._state = "Status unavailable"
             self._available = False
+            self._attr_extra_state_attributes = {}
 
 
 class AquariumAIParameterStatus(AquariumAIBaseSensor):
@@ -443,6 +531,12 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
         self._attr_name = f"{tank_name} Quick Status"
         self._attr_unique_id = f"{config_entry.entry_id}_quick_status"
         self._attr_icon = "mdi:speedometer"
+        self._attr_extra_state_attributes = {}
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
         
     async def async_update(self) -> None:
         """Update the sensor."""
@@ -462,15 +556,23 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
             if not sensor_data:
                 self._state = "No Data"
                 self._available = False
+                self._attr_extra_state_attributes = {}
                 return
                 
             self._available = True
             
             # Collect all individual sensor statuses
             statuses = []
+            sensor_details = {}
             for info in sensor_data:
                 status = get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
                 statuses.append(status)
+                sensor_details[info['name']] = {
+                    "status": status,
+                    "value": info['value'],
+                    "raw_value": info['raw_value'],
+                    "unit": info['unit']
+                }
             
             # Count different status types
             good_count = statuses.count("Good")
@@ -482,16 +584,41 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
             # Determine quick status based on sensor status distribution
             if good_count == total_sensors:
                 self._state = "Excellent"
+                status_level = 5
             elif good_count >= total_sensors * 0.75:  # 75% or more good
                 self._state = "Great"
+                status_level = 4
             elif (good_count + ok_count) >= total_sensors * 0.8:  # 80% or more good/ok
                 self._state = "Good"
+                status_level = 3
             elif problem_count <= total_sensors * 0.4:  # Less than 40% problems
                 self._state = "OK"
+                status_level = 2
             else:
                 self._state = "Needs Attention"
+                status_level = 1
+            
+            # Add comprehensive attributes
+            self._attr_extra_state_attributes = {
+                "sensor_details": sensor_details,
+                "status_counts": {
+                    "good": good_count,
+                    "ok": ok_count,
+                    "problems": problem_count,
+                    "total": total_sensors
+                },
+                "status_percentages": {
+                    "good_percent": round((good_count / total_sensors) * 100, 1) if total_sensors > 0 else 0,
+                    "ok_percent": round((ok_count / total_sensors) * 100, 1) if total_sensors > 0 else 0,
+                    "problem_percent": round((problem_count / total_sensors) * 100, 1) if total_sensors > 0 else 0
+                },
+                "status_level": status_level,
+                "aquarium_type": self._aquarium_type,
+                "last_updated": shared_data.get("last_update"),
+            }
                 
         except Exception as err:
             _LOGGER.error("Error updating quick status sensor: %s", err)
             self._state = "Unavailable"
             self._available = False
+            self._attr_extra_state_attributes = {}
