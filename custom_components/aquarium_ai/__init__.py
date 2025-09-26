@@ -32,6 +32,37 @@ _LOGGER = logging.getLogger(__name__)
 RUN_ANALYSIS_SCHEMA = vol.Schema({})
 
 
+def get_overall_status(sensor_data, aquarium_type):
+    """Generate an overall status message for the aquarium based on all sensors."""
+    if not sensor_data:
+        return f"Your {aquarium_type} Aquarium needs sensor data!"
+    
+    # Collect all individual sensor statuses
+    statuses = []
+    for info in sensor_data:
+        status = get_simple_status(info['name'], info['raw_value'], info['unit'])
+        statuses.append(status)
+    
+    # Count different status types
+    good_count = statuses.count("Good")
+    ok_count = statuses.count("OK") 
+    problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low"]])
+    
+    total_sensors = len(statuses)
+    
+    # Determine overall status based on sensor status distribution
+    if good_count == total_sensors:
+        return f"Your {aquarium_type} Aquarium is Excellent! 🌟"
+    elif good_count >= total_sensors * 0.75:  # 75% or more good
+        return f"Your {aquarium_type} Aquarium is Great! 👍"
+    elif (good_count + ok_count) >= total_sensors * 0.8:  # 80% or more good/ok
+        return f"Your {aquarium_type} Aquarium is Good 👌"
+    elif problem_count <= total_sensors * 0.4:  # Less than 40% problems
+        return f"Your {aquarium_type} Aquarium is OK ⚠️"
+    else:
+        return f"Your {aquarium_type} Aquarium needs attention! 🚨"
+
+
 def get_sensor_icon(sensor_name):
     """Get appropriate icon for sensor type."""
     sensor_icons = {
@@ -226,6 +257,11 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
             # Extract the AI analysis
             message_parts = []
             
+            # Add overall status at the top
+            overall_status = get_overall_status(sensor_data, aquarium_type)
+            message_parts.append(f"📋 Status: {overall_status}")
+            message_parts.append("")  # Add blank line
+            
             # Add sensor readings with icons only (no status labels)
             for info in sensor_data:
                 icon = get_sensor_icon(info['name'])
@@ -272,15 +308,19 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
             # Fallback to simple notification if AI fails
             try:
                 fallback_message_parts = []
+                fallback_sensor_data = []
                 
                 for sensor_entity, sensor_name in sensor_mappings:
                     sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
                     if sensor_info:
+                        fallback_sensor_data.append(sensor_info)
                         icon = get_sensor_icon(sensor_info['name'])
                         fallback_message_parts.append(f"{icon} {sensor_info['name']}: {sensor_info['value']}")
                 
                 if fallback_message_parts:
-                    fallback_message = "\n".join(fallback_message_parts)
+                    # Add overall status at the top of fallback message too
+                    overall_status = get_overall_status(fallback_sensor_data, aquarium_type)
+                    fallback_message = f"📋 Status: {overall_status}\n\n" + "\n".join(fallback_message_parts)
                     fallback_message += "\n\n(AI analysis temporarily unavailable)"
                     
                     await hass.services.async_call(
