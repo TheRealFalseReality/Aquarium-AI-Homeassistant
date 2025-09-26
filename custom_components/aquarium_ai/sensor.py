@@ -93,6 +93,33 @@ async def async_setup_entry(
         )
     )
     
+    # Create parameter status sensors for each sensor
+    for sensor_entity, sensor_name in valid_sensor_mappings:
+        entities.append(
+            AquariumAIParameterStatus(
+                hass,
+                config_entry,
+                tank_name,
+                aquarium_type,
+                sensor_entity,
+                sensor_name,
+                frequency_minutes,
+                valid_sensor_mappings,
+            )
+        )
+    
+    # Create quick status sensor (short version of overall status)
+    entities.append(
+        AquariumAIQuickStatus(
+            hass,
+            config_entry,
+            tank_name,
+            aquarium_type,
+            frequency_minutes,
+            valid_sensor_mappings,
+        )
+    )
+    
     async_add_entities(entities)
 
 
@@ -408,4 +435,125 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
         except Exception as err:
             _LOGGER.error("Error updating simple status sensor: %s", err)
             self._state = "Status unavailable"
+            self._available = False
+
+
+class AquariumAIParameterStatus(AquariumAIBaseSensor):
+    """Sensor for individual parameter status (Good/OK/Check)."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        sensor_entity: str,
+        sensor_name: str,
+        frequency_minutes: int,
+        sensor_mappings: list,
+    ):
+        """Initialize the parameter status sensor."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._sensor_entity = sensor_entity
+        self._sensor_name = sensor_name
+        self._attr_name = f"{tank_name} {sensor_name} Status"
+        self._attr_unique_id = f"{config_entry.entry_id}_{sensor_name.lower().replace(' ', '_')}_status"
+        self._attr_icon = self._get_sensor_icon(sensor_name)
+        
+    def _get_sensor_icon(self, sensor_name: str) -> str:
+        """Get appropriate icon for sensor type."""
+        sensor_icons = {
+            "Temperature": "mdi:thermometer",
+            "pH": "mdi:ph", 
+            "Salinity": "mdi:shaker-outline",
+            "Dissolved Oxygen": "mdi:air-purifier",
+            "Water Level": "mdi:waves",
+        }
+        return sensor_icons.get(sensor_name, "mdi:chart-line")
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Get sensor info
+            sensor_info = get_sensor_info(self._hass, self._sensor_entity, self._sensor_name)
+            if not sensor_info:
+                self._state = "Unavailable"
+                self._available = False
+                return
+                
+            self._available = True
+            
+            # Get simple status
+            status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'], self._aquarium_type)
+            self._state = f"{status} ({sensor_info['value']})"
+                
+        except Exception as err:
+            _LOGGER.error("Error updating %s status sensor: %s", self._sensor_name, err)
+            self._state = "Status unavailable"
+            self._available = False
+
+
+class AquariumAIQuickStatus(AquariumAIBaseSensor):
+    """Sensor for quick status overview (one or two words)."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        frequency_minutes: int,
+        sensor_mappings: list,
+    ):
+        """Initialize the quick status sensor."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._attr_name = f"{tank_name} Quick Status"
+        self._attr_unique_id = f"{config_entry.entry_id}_quick_status"
+        self._attr_icon = "mdi:speedometer"
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Get all sensor data
+            sensor_data = []
+            for sensor_entity, sensor_name in self._sensor_mappings:
+                sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
+                if sensor_info:
+                    sensor_data.append(sensor_info)
+            
+            if not sensor_data:
+                self._state = "No Data"
+                self._available = False
+                return
+                
+            self._available = True
+            
+            # Collect all individual sensor statuses
+            statuses = []
+            for info in sensor_data:
+                status = get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
+                statuses.append(status)
+            
+            # Count different status types
+            good_count = statuses.count("Good")
+            ok_count = statuses.count("OK") 
+            problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low", "High"]])
+            
+            total_sensors = len(statuses)
+            
+            # Determine quick status based on sensor status distribution
+            if good_count == total_sensors:
+                self._state = "Excellent"
+            elif good_count >= total_sensors * 0.75:  # 75% or more good
+                self._state = "Great"
+            elif (good_count + ok_count) >= total_sensors * 0.8:  # 80% or more good/ok
+                self._state = "Good"
+            elif problem_count <= total_sensors * 0.4:  # Less than 40% problems
+                self._state = "OK"
+            else:
+                self._state = "Needs Attention"
+                
+        except Exception as err:
+            _LOGGER.error("Error updating quick status sensor: %s", err)
+            self._state = "Unavailable"
             self._available = False
