@@ -18,7 +18,6 @@ CONF_AI_TASK: Final = "ai_task"
 DEFAULT_TANK_NAME: Final = "My Aquarium"
 DEFAULT_AQUARIUM_TYPE: Final = "Freshwater"
 DEFAULT_FREQUENCY: Final = "1_hour"
-DEFAULT_AI_TASK: Final = "generate_data"
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {
@@ -29,10 +28,3 @@ UPDATE_FREQUENCIES: Final = {
     "12_hours": 720,
     "daily": 1440,
 }
-
-# AI Task options
-AI_TASK_OPTIONS: Final = [
-    {"value": "generate_data", "label": "Generate Data"},
-    {"value": "summarize", "label": "Summarize"},
-    {"value": "analyze", "label": "Analyze"},
-]

@@ -24,7 +24,7 @@
           "dissolved_oxygen_sensor": "Select a sensor that measures dissolved oxygen levels in your aquarium water.",
           "water_level_sensor": "Choose a sensor that measures water level. This can be numeric (e.g., 80%) or text (e.g., Normal/High/Low).",
           "update_frequency": "Select how often the AI should analyze your aquarium sensors and send notifications. Choose based on your monitoring needs - more frequent for sensitive setups, less frequent for stable systems.",
-          "ai_task": "Select the AI task type to use for analysis. Different tasks provide different analysis styles."
+          "ai_task": "Select an AI task entity from your Home Assistant configuration (e.g., ai_task.google_ai_task or ai_task.openai_ai_task)."
         }
       }
     },
@@ -33,7 +33,8 @@
       "sensor_required": "Please select a temperature sensor to monitor your aquarium.",
       "invalid_sensor": "The selected sensor is not a valid sensor.",
       "no_sensors": "No sensors found. Please ensure you have sensors set up in Home Assistant before configuring this integration.",
-      "at_least_one_sensor": "At least one sensor must be configured. Please select at least one sensor to monitor."
+      "at_least_one_sensor": "At least one sensor must be configured. Please select at least one sensor to monitor.",
+      "ai_task_required": "Please select an AI task entity to use for analysis."
     }
   },
   "options": {
@@ -61,12 +62,13 @@
           "dissolved_oxygen_sensor": "Update or change the dissolved oxygen sensor for your aquarium monitoring.",
           "water_level_sensor": "Update or change the water level sensor for your aquarium monitoring.",
           "update_frequency": "Adjust notification frequency based on your needs. Use shorter intervals during critical periods (water changes, new fish) or longer intervals for stable, established tanks.",
-          "ai_task": "Change the AI task type used for analysis. Different tasks provide different analysis approaches."
+          "ai_task": "Change which AI task entity to use for analysis. Select from available AI task entities in your Home Assistant setup."
         }
       }
     },
     "error": {
-      "at_least_one_sensor": "At least one sensor must be configured. Please select at least one sensor to monitor."
+      "at_least_one_sensor": "At least one sensor must be configured. Please select at least one sensor to monitor.",
+      "ai_task_required": "Please select an AI task entity to use for analysis."
     }
   },
   "services": {

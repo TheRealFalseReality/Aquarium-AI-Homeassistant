@@ -29,9 +29,7 @@ from .const import (
     DEFAULT_TANK_NAME,
     DEFAULT_AQUARIUM_TYPE,
     DEFAULT_FREQUENCY,
-    DEFAULT_AI_TASK,
     UPDATE_FREQUENCIES,
-    AI_TASK_OPTIONS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,6 +67,8 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             
             if not valid_sensors:
                 errors["base"] = "at_least_one_sensor"
+            elif not user_input.get(CONF_AI_TASK):
+                errors[CONF_AI_TASK] = "ai_task_required"
             else:
                 # Validate that all provided sensors exist
                 sensor_errors = {}
@@ -143,10 +143,10 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     mode=SelectSelectorMode.DROPDOWN
                 )
             ),
-            vol.Required(CONF_AI_TASK, default=DEFAULT_AI_TASK): SelectSelector(
-                SelectSelectorConfig(
-                    options=AI_TASK_OPTIONS,
-                    mode=SelectSelectorMode.DROPDOWN
+            vol.Required(CONF_AI_TASK): EntitySelector(
+                EntitySelectorConfig(
+                    domain="ai_task",
+                    multiple=False
                 )
             ),
         })
@@ -187,6 +187,13 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                     errors={"base": "at_least_one_sensor"}
                 )
             
+            if not user_input.get(CONF_AI_TASK):
+                return self.async_show_form(
+                    step_id="init", 
+                    data_schema=self._get_options_schema(self.config_entry.data),
+                    errors={CONF_AI_TASK: "ai_task_required"}
+                )
+            
             # Update the config entry data directly
             self.hass.config_entries.async_update_entry(
                 self.config_entry,
@@ -202,7 +209,8 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
     
     def _get_options_schema(self, current_data):
         """Get the options schema with current values."""
-        return vol.Schema({
+        # Build schema dict with optional sensor fields
+        schema_dict = {
             vol.Required(
                 CONF_TANK_NAME,
                 default=current_data.get(CONF_TANK_NAME, DEFAULT_TANK_NAME),
@@ -211,75 +219,124 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                 CONF_AQUARIUM_TYPE,
                 default=current_data.get(CONF_AQUARIUM_TYPE, DEFAULT_AQUARIUM_TYPE),
             ): TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT)),
-            vol.Optional(
-                CONF_TEMPERATURE_SENSOR,
-                default=current_data.get(CONF_TEMPERATURE_SENSOR),
-            ): EntitySelector(
+        }
+        
+        # Add sensor fields only if they have values to avoid "Entity None" error
+        temp_sensor = current_data.get(CONF_TEMPERATURE_SENSOR)
+        if temp_sensor:
+            schema_dict[vol.Optional(CONF_TEMPERATURE_SENSOR, default=temp_sensor)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
                     device_class="temperature",
                     multiple=False
                 )
-            ),
-            vol.Optional(
-                CONF_PH_SENSOR,
-                default=current_data.get(CONF_PH_SENSOR),
-            ): EntitySelector(
+            )
+        else:
+            schema_dict[vol.Optional(CONF_TEMPERATURE_SENSOR)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    device_class="temperature",
+                    multiple=False
+                )
+            )
+            
+        ph_sensor = current_data.get(CONF_PH_SENSOR)
+        if ph_sensor:
+            schema_dict[vol.Optional(CONF_PH_SENSOR, default=ph_sensor)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
                     multiple=False
                 )
-            ),
-            vol.Optional(
-                CONF_SALINITY_SENSOR,
-                default=current_data.get(CONF_SALINITY_SENSOR),
-            ): EntitySelector(
+            )
+        else:
+            schema_dict[vol.Optional(CONF_PH_SENSOR)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
                     multiple=False
                 )
-            ),
-            vol.Optional(
-                CONF_DISSOLVED_OXYGEN_SENSOR,
-                default=current_data.get(CONF_DISSOLVED_OXYGEN_SENSOR),
-            ): EntitySelector(
+            )
+            
+        salinity_sensor = current_data.get(CONF_SALINITY_SENSOR)
+        if salinity_sensor:
+            schema_dict[vol.Optional(CONF_SALINITY_SENSOR, default=salinity_sensor)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
                     multiple=False
                 )
-            ),
-            vol.Optional(
-                CONF_WATER_LEVEL_SENSOR,
-                default=current_data.get(CONF_WATER_LEVEL_SENSOR),
-            ): EntitySelector(
+            )
+        else:
+            schema_dict[vol.Optional(CONF_SALINITY_SENSOR)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
                     multiple=False
                 )
-            ),
-            vol.Required(
-                CONF_UPDATE_FREQUENCY,
-                default=current_data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY),
-            ): SelectSelector(
-                SelectSelectorConfig(
-                    options=[
-                        {"value": "1_hour", "label": "Every hour"},
-                        {"value": "2_hours", "label": "Every 2 hours"},
-                        {"value": "4_hours", "label": "Every 4 hours"},
-                        {"value": "6_hours", "label": "Every 6 hours"},
-                        {"value": "12_hours", "label": "Every 12 hours"},
-                        {"value": "daily", "label": "Daily"},
-                    ],
-                    mode=SelectSelectorMode.DROPDOWN
+            )
+            
+        dissolved_oxygen_sensor = current_data.get(CONF_DISSOLVED_OXYGEN_SENSOR)
+        if dissolved_oxygen_sensor:
+            schema_dict[vol.Optional(CONF_DISSOLVED_OXYGEN_SENSOR, default=dissolved_oxygen_sensor)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
                 )
-            ),
-            vol.Required(
-                CONF_AI_TASK,
-                default=current_data.get(CONF_AI_TASK, DEFAULT_AI_TASK),
-            ): SelectSelector(
-                SelectSelectorConfig(
-                    options=AI_TASK_OPTIONS,
-                    mode=SelectSelectorMode.DROPDOWN
+            )
+        else:
+            schema_dict[vol.Optional(CONF_DISSOLVED_OXYGEN_SENSOR)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
                 )
-            ),
-        })
+            )
+            
+        water_level_sensor = current_data.get(CONF_WATER_LEVEL_SENSOR)
+        if water_level_sensor:
+            schema_dict[vol.Optional(CONF_WATER_LEVEL_SENSOR, default=water_level_sensor)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Optional(CONF_WATER_LEVEL_SENSOR)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
+                )
+            )
+        
+        # Add frequency selector
+        schema_dict[vol.Required(
+            CONF_UPDATE_FREQUENCY,
+            default=current_data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY),
+        )] = SelectSelector(
+            SelectSelectorConfig(
+                options=[
+                    {"value": "1_hour", "label": "Every hour"},
+                    {"value": "2_hours", "label": "Every 2 hours"},
+                    {"value": "4_hours", "label": "Every 4 hours"},
+                    {"value": "6_hours", "label": "Every 6 hours"},
+                    {"value": "12_hours", "label": "Every 12 hours"},
+                    {"value": "daily", "label": "Daily"},
+                ],
+                mode=SelectSelectorMode.DROPDOWN
+            )
+        )
+        
+        # Add AI task selector
+        ai_task = current_data.get(CONF_AI_TASK)
+        if ai_task:
+            schema_dict[vol.Required(CONF_AI_TASK, default=ai_task)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="ai_task",
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Required(CONF_AI_TASK)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="ai_task",
+                    multiple=False
+                )
+            )
+        
+        return vol.Schema(schema_dict)

@@ -21,7 +21,6 @@ from .const import (
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     DEFAULT_FREQUENCY,
-    DEFAULT_AI_TASK,
     UPDATE_FREQUENCIES,
 )
 
@@ -76,7 +75,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     dissolved_oxygen_sensor = entry.data.get(CONF_DISSOLVED_OXYGEN_SENSOR)
     water_level_sensor = entry.data.get(CONF_WATER_LEVEL_SENSOR)
     frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
-    ai_task = entry.data.get(CONF_AI_TASK, DEFAULT_AI_TASK)
+    ai_task = entry.data.get(CONF_AI_TASK)
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
     # Define sensor mappings
@@ -134,12 +133,12 @@ Analyze my aquarium's conditions and provide recommendations only if needed, do 
                 "structure": analysis_structure
             }
             
-            # Call AI Task service
+            # Call AI Task service using entity ID
             _LOGGER.debug("Calling AI Task service with data: %s", ai_task_data)
             response = await hass.services.async_call(
                 "ai_task",
-                ai_task,
-                ai_task_data,
+                "generate_data",
+                {**ai_task_data, "entity_id": ai_task},
                 blocking=True,
                 return_response=True,
             )
