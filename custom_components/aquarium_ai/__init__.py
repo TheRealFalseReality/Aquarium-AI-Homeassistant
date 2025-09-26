@@ -306,7 +306,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 {conditions_str}
 
-Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary. Focus on all available parameters for this {aquarium_type.lower()} aquarium. Consider the relationships between different parameters and their impact on aquarium health. Always correctly write ph as pH.
+Analyze my aquarium's conditions and provide recommendations only if needed, do not mention if no adjustments or recommendations are necessary, nor "No adjustments are needed". 
+Focus on all available parameters for this {aquarium_type.lower()} aquarium. 
+Consider the relationships between different parameters and their impact on aquarium health. 
+Always correctly write ph as pH.
 
 IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
 - Temperature: Consider if values are in Celsius (°C) or Fahrenheit (°F)
