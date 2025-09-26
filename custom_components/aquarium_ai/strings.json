@@ -3,22 +3,56 @@
     "step": {
       "user": {
         "title": "Aquarium AI Setup",
-        "description": "Configure your aquarium AI temperature analysis",
+        "description": "Configure your aquarium monitoring with AI analysis",
         "data": {
           "tank_name": "Tank Name",
           "aquarium_type": "Aquarium Type",
-          "temperature_sensor": "Temperature Sensor"
+          "temperature_sensor": "Temperature Sensor",
+          "update_frequency": "Update Frequency"
         },
         "data_description": {
-          "tank_name": "Name for your aquarium tank",
+          "tank_name": "Enter a name for your aquarium",
           "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
-          "temperature_sensor": "Select the temperature sensor for your aquarium"
+          "temperature_sensor": "Select the temperature sensor to monitor",
+          "update_frequency": "How often should the AI analysis run automatically"
         }
       }
     },
     "error": {
-      "sensor_not_found": "The selected temperature sensor could not be found",
-      "sensor_required": "A temperature sensor must be selected"
+      "sensor_not_found": "The selected sensor was not found",
+      "sensor_required": "Please select a temperature sensor"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Aquarium AI Options",
+        "description": "Configure your aquarium monitoring settings",
+        "data": {
+          "tank_name": "Tank Name",
+          "aquarium_type": "Aquarium Type", 
+          "temperature_sensor": "Temperature Sensor",
+          "update_frequency": "Update Frequency"
+        },
+        "data_description": {
+          "tank_name": "Enter a name for your aquarium",
+          "aquarium_type": "Type of aquarium (e.g., Freshwater, Marine, Brackish)",
+          "temperature_sensor": "Select the temperature sensor to monitor",
+          "update_frequency": "How often should the AI analysis run automatically"
+        }
+      }
+    }
+  },
+  "services": {
+    "run_analysis": {
+      "name": "Run AI Analysis",
+      "description": "Trigger an immediate AI analysis for the selected aquarium",
+      "fields": {
+        "config_entry_id": {
+          "name": "Integration Entry",
+          "description": "Select the aquarium integration to analyze"
+        }
+      }
     }
   }
 }

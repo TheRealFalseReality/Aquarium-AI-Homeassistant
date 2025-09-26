@@ -3,13 +3,28 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from homeassistant.core import HomeAssistant
+import voluptuous as vol
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.event import async_track_time_interval
+import homeassistant.helpers.config_validation as cv
 
-from .const import DOMAIN, CONF_TANK_NAME, CONF_AQUARIUM_TYPE, CONF_TEMPERATURE_SENSOR
+from .const import (
+    DOMAIN, 
+    CONF_TANK_NAME, 
+    CONF_AQUARIUM_TYPE, 
+    CONF_TEMPERATURE_SENSOR,
+    CONF_UPDATE_FREQUENCY,
+    DEFAULT_FREQUENCY,
+    UPDATE_FREQUENCIES,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+# Service schema
+RUN_ANALYSIS_SCHEMA = vol.Schema({
+    vol.Required("config_entry_id"): cv.string,
+})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -19,6 +34,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     tank_name = entry.data[CONF_TANK_NAME]
     aquarium_type = entry.data[CONF_AQUARIUM_TYPE]
     temp_sensor = entry.data[CONF_TEMPERATURE_SENSOR]
+    frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
+    frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
     async def send_ai_temperature_analysis(now):
         """Send an AI analysis notification about the current temperature."""
@@ -107,20 +124,52 @@ Analyze my aquarium's temperature conditions and provide recommendations if need
         "tank_name": tank_name,
         "aquarium_type": aquarium_type,
         "temp_sensor": temp_sensor,
+        "frequency_minutes": frequency_minutes,
+        "analysis_function": send_ai_temperature_analysis,
     }
     
     # Send initial AI analysis
     await send_ai_temperature_analysis(None)
     
-    # Schedule hourly AI analyses
+    # Schedule AI analyses based on configured frequency
     unsub = async_track_time_interval(
-        hass, send_ai_temperature_analysis, timedelta(hours=1)
+        hass, send_ai_temperature_analysis, timedelta(minutes=frequency_minutes)
     )
     
     # Store the unsubscribe function
     hass.data[DOMAIN][entry.entry_id]["unsub"] = unsub
     
+    # Register the manual analysis service
+    async def run_analysis_service(call: ServiceCall):
+        """Handle the run_analysis service call."""
+        config_entry_id = call.data["config_entry_id"]
+        
+        if config_entry_id in hass.data[DOMAIN]:
+            analysis_function = hass.data[DOMAIN][config_entry_id]["analysis_function"]
+            await analysis_function(None)
+            _LOGGER.info("Manual analysis triggered for config entry: %s", config_entry_id)
+        else:
+            _LOGGER.error("Config entry not found: %s", config_entry_id)
+    
+    # Register service only once
+    if not hass.services.has_service(DOMAIN, "run_analysis"):
+        hass.services.async_register(
+            DOMAIN,
+            "run_analysis",
+            run_analysis_service,
+            schema=RUN_ANALYSIS_SCHEMA,
+        )
+    
+    # Add listener for options updates
+    entry.async_on_unload(entry.add_update_listener(async_options_updated))
+    
     return True
+
+
+async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    _LOGGER.info("Aquarium AI options updated, reloading entry")
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -133,5 +182,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if unsub:
             unsub()
         hass.data[DOMAIN].pop(entry.entry_id)
+    
+    # Remove the service if this is the last entry
+    if not hass.data[DOMAIN]:  # If no more entries exist
+        if hass.services.has_service(DOMAIN, "run_analysis"):
+            hass.services.async_remove(DOMAIN, "run_analysis")
     
     return True

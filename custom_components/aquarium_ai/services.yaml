@@ -1,0 +1,10 @@
+run_analysis:
+  name: Run AI Analysis
+  description: Trigger an immediate AI analysis for the selected aquarium integration
+  fields:
+    config_entry_id:
+      name: Config Entry ID
+      description: The configuration entry ID of the aquarium integration to analyze
+      required: true
+      selector:
+        text:
