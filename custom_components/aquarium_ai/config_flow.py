@@ -29,7 +29,6 @@ from .const import (
     DEFAULT_TANK_NAME,
     DEFAULT_AQUARIUM_TYPE,
     DEFAULT_FREQUENCY,
-    UPDATE_FREQUENCIES,
 )
 
 _LOGGER = logging.getLogger(__name__)
