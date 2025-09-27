@@ -1,6 +1,6 @@
 # Aquarium AI for Home Assistant
 
-![Aquarium AI](logo.png)
+![Aquarium AI](/assets/logo.png)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
@@ -80,6 +80,8 @@ Once installed, the integration must be configured through the UI.
 
 After configuration, the integration will create a new "Aquarium AI" device with several entities associated with it.
 
+![Marine Sensors](/assets/Marinesensors.png)
+
 ### AI Analysis Sensors
 
 These `sensor` entities contain AI-generated text analysis limited to 1-2 sentences (under 255 characters):
@@ -104,6 +106,34 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 * Detailed AI analysis for each parameter
 * Visual observations from camera (if configured)
 * Recommendations when needed
+
+#### Example Notifications
+
+<table>
+  <tr>
+    <th>Marine Aquarium</th>
+    <th>Reef Aquarium</th>
+    <th>Cichlids Aquarium</th>
+  </tr>
+  <tr>
+    <td><img src="assets/Marine.png" alt="Marine Notification" width="300"></td>
+    <td><img src="assets/Reef.png" alt="Reef Notification" width="300"></td>
+    <td><img src="assets/Cichlids.png" alt="Cichlids Notification" width="300"></td>
+  </tr>
+</table>
+
+**Notification Types:**
+
+<table>
+  <tr>
+    <th>Condensed</th>
+    <th>Minimal</th>
+  </tr>
+  <tr>
+    <td><img src="assets/NotificationCondensed.png" alt="Condensed Notification" width="400"></td>
+    <td><img src="assets/Noticationmin.png" alt="Minimal Notification" width="400"></td>
+  </tr>
+</table>
 
 ---
 
