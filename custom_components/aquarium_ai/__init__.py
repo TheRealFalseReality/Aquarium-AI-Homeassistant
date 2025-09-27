@@ -18,6 +18,7 @@ from .const import (
     CONF_SALINITY_SENSOR,
     CONF_DISSOLVED_OXYGEN_SENSOR,
     CONF_WATER_LEVEL_SENSOR,
+    CONF_ORP_SENSOR,
     CONF_CAMERA,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
@@ -89,6 +90,7 @@ def get_sensor_icon(sensor_name):
         "Salinity": "🧂",
         "Dissolved Oxygen": "💨",
         "Water Level": "📏",
+        "ORP": "⚡",
     }
     return sensor_icons.get(sensor_name, "📊")
 
@@ -210,6 +212,27 @@ def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
                 # without knowing the tank specifications, so default to OK
                 return "OK"
         
+        # ORP (Oxidation-Reduction Potential) status - handle different units
+        elif sensor_name == "ORP":
+            # ORP is typically measured in millivolts (mV)
+            aquarium_type_lower = aquarium_type.lower()
+            if "saltwater" in aquarium_type_lower or "marine" in aquarium_type_lower or "reef" in aquarium_type_lower:
+                # Saltwater/Marine aquarium ORP ranges (mV)
+                if 300 <= numeric_value <= 400:
+                    return "Good"
+                elif 275 <= numeric_value <= 425:
+                    return "OK"
+                else:
+                    return "Check"
+            else:
+                # Freshwater aquarium ORP ranges (mV)
+                if 250 <= numeric_value <= 400:
+                    return "Good"
+                elif 150 <= numeric_value <= 500:
+                    return "OK"
+                else:
+                    return "Check"
+        
         # Default for numeric values
         return "OK"
         
@@ -268,6 +291,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     salinity_sensor = entry.data.get(CONF_SALINITY_SENSOR)
     dissolved_oxygen_sensor = entry.data.get(CONF_DISSOLVED_OXYGEN_SENSOR)
     water_level_sensor = entry.data.get(CONF_WATER_LEVEL_SENSOR)
+    orp_sensor = entry.data.get(CONF_ORP_SENSOR)
     camera = entry.data.get(CONF_CAMERA)
     frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
     ai_task = entry.data.get(CONF_AI_TASK)
@@ -284,6 +308,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         (salinity_sensor, "Salinity"),
         (dissolved_oxygen_sensor, "Dissolved Oxygen"),
         (water_level_sensor, "Water Level"),
+        (orp_sensor, "ORP"),
     ]
     
     async def send_ai_aquarium_analysis(now):
@@ -551,6 +576,7 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "salinity_sensor": salinity_sensor,
         "dissolved_oxygen_sensor": dissolved_oxygen_sensor,
         "water_level_sensor": water_level_sensor,
+        "orp_sensor": orp_sensor,
         "camera": camera,
         "frequency_minutes": frequency_minutes,
         "ai_task": ai_task,
