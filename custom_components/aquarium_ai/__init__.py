@@ -18,6 +18,7 @@ from .const import (
     CONF_SALINITY_SENSOR,
     CONF_DISSOLVED_OXYGEN_SENSOR,
     CONF_WATER_LEVEL_SENSOR,
+    CONF_CAMERA,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
@@ -267,6 +268,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     salinity_sensor = entry.data.get(CONF_SALINITY_SENSOR)
     dissolved_oxygen_sensor = entry.data.get(CONF_DISSOLVED_OXYGEN_SENSOR)
     water_level_sensor = entry.data.get(CONF_WATER_LEVEL_SENSOR)
+    camera = entry.data.get(CONF_CAMERA)
     frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
     ai_task = entry.data.get(CONF_AI_TASK)
     auto_notifications = entry.data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS)
@@ -339,12 +341,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Combine both structures for the AI task
             combined_analysis_structure = {**analysis_structure_sensors, **analysis_structure_notification}
             
+            # Prepare camera instructions if camera is configured
+            camera_instructions = ""
+            if camera:
+                camera_instructions = """
+
+If an aquarium camera image is provided:
+- Analyze the visual aspects of the aquarium focusing on:
+  * Water clarity and quality (cloudy, clear, tinted, etc.) - NO NUMERICAL ANALYSIS
+  * Fish identification and count if visible (species, behavior, health appearance)
+  * Plant health and growth if visible
+  * Equipment visibility and condition
+  * Overall aquarium aesthetics and cleanliness
+  * Any visible algae, debris, or maintenance needs
+- Focus only on aquarium-related observations that can be determined visually
+- Do not attempt to provide numerical measurements from the image
+- Integrate visual observations with sensor data when drawing conclusions"""
+
             # Prepare AI Task data with separate instructions for sensor vs notification analysis
             ai_task_data = {
                 "task_name": tank_name,
                 "instructions": f"""Based on the current conditions:
 
-{conditions_str}
+{conditions_str}{camera_instructions}
 
 Provide analysis for this {aquarium_type.lower()} aquarium. 
 
@@ -355,12 +374,13 @@ For sensor analysis fields (ending with '_analysis'):
 For notification analysis fields (ending with '_notification_analysis'):
 - Provide detailed analysis of the parameter
 - Include current status, potential issues, relationships with other parameters
-- Provide recommendations for improvement only if needed, do not mention if everything is fine. If there are no concerns, issues or recommendations simply state that the parameter is within optimal range.
+- Provide recommendations for improvement only if the parameter is negative to the aquarium health, do not mention if everything is fine. If there are no concerns, issues or recommendations simply state that the parameter is within optimal range.
 
 For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
 For overall_notification_analysis: Detailed but short paragraph assessment without character limits.
 
-Consider the relationships between different parameters and their impact on aquarium health.
+Consider the relationships between different parameters 
+Consider impact on aquarium health when the parameters are negative to the aquarium health
 Always correctly write ph as pH.
 
 IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
@@ -371,6 +391,26 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
 - pH: Typically has no units (pure number scale 0-14)""",
                 "structure": combined_analysis_structure
             }
+            
+            # Add camera attachment if configured
+            if camera:
+                ai_task_data["attachments"] = {
+                    "media_content_id": f"media-source://camera/{camera}",
+                    "media_content_type": "application/vnd.apple.mpegurl",
+                    "metadata": {
+                        "title": f"{camera.replace('camera.', '').title()} Camera",
+                        "thumbnail": f"/api/camera_proxy/{camera}",
+                        "media_class": "video",
+                        "children_media_class": None,
+                        "navigateIds": [
+                            {},
+                            {
+                                "media_content_type": "app",
+                                "media_content_id": "media-source://camera"
+                            }
+                        ]
+                    }
+                }
             
             # Call AI Task service using entity ID
             _LOGGER.debug("Calling AI Task service with data: %s", ai_task_data)
@@ -511,6 +551,7 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "salinity_sensor": salinity_sensor,
         "dissolved_oxygen_sensor": dissolved_oxygen_sensor,
         "water_level_sensor": water_level_sensor,
+        "camera": camera,
         "frequency_minutes": frequency_minutes,
         "ai_task": ai_task,
         "auto_notifications": auto_notifications,

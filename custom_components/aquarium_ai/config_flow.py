@@ -26,6 +26,7 @@ from .const import (
     CONF_SALINITY_SENSOR,
     CONF_DISSOLVED_OXYGEN_SENSOR,
     CONF_WATER_LEVEL_SENSOR,
+    CONF_CAMERA,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
@@ -97,17 +98,33 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     return self.async_create_entry(title=tank_name, data=user_input)
 
         data_schema = vol.Schema({
+            vol.Required(CONF_TANK_NAME, default=DEFAULT_TANK_NAME): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Required(CONF_AQUARIUM_TYPE, default=DEFAULT_AQUARIUM_TYPE): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
             vol.Required(CONF_AI_TASK): EntitySelector(
                 EntitySelectorConfig(
                     domain="ai_task",
                     multiple=False
                 )
             ),
-            vol.Required(CONF_TANK_NAME, default=DEFAULT_TANK_NAME): TextSelector(
-                TextSelectorConfig(type=TextSelectorType.TEXT)
+            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY): SelectSelector(
+                SelectSelectorConfig(
+                    options=[
+                        {"value": "1_hour", "label": "Every hour"},
+                        {"value": "2_hours", "label": "Every 2 hours"},
+                        {"value": "4_hours", "label": "Every 4 hours"},
+                        {"value": "6_hours", "label": "Every 6 hours"},
+                        {"value": "12_hours", "label": "Every 12 hours"},
+                        {"value": "daily", "label": "Daily"},
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN
+                )
             ),
-            vol.Required(CONF_AQUARIUM_TYPE, default=DEFAULT_AQUARIUM_TYPE): TextSelector(
-                TextSelectorConfig(type=TextSelectorType.TEXT)
+            vol.Required(CONF_AUTO_NOTIFICATIONS, default=DEFAULT_AUTO_NOTIFICATIONS): BooleanSelector(
+                BooleanSelectorConfig()
             ),
             vol.Optional(CONF_TEMPERATURE_SENSOR): EntitySelector(
                 EntitySelectorConfig(
@@ -140,21 +157,11 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     multiple=False
                 )
             ),
-            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_FREQUENCY): SelectSelector(
-                SelectSelectorConfig(
-                    options=[
-                        {"value": "1_hour", "label": "Every hour"},
-                        {"value": "2_hours", "label": "Every 2 hours"},
-                        {"value": "4_hours", "label": "Every 4 hours"},
-                        {"value": "6_hours", "label": "Every 6 hours"},
-                        {"value": "12_hours", "label": "Every 12 hours"},
-                        {"value": "daily", "label": "Daily"},
-                    ],
-                    mode=SelectSelectorMode.DROPDOWN
+            vol.Optional(CONF_CAMERA): EntitySelector(
+                EntitySelectorConfig(
+                    domain="camera",
+                    multiple=False
                 )
-            ),
-            vol.Required(CONF_AUTO_NOTIFICATIONS, default=DEFAULT_AUTO_NOTIFICATIONS): BooleanSelector(
-                BooleanSelectorConfig()
             ),
         })
 
@@ -348,6 +355,22 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
             schema_dict[vol.Optional(CONF_WATER_LEVEL_SENSOR)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
+                    multiple=False
+                )
+            )
+            
+        camera = current_data.get(CONF_CAMERA)
+        if camera:
+            schema_dict[vol.Optional(CONF_CAMERA, default=camera)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="camera",
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Optional(CONF_CAMERA)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="camera",
                     multiple=False
                 )
             )
