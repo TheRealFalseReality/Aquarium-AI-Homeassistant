@@ -1,6 +1,6 @@
 # Aquarium AI for Home Assistant
 
-![Aquarium AI](logo.png)
+![Aquarium AI](/assets/logo.png)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
@@ -80,7 +80,7 @@ Once installed, the integration must be configured through the UI.
 
 After configuration, the integration will create a new "Aquarium AI" device with several entities associated with it.
 
-![Marine Sensors](amarinesensors.png)
+![Marine Sensors](/assets/Marinesensors.png)
 
 ### AI Analysis Sensors
 
@@ -110,13 +110,13 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 #### Example Notifications
 
 **Marine Aquarium:**
-![Marine Notification](Marine.png)
+![Marine Notification](/assets/Marine.png)
 
 **Reef Aquarium:**
-![Reef Notification](Reef.png)
+![Reef Notification](/assets/Reef.png)
 
 **Cichlids Aquarium:**
-![Cichlids Notification](Cichlids.png)
+![Cichlids Notification](/assets/Cichlids.png)
 
 ---
 
