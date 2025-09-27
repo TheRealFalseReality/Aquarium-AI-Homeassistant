@@ -67,11 +67,11 @@ Once installed, the integration must be configured through the UI.
 4. A configuration dialog will appear. You will be asked to provide:
    * **Aquarium Name**: A custom name for your tank (e.g., "Main Tank", "Reef Setup").
    * **Aquarium Type**: Select the type of your aquarium (e.g., Marine, Freshwater, Brackish).
-   * **Sensors**: Select the sensor entities you wish for the AI to analyze (temperature, pH, salinity, dissolved oxygen, water level).
-   * **Camera** (Optional): Select a camera entity for visual analysis of water quality, fish health, and maintenance needs.
    * **AI Task**: Choose the AI task entity to use for analysis (e.g., ai_task.google_ai_task).
    * **Update Frequency**: Choose how often you want the analysis to run automatically.
    * **Auto-send Notifications**: Enable or disable automatic notifications.
+   * **Sensors**: Select the sensor entities you wish for the AI to analyze (temperature, pH, salinity, dissolved oxygen, water level).
+   * **Camera** (Optional): Select a camera entity for visual analysis of water quality, fish health, and maintenance needs.
 5. Click **"Submit"**. The integration will set up all the necessary entities.
 
 ---
