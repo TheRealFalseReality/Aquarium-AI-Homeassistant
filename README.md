@@ -80,6 +80,8 @@ Once installed, the integration must be configured through the UI.
 
 After configuration, the integration will create a new "Aquarium AI" device with several entities associated with it.
 
+![Marine Sensors](marinesensors.png)
+
 ### AI Analysis Sensors
 
 These `sensor` entities contain AI-generated text analysis limited to 1-2 sentences (under 255 characters):
@@ -104,6 +106,17 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 * Detailed AI analysis for each parameter
 * Visual observations from camera (if configured)
 * Recommendations when needed
+
+#### Example Notifications
+
+**Marine Aquarium:**
+![Marine Notification](Marine.png)
+
+**Reef Aquarium:**
+![Reef Notification](Reef.png)
+
+**Cichlids Aquarium:**
+![Cichlids Notification](Cichlids.png)
 
 ---
 
