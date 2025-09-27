@@ -26,6 +26,7 @@ from .const import (
     CONF_SALINITY_SENSOR,
     CONF_DISSOLVED_OXYGEN_SENSOR,
     CONF_WATER_LEVEL_SENSOR,
+    CONF_CAMERA,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
@@ -137,6 +138,12 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Optional(CONF_WATER_LEVEL_SENSOR): EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
+                    multiple=False
+                )
+            ),
+            vol.Optional(CONF_CAMERA): EntitySelector(
+                EntitySelectorConfig(
+                    domain="camera",
                     multiple=False
                 )
             ),
@@ -348,6 +355,22 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
             schema_dict[vol.Optional(CONF_WATER_LEVEL_SENSOR)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
+                    multiple=False
+                )
+            )
+            
+        camera = current_data.get(CONF_CAMERA)
+        if camera:
+            schema_dict[vol.Optional(CONF_CAMERA, default=camera)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="camera",
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Optional(CONF_CAMERA)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="camera",
                     multiple=False
                 )
             )
