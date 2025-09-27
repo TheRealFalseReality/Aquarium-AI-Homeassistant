@@ -80,7 +80,7 @@ Once installed, the integration must be configured through the UI.
 
 After configuration, the integration will create a new "Aquarium AI" device with several entities associated with it.
 
-![Marine Sensors](marinesensors.png)
+![Marine Sensors](amarinesensors.png)
 
 ### AI Analysis Sensors
 
