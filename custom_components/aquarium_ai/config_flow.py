@@ -26,6 +26,7 @@ from .const import (
     CONF_SALINITY_SENSOR,
     CONF_DISSOLVED_OXYGEN_SENSOR,
     CONF_WATER_LEVEL_SENSOR,
+    CONF_ORP_SENSOR,
     CONF_CAMERA,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
@@ -65,6 +66,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input.get(CONF_SALINITY_SENSOR),
                 user_input.get(CONF_DISSOLVED_OXYGEN_SENSOR),
                 user_input.get(CONF_WATER_LEVEL_SENSOR),
+                user_input.get(CONF_ORP_SENSOR),
             ]
             
             # Filter out empty/None sensors
@@ -83,6 +85,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     (CONF_SALINITY_SENSOR, user_input.get(CONF_SALINITY_SENSOR)),
                     (CONF_DISSOLVED_OXYGEN_SENSOR, user_input.get(CONF_DISSOLVED_OXYGEN_SENSOR)),
                     (CONF_WATER_LEVEL_SENSOR, user_input.get(CONF_WATER_LEVEL_SENSOR)),
+                    (CONF_ORP_SENSOR, user_input.get(CONF_ORP_SENSOR)),
                 ]:
                     if sensor_entity and sensor_entity.strip():
                         sensor_state = self.hass.states.get(sensor_entity)
@@ -157,6 +160,12 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     multiple=False
                 )
             ),
+            vol.Optional(CONF_ORP_SENSOR): EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
+                )
+            ),
             vol.Optional(CONF_CAMERA): EntitySelector(
                 EntitySelectorConfig(
                     domain="camera",
@@ -189,6 +198,7 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                 user_input.get(CONF_SALINITY_SENSOR),
                 user_input.get(CONF_DISSOLVED_OXYGEN_SENSOR),
                 user_input.get(CONF_WATER_LEVEL_SENSOR),
+                user_input.get(CONF_ORP_SENSOR),
             ]
             
             # Filter out empty/None sensors
@@ -353,6 +363,22 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
             )
         else:
             schema_dict[vol.Optional(CONF_WATER_LEVEL_SENSOR)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
+                )
+            )
+            
+        orp_sensor = current_data.get(CONF_ORP_SENSOR)
+        if orp_sensor:
+            schema_dict[vol.Optional(CONF_ORP_SENSOR, default=orp_sensor)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain="sensor",
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Optional(CONF_ORP_SENSOR)] = EntitySelector(
                 EntitySelectorConfig(
                     domain="sensor",
                     multiple=False

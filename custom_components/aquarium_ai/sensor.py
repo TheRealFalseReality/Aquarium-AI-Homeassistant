@@ -17,6 +17,7 @@ from .const import (
     CONF_SALINITY_SENSOR,
     CONF_DISSOLVED_OXYGEN_SENSOR,
     CONF_WATER_LEVEL_SENSOR,
+    CONF_ORP_SENSOR,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     UPDATE_FREQUENCIES,
@@ -45,6 +46,7 @@ async def async_setup_entry(
         (config_entry.data.get(CONF_SALINITY_SENSOR), "Salinity"),
         (config_entry.data.get(CONF_DISSOLVED_OXYGEN_SENSOR), "Dissolved Oxygen"),
         (config_entry.data.get(CONF_WATER_LEVEL_SENSOR), "Water Level"),
+        (config_entry.data.get(CONF_ORP_SENSOR), "ORP"),
     ]
     
     # Filter out empty sensors
@@ -216,6 +218,7 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
             "Salinity": "mdi:shaker-outline",
             "Dissolved Oxygen": "mdi:air-purifier",
             "Water Level": "mdi:waves",
+            "ORP": "mdi:lightning-bolt",
         }
         return sensor_icons.get(sensor_name, "mdi:chart-line")
     
@@ -473,6 +476,7 @@ class AquariumAIParameterStatus(AquariumAIBaseSensor):
             "Salinity": "mdi:shaker-outline",
             "Dissolved Oxygen": "mdi:air-purifier",
             "Water Level": "mdi:waves",
+            "ORP": "mdi:lightning-bolt",
         }
         return sensor_icons.get(sensor_name, "mdi:chart-line")
     
