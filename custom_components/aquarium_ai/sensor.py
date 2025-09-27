@@ -1,6 +1,7 @@
 """Sensor platform for Aquarium AI integration."""
 import logging
 from datetime import timedelta
+from typing import Optional
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.core import HomeAssistant
@@ -132,7 +133,7 @@ class AquariumAIBaseSensor(SensorEntity):
         config_entry: ConfigEntry,
         tank_name: str,
         aquarium_type: str,
-        frequency_minutes: int,
+        frequency_minutes: Optional[int],
         sensor_mappings: list,
     ):
         """Initialize the base sensor."""
@@ -195,7 +196,7 @@ class AquariumAISensorAnalysis(AquariumAIBaseSensor):
         sensor_entity: str,
         sensor_name: str,
         ai_task: str,
-        frequency_minutes: int,
+        frequency_minutes: Optional[int],
         sensor_mappings: list,
     ):
         """Initialize the sensor analysis."""
@@ -283,7 +284,7 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
         tank_name: str,
         aquarium_type: str,
         ai_task: str,
-        frequency_minutes: int,
+        frequency_minutes: Optional[int],
         sensor_mappings: list,
     ):
         """Initialize the overall analysis sensor."""
@@ -365,7 +366,7 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
         config_entry: ConfigEntry,
         tank_name: str,
         aquarium_type: str,
-        frequency_minutes: int,
+        frequency_minutes: Optional[int],
         sensor_mappings: list,
     ):
         """Initialize the simple status sensor."""
@@ -453,7 +454,7 @@ class AquariumAIParameterStatus(AquariumAIBaseSensor):
         aquarium_type: str,
         sensor_entity: str,
         sensor_name: str,
-        frequency_minutes: int,
+        frequency_minutes: Optional[int],
         sensor_mappings: list,
     ):
         """Initialize the parameter status sensor."""
@@ -523,7 +524,7 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
         config_entry: ConfigEntry,
         tank_name: str,
         aquarium_type: str,
-        frequency_minutes: int,
+        frequency_minutes: Optional[int],
         sensor_mappings: list,
     ):
         """Initialize the quick status sensor."""
