@@ -66,7 +66,7 @@ Once installed, the integration must be configured through the UI.
 3. Search for **"Aquarium AI"** and click on it.
 4. A configuration dialog will appear. You will be asked to provide:
    * **Aquarium Name**: A custom name for your tank (e.g., "Main Tank", "Reef Setup").
-   * **Aquarium Type**: Select the type of your aquarium (e.g., Marine, Freshwater, Brackish).
+   * **Aquarium Type**: Select the type of your aquarium (e.g., Marine, Freshwater, Reef).
    * **AI Task**: Choose the AI task entity to use for analysis (e.g., ai_task.google_ai_task).
    * **Update Frequency**: Choose how often you want the analysis to run automatically.
    * **Auto-send Notifications**: Enable or disable automatic notifications.
