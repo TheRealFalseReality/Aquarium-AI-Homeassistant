@@ -23,8 +23,10 @@ from .const import (
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
+    CONF_NOTIFICATION_FORMAT,
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
+    DEFAULT_NOTIFICATION_FORMAT,
     UPDATE_FREQUENCIES,
 )
 
@@ -280,6 +282,102 @@ def get_sensor_info(hass, sensor_entity_id, sensor_name):
     }
 
 
+def _build_notification_message(notification_format, sensor_data, sensor_mappings, aquarium_type, response):
+    """Build notification message based on the selected format."""
+    message_parts = []
+    
+    # Add overall status at the top for all formats
+    overall_status = get_overall_status(sensor_data, aquarium_type)
+    message_parts.append(f"📋 {overall_status}")
+    message_parts.append("")  # Add blank line
+    
+    if notification_format == "minimal":
+        # Minimal format: Only parameter values and overall analysis
+        for info in sensor_data:
+            icon = get_sensor_icon(info['name'])
+            message_parts.append(f"{icon} {info['name']}: {info['value']}")
+        
+        # Add overall analysis only
+        if response and "data" in response:
+            ai_data = response["data"]
+            if "overall_notification_analysis" in ai_data:
+                message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
+        else:
+            message_parts.append("\nNo analysis available")
+            
+    elif notification_format == "condensed":
+        # Condensed format: Parameter values + brief sensor analysis + overall analysis
+        for info in sensor_data:
+            icon = get_sensor_icon(info['name'])
+            message_parts.append(f"{icon} {info['name']}: {info['value']}")
+        
+        message_parts.append("\n🤖 AI Analysis:")
+        
+        if response and "data" in response:
+            ai_data = response["data"]
+            
+            # Use brief sensor analysis (same as used for sensors)
+            for sensor_entity, sensor_name in sensor_mappings:
+                analysis_key = sensor_name.lower().replace(" ", "_") + "_analysis"
+                if analysis_key in ai_data:
+                    # Find corresponding sensor info for icon
+                    corresponding_sensor = None
+                    for info in sensor_data:
+                        if info['name'].lower() == sensor_name.lower():
+                            corresponding_sensor = info
+                            break
+                    
+                    if corresponding_sensor:
+                        icon = get_sensor_icon(corresponding_sensor['name'])
+                        status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
+                        message_parts.append(f"\n{icon} {sensor_name} ({status}): {ai_data[analysis_key]}")
+                    else:
+                        message_parts.append(f"\n{sensor_name}: {ai_data[analysis_key]}")
+            
+            # Add overall brief analysis (same as used for sensors)
+            if "overall_analysis" in ai_data:
+                message_parts.append(f"\n🎯 Overall Assessment: {ai_data['overall_analysis']}")
+        else:
+            message_parts.append("No analysis available")
+            
+    else:  # "detailed" - current full format
+        # Add sensor readings with icons
+        for info in sensor_data:
+            icon = get_sensor_icon(info['name'])
+            message_parts.append(f"{icon} {info['name']}: {info['value']}")
+        
+        message_parts.append("\n🤖 AI Analysis:")
+        
+        if response and "data" in response:
+            ai_data = response["data"]
+            
+            # Use detailed notification analysis for notifications
+            for sensor_entity, sensor_name in sensor_mappings:
+                notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
+                if notification_key in ai_data:
+                    # Find corresponding sensor info for status and icon
+                    corresponding_sensor = None
+                    for info in sensor_data:
+                        if info['name'].lower() == sensor_name.lower():
+                            corresponding_sensor = info
+                            break
+                    
+                    if corresponding_sensor:
+                        icon = get_sensor_icon(corresponding_sensor['name'])
+                        status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
+                        message_parts.append(f"\n{icon} {sensor_name} ({status}):\n{ai_data[notification_key]}")
+                    else:
+                        message_parts.append(f"\n{sensor_name}:\n{ai_data[notification_key]}")
+            
+            # Add overall detailed analysis
+            if "overall_notification_analysis" in ai_data:
+                message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
+        else:
+            message_parts.append("No analysis available")
+    
+    return "\n".join(message_parts)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Aquarium AI from a config entry."""
     _LOGGER.info("Setting up Aquarium AI integration")
@@ -296,6 +394,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     frequency_key = entry.data.get(CONF_UPDATE_FREQUENCY, DEFAULT_FREQUENCY)
     ai_task = entry.data.get(CONF_AI_TASK)
     auto_notifications = entry.data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS)
+    notification_format = entry.data.get(CONF_NOTIFICATION_FORMAT, DEFAULT_NOTIFICATION_FORMAT)
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
     # Set up sensor platform
@@ -447,49 +546,10 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                 return_response=True,
             )
             
-            # Extract the AI analysis
-            message_parts = []
-            
-            # Add overall status at the top
-            overall_status = get_overall_status(sensor_data, aquarium_type)
-            message_parts.append(f"📋 {overall_status}")
-            message_parts.append("")  # Add blank line
-            
-            # Add sensor readings with icons only (no status labels)
-            for info in sensor_data:
-                icon = get_sensor_icon(info['name'])
-                message_parts.append(f"{icon} {info['name']}: {info['value']}")
-            
-            message_parts.append("\n🤖 AI Analysis:")
-            
-            if response and "data" in response:
-                ai_data = response["data"]
-                
-                # Use detailed notification analysis for notifications
-                for sensor_entity, sensor_name in sensor_mappings:
-                    notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
-                    if notification_key in ai_data:
-                        # Find corresponding sensor info for status and icon
-                        corresponding_sensor = None
-                        for info in sensor_data:
-                            if info['name'].lower() == sensor_name.lower():
-                                corresponding_sensor = info
-                                break
-                        
-                        if corresponding_sensor:
-                            icon = get_sensor_icon(corresponding_sensor['name'])
-                            status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
-                            message_parts.append(f"\n{icon} {sensor_name} ({status}):\n{ai_data[notification_key]}")
-                        else:
-                            message_parts.append(f"\n{sensor_name}:\n{ai_data[notification_key]}")
-                
-                # Add overall detailed analysis if available
-                if "overall_notification_analysis" in ai_data:
-                    message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
-            else:
-                message_parts.append("No analysis available")
-            
-            message = "\n".join(message_parts)
+            # Extract the AI analysis and build message based on format
+            message = _build_notification_message(
+                notification_format, sensor_data, sensor_mappings, aquarium_type, response
+            )
             
             # Send notification using consolidated helper
             await _send_notification_if_enabled(
@@ -581,6 +641,7 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "frequency_minutes": frequency_minutes,
         "ai_task": ai_task,
         "auto_notifications": auto_notifications,
+        "notification_format": notification_format,
         "analysis_function": send_ai_aquarium_analysis,
     }
     

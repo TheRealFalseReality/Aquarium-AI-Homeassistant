@@ -16,12 +16,14 @@ CONF_CAMERA: Final = "camera"
 CONF_UPDATE_FREQUENCY: Final = "update_frequency"
 CONF_AI_TASK: Final = "ai_task"
 CONF_AUTO_NOTIFICATIONS: Final = "auto_notifications"
+CONF_NOTIFICATION_FORMAT: Final = "notification_format"
 
 # Default values
 DEFAULT_TANK_NAME: Final = "My Aquarium"
 DEFAULT_AQUARIUM_TYPE: Final = "Freshwater"
 DEFAULT_FREQUENCY: Final = "1_hour"
 DEFAULT_AUTO_NOTIFICATIONS: Final = True
+DEFAULT_NOTIFICATION_FORMAT: Final = "detailed"
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {
@@ -32,4 +34,11 @@ UPDATE_FREQUENCIES: Final = {
     "12_hours": 720,
     "daily": 1440,
     "never": None,  # Manual analysis only
+}
+
+# Notification format options
+NOTIFICATION_FORMATS: Final = {
+    "detailed": "Full and detailed evaluation",
+    "condensed": "Condensed version with brief analysis", 
+    "minimal": "Minimal with parameters and overall analysis only"
 }
