@@ -218,17 +218,17 @@ def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
             aquarium_type_lower = aquarium_type.lower()
             if "saltwater" in aquarium_type_lower or "marine" in aquarium_type_lower or "reef" in aquarium_type_lower:
                 # Saltwater/Marine aquarium ORP ranges (mV)
-                if 375 <= numeric_value <= 425:
+                if 300 <= numeric_value <= 400:
                     return "Good"
-                elif 350 <= numeric_value <= 450:
+                elif 275 <= numeric_value <= 425:
                     return "OK"
                 else:
                     return "Check"
             else:
                 # Freshwater aquarium ORP ranges (mV)
-                if 300 <= numeric_value <= 500:
+                if 250 <= numeric_value <= 400:
                     return "Good"
-                elif 200 <= numeric_value <= 600:
+                elif 150 <= numeric_value <= 500:
                     return "OK"
                 else:
                     return "Check"
