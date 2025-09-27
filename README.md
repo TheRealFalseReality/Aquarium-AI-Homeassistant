@@ -4,9 +4,9 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
-**Aquarium AI** is a custom integration for [Home Assistant](https://www.home-assistant.io/) that uses the power of AI to analyze the conditions of your aquarium. It dynamically evaluates your existing sensors, provides clear text-based analyses, and automatically tracks trends in your aquarium's key parameters.
+**Aquarium AI** is a custom integration for [Home Assistant](https://www.home-assistant.io/) that uses the power of AI to analyze the conditions of your aquarium. It dynamically evaluates your existing sensors and camera feeds, providing clear text-based analyses of both quantitative sensor data and qualitative visual observations.
 
-This integration takes the guesswork out of maintaining a healthy aquatic environment by turning raw sensor data into actionable insights.
+This integration takes the guesswork out of maintaining a healthy aquatic environment by turning raw sensor data and visual monitoring into actionable insights.
 
 ---
 
@@ -14,7 +14,7 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 
 * **AI-Powered Analysis**: Leverages the built-in `ai_task` service to generate natural language analyses of your aquarium's conditions.
 * **Dynamic Entity Creation**: Automatically creates text sensors for each AI analysis point (e.g., temperature, pH, overall health) based on the sensors you provide.
-* **Built-in Trend Tracking**: Creates both a binary `trend` sensor and a user-friendly text sensor (e.g., "Rising", "Falling", "Stable") for each of your numeric sensors.
+* **Camera Visual Analysis**: Optional camera integration for AI-powered visual monitoring of water clarity, fish health, plant condition, and maintenance needs.
 * **UI Configuration**: Simple setup process through the Home Assistant UI. No YAML configuration is required.
 * **Customizable Polling**: Choose how often the AI analysis should run, from every hour to once a day.
 * **On-Demand Updates**: Trigger an analysis at any time using a service call, perfect for automations and custom schedules.
@@ -29,10 +29,11 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 > 
 Before you can install and use Aquarium AI, you must have the following set up:  
 
-1. A working **Home Assistant** instance (Version 2023.5+).
+1. A working **Home Assistant** instance (Version 2025.1.0+).
 2. **HACS (Home Assistant Community Store)** installed.  
 3. The core **`ai_task`** integration must be enabled and configured in Home Assistant. This integration will not work without it. [**AI Task Documentation**](https://www.home-assistant.io/integrations/ai_task)
 4. One or more **aquarium-related sensors** (e.g., temperature, pH, salinity, etc.) available in Home Assistant.
+5. Optionally, one or more **camera entities** for visual monitoring of your aquarium.
 
 ---
 
@@ -49,7 +50,7 @@ Before you can install and use Aquarium AI, you must have the following set up:
 
 ### Method 2: Manual Installation
 
-1. Download the latest release from the [Releases page](https://github.com/YOUR_GITHUB_USERNAME/aquarium-ai/releases).
+1. Download the latest release from the [Releases page](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/releases).
 2. Unzip the downloaded file.
 3. Copy the `aquarium_ai` folder (from within the `custom_components` directory) into your Home Assistant's `config/custom_components/` directory.
 4. Restart Home Assistant.
@@ -64,9 +65,13 @@ Once installed, the integration must be configured through the UI.
 2. Click the **"+ Add Integration"** button in the bottom right.
 3. Search for **"Aquarium AI"** and click on it.
 4. A configuration dialog will appear. You will be asked to provide:
-    * **Aquarium Type**: Select the type of your aquarium (e.g., Marine, Freshwater).
-    * **Sensors**: Select all the sensor entities you wish for the AI to analyze.
-    * **Update Frequency**: Choose how often you want the analysis to run automatically.
+   * **Aquarium Name**: A custom name for your tank (e.g., "Main Tank", "Reef Setup").
+   * **Aquarium Type**: Select the type of your aquarium (e.g., Marine, Freshwater, Brackish).
+   * **Sensors**: Select the sensor entities you wish for the AI to analyze (temperature, pH, salinity, dissolved oxygen, water level).
+   * **Camera** (Optional): Select a camera entity for visual analysis of water quality, fish health, and maintenance needs.
+   * **AI Task**: Choose the AI task entity to use for analysis (e.g., ai_task.google_ai_task).
+   * **Update Frequency**: Choose how often you want the analysis to run automatically.
+   * **Auto-send Notifications**: Enable or disable automatic notifications.
 5. Click **"Submit"**. The integration will set up all the necessary entities.
 
 ---
@@ -97,7 +102,28 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 * Overall status summary
 * Current sensor readings with icons
 * Detailed AI analysis for each parameter
+* Visual observations from camera (if configured)
 * Recommendations when needed
+
+---
+
+## Camera Visual Analysis
+
+When a camera is configured, the AI will analyze images from your aquarium camera to provide additional insights:
+
+### Visual Monitoring Capabilities
+
+* **Water Quality Assessment**: Analyzes water clarity, color, and cloudiness without numerical measurements
+* **Fish Health & Behavior**: Identifies fish species, counts visible fish, and observes behavioral patterns
+* **Plant Health**: Monitors aquatic plant condition and growth patterns
+* **Equipment Monitoring**: Checks visibility and apparent condition of equipment
+* **Maintenance Alerts**: Identifies visible algae, debris, or cleanliness issues
+
+### Integration with Sensor Data
+
+Visual analysis complements sensor readings by providing context that numbers alone cannot capture. The AI combines both quantitative sensor data and qualitative visual observations to give you a complete picture of your aquarium's health.
+
+**Note**: Camera analysis focuses on observable qualities rather than precise measurements, providing insights that enhance rather than replace your sensor monitoring.
 
 ---
 
@@ -136,4 +162,4 @@ This integration is a passion project developed with a "just build it" philosoph
 
 ## Contributing
 
-Contributions are welcome! If you have an idea for an improvement or have found a bug, please [open an issue](https://github.com/YOUR_GITHUB_USERNAME/aquarium-ai/issues) or submit a pull request.
+Contributions are welcome! If you have an idea for an improvement or have found a bug, please [open an issue](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues) or submit a pull request.
