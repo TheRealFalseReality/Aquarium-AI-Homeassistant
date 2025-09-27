@@ -122,6 +122,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         {"value": "6_hours", "label": "Every 6 hours"},
                         {"value": "12_hours", "label": "Every 12 hours"},
                         {"value": "daily", "label": "Daily"},
+                        {"value": "never", "label": "Never (manual only)"},
                     ],
                     mode=SelectSelectorMode.DROPDOWN
                 )
@@ -275,6 +276,7 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                     {"value": "6_hours", "label": "Every 6 hours"},
                     {"value": "12_hours", "label": "Every 12 hours"},
                     {"value": "daily", "label": "Daily"},
+                    {"value": "never", "label": "Never (manual only)"},
                 ],
                 mode=SelectSelectorMode.DROPDOWN
             )

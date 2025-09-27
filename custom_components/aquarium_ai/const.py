@@ -31,4 +31,5 @@ UPDATE_FREQUENCIES: Final = {
     "6_hours": 360,
     "12_hours": 720,
     "daily": 1440,
+    "never": None,  # Manual analysis only
 }
