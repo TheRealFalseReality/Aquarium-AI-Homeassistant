@@ -550,6 +550,7 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "salinity_sensor": salinity_sensor,
         "dissolved_oxygen_sensor": dissolved_oxygen_sensor,
         "water_level_sensor": water_level_sensor,
+        "camera": camera,
         "frequency_minutes": frequency_minutes,
         "ai_task": ai_task,
         "auto_notifications": auto_notifications,
