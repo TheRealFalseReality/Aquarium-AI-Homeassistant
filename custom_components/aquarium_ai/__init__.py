@@ -558,19 +558,27 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Schedule delayed AI analysis on startup to ensure HA is fully ready
+    # Schedule delayed AI analysis on startup to ensure HA is fully ready (only if not manual-only)
     async def delayed_startup_analysis(now):
         """Run initial AI analysis after HA is fully started."""
         _LOGGER.info("Running delayed startup AI analysis for %s", tank_name)
         await send_ai_aquarium_analysis(None)
     
-    # Run initial analysis after 60 seconds to ensure HA is fully ready
-    async_call_later(hass, 60, delayed_startup_analysis)
+    # Initialize unsub as None
+    unsub = None
     
-    # Schedule AI analyses based on configured frequency - always needed for sensors
-    unsub = async_track_time_interval(
-        hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
-    )
+    # Only schedule automatic analysis if frequency is not "never"
+    if frequency_minutes is not None:
+        # Run initial analysis after 60 seconds to ensure HA is fully ready
+        async_call_later(hass, 60, delayed_startup_analysis)
+        
+        # Schedule AI analyses based on configured frequency
+        unsub = async_track_time_interval(
+            hass, send_ai_aquarium_analysis, timedelta(minutes=frequency_minutes)
+        )
+        _LOGGER.info("Scheduled automatic analysis every %d minutes for %s", frequency_minutes, tank_name)
+    else:
+        _LOGGER.info("Manual analysis only mode enabled for %s", tank_name)
     
     # Store the unsubscribe function
     hass.data[DOMAIN][entry.entry_id]["unsub"] = unsub
