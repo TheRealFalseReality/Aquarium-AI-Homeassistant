@@ -109,14 +109,31 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 
 #### Example Notifications
 
-**Marine Aquarium:**
-![Marine Notification](/assets/Marine.png)
+<table>
+  <tr>
+    <th>Marine Aquarium</th>
+    <th>Reef Aquarium</th>
+    <th>Cichlids Aquarium</th>
+  </tr>
+  <tr>
+    <td><img src="/assets/Marine.png" alt="Marine Notification" width="300"></td>
+    <td><img src="/assets/Reef.png" alt="Reef Notification" width="300"></td>
+    <td><img src="/assets/Cichlids.png" alt="Cichlids Notification" width="300"></td>
+  </tr>
+</table>
 
-**Reef Aquarium:**
-![Reef Notification](/assets/Reef.png)
+**Notification Types:**
 
-**Cichlids Aquarium:**
-![Cichlids Notification](/assets/Cichlids.png)
+<table>
+  <tr>
+    <th>Minimal</th>
+    <th>Condensed</th>
+  </tr>
+  <tr>
+    <td><img src="/assets/Noticationmin.png" alt="Minimal Notification" width="400"></td>
+    <td><img src="/assets/NotificationCondensed.png" alt="Condensed Notification" width="400"></td>
+  </tr>
+</table>
 
 ---
 
