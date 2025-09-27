@@ -116,9 +116,9 @@ The integration also sends periodic notifications (if enabled) with detailed ana
     <th>Cichlids Aquarium</th>
   </tr>
   <tr>
-    <td><img src="/assets/Marine.png" alt="Marine Notification" width="300"></td>
-    <td><img src="/assets/Reef.png" alt="Reef Notification" width="300"></td>
-    <td><img src="/assets/Cichlids.png" alt="Cichlids Notification" width="300"></td>
+    <td><img src="assets/Marine.png" alt="Marine Notification" width="300"></td>
+    <td><img src="assets/Reef.png" alt="Reef Notification" width="300"></td>
+    <td><img src="assets/Cichlids.png" alt="Cichlids Notification" width="300"></td>
   </tr>
 </table>
 
@@ -126,12 +126,12 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 
 <table>
   <tr>
-    <th>Minimal</th>
     <th>Condensed</th>
+    <th>Minimal</th>
   </tr>
   <tr>
-    <td><img src="/assets/Noticationmin.png" alt="Minimal Notification" width="400"></td>
-    <td><img src="/assets/NotificationCondensed.png" alt="Condensed Notification" width="400"></td>
+    <td><img src="assets/NotificationCondensed.png" alt="Condensed Notification" width="400"></td>
+    <td><img src="assets/Noticationmin.png" alt="Minimal Notification" width="400"></td>
   </tr>
 </table>
 
