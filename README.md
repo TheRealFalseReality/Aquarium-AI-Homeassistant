@@ -26,7 +26,7 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 > [!IMPORTANT]
 > *Important Notice Regarding Home Assistant AI Tasks feature*:  
 > **You must have a generative LLM AI installed in you Home Assistant via integrations (see link below), this typially creates an `ai_task.YOUR_PROVIDER` for this integration to use.**
-> 
+>
 Before you can install and use Aquarium AI, you must have the following set up:  
 
 1. A working **Home Assistant** instance (Version 2025.1.0+).
@@ -134,9 +134,10 @@ The integration adds a service that allows you to trigger analysis updates manua
 **Service:** `aquarium_ai.run_analysis`
 
 This service will:
-- Update all AI analysis sensors with fresh analysis
-- Update all status sensors with current readings  
-- Send a notification (if notifications are enabled)
+
+* Update all AI analysis sensors with fresh analysis
+* Update all status sensors with current readings  
+* Send a notification (if notifications are enabled)
 
 ### Example Automation
 
