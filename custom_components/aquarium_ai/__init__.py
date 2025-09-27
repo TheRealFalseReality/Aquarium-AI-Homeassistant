@@ -334,9 +334,9 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
                     else:
                         message_parts.append(f"\n{sensor_name}: {ai_data[analysis_key]}")
             
-            # Add overall detailed analysis
-            if "overall_notification_analysis" in ai_data:
-                message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
+            # Add overall brief analysis (same as used for sensors)
+            if "overall_analysis" in ai_data:
+                message_parts.append(f"\n🎯 Overall Assessment: {ai_data['overall_analysis']}")
         else:
             message_parts.append("No analysis available")
             
