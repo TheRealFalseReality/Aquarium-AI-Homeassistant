@@ -31,11 +31,14 @@ from .const import (
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
+    CONF_NOTIFICATION_FORMAT,
     DEFAULT_TANK_NAME,
     DEFAULT_AQUARIUM_TYPE,
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
+    DEFAULT_NOTIFICATION_FORMAT,
     UPDATE_FREQUENCIES,
+    NOTIFICATION_FORMATS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -129,6 +132,16 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             vol.Required(CONF_AUTO_NOTIFICATIONS, default=DEFAULT_AUTO_NOTIFICATIONS): BooleanSelector(
                 BooleanSelectorConfig()
+            ),
+            vol.Required(CONF_NOTIFICATION_FORMAT, default=DEFAULT_NOTIFICATION_FORMAT): SelectSelector(
+                SelectSelectorConfig(
+                    options=[
+                        {"value": "detailed", "label": "Full and detailed evaluation"},
+                        {"value": "condensed", "label": "Condensed version with brief analysis"}, 
+                        {"value": "minimal", "label": "Minimal with parameters and overall analysis only"}
+                    ],
+                    mode=SelectSelectorMode.DROPDOWN
+                )
             ),
             vol.Optional(CONF_TEMPERATURE_SENSOR): EntitySelector(
                 EntitySelectorConfig(
@@ -287,6 +300,21 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
             CONF_AUTO_NOTIFICATIONS,
             default=current_data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS),
         )] = BooleanSelector(BooleanSelectorConfig())
+        
+        # Add notification format selector
+        schema_dict[vol.Required(
+            CONF_NOTIFICATION_FORMAT,
+            default=current_data.get(CONF_NOTIFICATION_FORMAT, DEFAULT_NOTIFICATION_FORMAT),
+        )] = SelectSelector(
+            SelectSelectorConfig(
+                options=[
+                    {"value": "detailed", "label": "Full and detailed evaluation"},
+                    {"value": "condensed", "label": "Condensed version with brief analysis"}, 
+                    {"value": "minimal", "label": "Minimal with parameters and overall analysis only"}
+                ],
+                mode=SelectSelectorMode.DROPDOWN
+            )
+        )
         
         # Add sensor fields only if they have values to avoid "Entity None" error
         temp_sensor = current_data.get(CONF_TEMPERATURE_SENSOR)
