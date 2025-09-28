@@ -583,8 +583,16 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                         overall_analysis = overall_analysis[:252] + "..."
                     sensor_analysis_data["overall_analysis"] = overall_analysis
                 
+                # Store notification analysis data (full/detailed versions for response variables)
+                notification_analysis_data = {}
+                for structure_key in analysis_structure_notification.keys():
+                    if structure_key in ai_data:
+                        notification_analysis_data[structure_key] = ai_data[structure_key]
+                
                 # Store the analysis data and sensor data in hass.data for sensors to access
                 hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = sensor_analysis_data
+                hass.data[DOMAIN][entry.entry_id]["notification_analysis"] = notification_analysis_data
+                hass.data[DOMAIN][entry.entry_id]["full_ai_response"] = ai_data
                 hass.data[DOMAIN][entry.entry_id]["sensor_data"] = sensor_data
                 hass.data[DOMAIN][entry.entry_id]["last_update"] = now
             
@@ -621,6 +629,8 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                     
                     # Store fallback sensor data for sensors to use
                     hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = {}
+                    hass.data[DOMAIN][entry.entry_id]["notification_analysis"] = {}
+                    hass.data[DOMAIN][entry.entry_id]["full_ai_response"] = {}
                     hass.data[DOMAIN][entry.entry_id]["sensor_data"] = fallback_sensor_data
                     hass.data[DOMAIN][entry.entry_id]["last_update"] = now
             except Exception as fallback_err:

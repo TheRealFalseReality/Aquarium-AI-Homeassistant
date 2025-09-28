@@ -89,6 +89,16 @@ These `sensor` entities contain AI-generated text analysis limited to 1-2 senten
 * `sensor.[tank_name]_[sensor_name]_analysis`: AI analysis of each specific parameter (e.g., Temperature Analysis, pH Analysis).
 * `sensor.[tank_name]_overall_analysis`: Comprehensive AI summary of the aquarium's overall health.
 
+### Detailed Analysis Sensors (Response Variables)
+
+These `sensor` entities provide comprehensive AI analysis data for use in custom automations:
+
+* `sensor.[tank_name]_[sensor_name]_detailed_analysis`: Full detailed AI analysis for each parameter (no character limit).
+* `sensor.[tank_name]_overall_detailed_analysis`: Comprehensive overall aquarium assessment with full analysis.
+* `sensor.[tank_name]_full_ai_response`: Complete structured response data including both condensed and full analysis for all parameters.
+
+**📖 For detailed documentation on using response variables in automations, see [RESPONSE_VARIABLES.md](RESPONSE_VARIABLES.md)**
+
 ### Status Sensors
 
 These `sensor` entities provide quick status information:
@@ -167,6 +177,7 @@ This service will:
 
 * Update all AI analysis sensors with fresh analysis
 * Update all status sensors with current readings  
+* Update all response variable sensors with detailed analysis data
 * Send a notification (if notifications are enabled)
 
 ### Example Automation
@@ -182,6 +193,32 @@ automation:
     action:
       - service: aquarium_ai.run_analysis
 ```
+
+### Custom Automations with Response Variables
+
+The integration provides detailed response variables that can be used in custom automations. Here's an example that creates a custom notification when temperature analysis indicates a concern:
+
+```yaml
+automation:
+  - alias: "Custom Temperature Alert"
+    trigger:
+      - platform: state
+        entity_id: sensor.main_tank_temperature_detailed_analysis
+    condition:
+      - condition: template
+        value_template: >
+          {{ 'concern' in trigger.to_state.state.lower() or 
+             'high' in trigger.to_state.state.lower() }}
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "🌡️ Temperature Issue"
+          message: >
+            Current: {{ state_attr('sensor.main_tank_temperature_detailed_analysis', 'sensor_value') }}
+            {{ states('sensor.main_tank_temperature_detailed_analysis') }}
+```
+
+**📖 For more automation examples and detailed documentation, see [RESPONSE_VARIABLES.md](RESPONSE_VARIABLES.md)**
 
 ---
 

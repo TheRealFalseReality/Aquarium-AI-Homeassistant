@@ -123,6 +123,47 @@ async def async_setup_entry(
         )
     )
     
+    # Create full AI response sensor for automation access
+    entities.append(
+        AquariumAIFullResponse(
+            hass,
+            config_entry,
+            tank_name,
+            aquarium_type,
+            frequency_minutes,
+            valid_sensor_mappings,
+        )
+    )
+    
+    # Create detailed sensor analysis entities (full notification version)
+    for sensor_entity, sensor_name in valid_sensor_mappings:
+        entities.append(
+            AquariumAIDetailedSensorAnalysis(
+                hass,
+                config_entry,
+                tank_name,
+                aquarium_type,
+                sensor_entity,
+                sensor_name,
+                ai_task,
+                frequency_minutes,
+                valid_sensor_mappings,
+            )
+        )
+    
+    # Create overall detailed analysis sensor
+    entities.append(
+        AquariumAIOverallDetailedAnalysis(
+            hass,
+            config_entry,
+            tank_name,
+            aquarium_type,
+            ai_task,
+            frequency_minutes,
+            valid_sensor_mappings,
+        )
+    )
+    
     async_add_entities(entities)
 
 
@@ -159,10 +200,12 @@ class AquariumAIBaseSensor(SensorEntity):
             entry_data = self._hass.data[DOMAIN][self._config_entry.entry_id]
             return {
                 "sensor_analysis": entry_data.get("sensor_analysis", {}),
+                "notification_analysis": entry_data.get("notification_analysis", {}),
+                "full_ai_response": entry_data.get("full_ai_response", {}),
                 "sensor_data": entry_data.get("sensor_data", []),
                 "last_update": entry_data.get("last_update")
             }
-        return {"sensor_analysis": {}, "sensor_data": [], "last_update": None}
+        return {"sensor_analysis": {}, "notification_analysis": {}, "full_ai_response": {}, "sensor_data": [], "last_update": None}
         
     @property
     def available(self) -> bool:
@@ -625,5 +668,270 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
         except Exception as err:
             _LOGGER.error("Error updating quick status sensor: %s", err)
             self._state = "Unavailable"
+            self._available = False
+            self._attr_extra_state_attributes = {}
+
+
+class AquariumAIFullResponse(AquariumAIBaseSensor):
+    """Sensor that exposes the full AI response data for use in automations."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        frequency_minutes: Optional[int],
+        sensor_mappings: list,
+    ):
+        """Initialize the full response sensor."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._attr_name = f"{tank_name} Full AI Response"
+        self._attr_unique_id = f"{config_entry.entry_id}_full_ai_response"
+        self._attr_icon = "mdi:database"
+        self._attr_extra_state_attributes = {}
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Get shared analysis data
+            shared_data = self._get_shared_data()
+            full_response = shared_data["full_ai_response"]
+            notification_analysis = shared_data["notification_analysis"]
+            sensor_data = shared_data["sensor_data"]
+            
+            if not full_response and not sensor_data:
+                self._state = "No data available"
+                self._available = False
+                self._attr_extra_state_attributes = {}
+                return
+                
+            self._available = True
+            
+            # Set state to indicate response is available
+            total_analyses = len([k for k in full_response.keys() if k.endswith('_analysis') or k.endswith('_notification_analysis')])
+            self._state = f"Analysis available ({total_analyses} parameters)"
+            
+            # Create detailed attributes structure for automation access
+            sensor_responses = {}
+            for sensor_entity, sensor_name in self._sensor_mappings:
+                sensor_key = sensor_name.lower().replace(" ", "_")
+                
+                # Find sensor data
+                sensor_info = None
+                for info in sensor_data:
+                    if info['name'].lower() == sensor_name.lower():
+                        sensor_info = info
+                        break
+                
+                sensor_responses[sensor_key] = {
+                    "sensor_name": sensor_name,
+                    "condensed_analysis": full_response.get(f"{sensor_key}_analysis", ""),
+                    "full_analysis": notification_analysis.get(f"{sensor_key}_notification_analysis", ""),
+                    "sensor_value": sensor_info['value'] if sensor_info else None,
+                    "raw_value": sensor_info['raw_value'] if sensor_info else None,
+                    "unit": sensor_info['unit'] if sensor_info else None,
+                }
+            
+            self._attr_extra_state_attributes = {
+                "sensor_responses": sensor_responses,
+                "overall_condensed_analysis": full_response.get("overall_analysis", ""),
+                "overall_full_analysis": notification_analysis.get("overall_notification_analysis", ""),
+                "analysis_timestamp": shared_data.get("last_update"),
+                "aquarium_type": self._aquarium_type,
+                "total_sensors": len(sensor_data),
+                "response_format": "full_detailed"
+            }
+                
+        except Exception as err:
+            _LOGGER.error("Error updating full response sensor: %s", err)
+            self._state = "Analysis unavailable"
+            self._available = False
+            self._attr_extra_state_attributes = {}
+
+
+class AquariumAIDetailedSensorAnalysis(AquariumAIBaseSensor):
+    """Sensor for individual parameter detailed AI analysis (full notification version)."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        sensor_entity: str,
+        sensor_name: str,
+        ai_task: str,
+        frequency_minutes: Optional[int],
+        sensor_mappings: list,
+    ):
+        """Initialize the detailed sensor analysis."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._sensor_entity = sensor_entity
+        self._sensor_name = sensor_name
+        self._ai_task = ai_task
+        self._attr_name = f"{tank_name} {sensor_name} Detailed Analysis"
+        self._attr_unique_id = f"{config_entry.entry_id}_{sensor_name.lower().replace(' ', '_')}_detailed_analysis"
+        self._attr_icon = self._get_sensor_icon(sensor_name)
+        self._attr_extra_state_attributes = {}
+        
+    def _get_sensor_icon(self, sensor_name: str) -> str:
+        """Get appropriate icon for sensor type."""
+        sensor_icons = {
+            "Temperature": "mdi:thermometer-lines",
+            "pH": "mdi:ph", 
+            "Salinity": "mdi:shaker-outline",
+            "Dissolved Oxygen": "mdi:air-purifier",
+            "Water Level": "mdi:waves",
+            "ORP": "mdi:lightning-bolt",
+        }
+        return sensor_icons.get(sensor_name, "mdi:text-box-multiple")
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Get sensor info to check availability
+            sensor_info = get_sensor_info(self._hass, self._sensor_entity, self._sensor_name)
+            if not sensor_info:
+                self._state = "Sensor unavailable"
+                self._available = False
+                self._attr_extra_state_attributes = {}
+                return
+                
+            self._available = True
+            
+            # Get shared analysis data
+            shared_data = self._get_shared_data()
+            notification_analysis = shared_data["notification_analysis"]
+            sensor_analysis = shared_data["sensor_analysis"]
+            
+            # Look for detailed analysis data for this specific sensor
+            notification_key = f"{self._sensor_name.lower().replace(' ', '_')}_notification_analysis"
+            condensed_key = f"{self._sensor_name.lower().replace(' ', '_')}_analysis"
+            
+            if notification_key in notification_analysis and notification_analysis[notification_key]:
+                # Use the detailed AI analysis from the notification data
+                self._state = notification_analysis[notification_key]
+                analysis_source = "AI_Detailed"
+            elif condensed_key in sensor_analysis and sensor_analysis[condensed_key]:
+                # Fallback to condensed analysis if detailed not available
+                self._state = sensor_analysis[condensed_key]
+                analysis_source = "AI_Condensed"
+            else:
+                # Fallback to simple status if no AI analysis available
+                status = get_simple_status(sensor_info['name'], sensor_info['raw_value'], sensor_info['unit'], self._aquarium_type)
+                self._state = f"{sensor_info['name']} is {status} at {sensor_info['value']}"
+                analysis_source = "Fallback"
+            
+            # Add attributes with sensor info and analysis metadata
+            self._attr_extra_state_attributes = {
+                "sensor_name": sensor_info['name'],
+                "sensor_value": sensor_info['value'],
+                "raw_value": sensor_info['raw_value'],
+                "unit": sensor_info['unit'],
+                "source_entity": self._sensor_entity,
+                "analysis_source": analysis_source,
+                "condensed_analysis": sensor_analysis.get(condensed_key, ""),
+                "full_analysis": notification_analysis.get(notification_key, ""),
+                "aquarium_type": self._aquarium_type,
+                "last_updated": shared_data.get("last_update"),
+                "analysis_type": "detailed"
+            }
+                
+        except Exception as err:
+            _LOGGER.error("Error updating %s detailed analysis sensor: %s", self._sensor_name, err)
+            self._state = "Analysis unavailable"
+            self._available = False
+            self._attr_extra_state_attributes = {}
+
+
+class AquariumAIOverallDetailedAnalysis(AquariumAIBaseSensor):
+    """Sensor for overall aquarium detailed analysis (full notification version)."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        ai_task: str,
+        frequency_minutes: Optional[int],
+        sensor_mappings: list,
+    ):
+        """Initialize the overall detailed analysis sensor."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._ai_task = ai_task
+        self._attr_name = f"{tank_name} Overall Detailed Analysis"
+        self._attr_unique_id = f"{config_entry.entry_id}_overall_detailed_analysis"
+        self._attr_icon = "mdi:fish-off"
+        self._attr_extra_state_attributes = {}
+        
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Get shared analysis data
+            shared_data = self._get_shared_data()
+            notification_analysis = shared_data["notification_analysis"]
+            sensor_analysis = shared_data["sensor_analysis"]
+            sensor_data = shared_data["sensor_data"]
+            
+            if not sensor_data:
+                self._state = "No sensor data available"
+                self._available = False
+                self._attr_extra_state_attributes = {}
+                return
+                
+            self._available = True
+            
+            # Get detailed overall analysis or fallback to condensed
+            detailed_key = "overall_notification_analysis"
+            condensed_key = "overall_analysis"
+            
+            if detailed_key in notification_analysis and notification_analysis[detailed_key]:
+                self._state = notification_analysis[detailed_key]
+                analysis_source = "AI_Detailed"
+            elif condensed_key in sensor_analysis and sensor_analysis[condensed_key]:
+                self._state = sensor_analysis[condensed_key]
+                analysis_source = "AI_Condensed"
+            else:
+                # Generate fallback overall analysis
+                self._state = get_overall_status(sensor_data, self._aquarium_type)
+                analysis_source = "Fallback"
+            
+            # Add attributes with all sensor information and analysis data
+            sensors_info = {}
+            for info in sensor_data:
+                sensors_info[info['name']] = {
+                    "value": info['value'],
+                    "raw_value": info['raw_value'],
+                    "unit": info['unit'],
+                    "status": get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
+                }
+            
+            self._attr_extra_state_attributes = {
+                "sensors": sensors_info,
+                "total_sensors": len(sensor_data),
+                "aquarium_type": self._aquarium_type,
+                "analysis_source": analysis_source,
+                "condensed_analysis": sensor_analysis.get(condensed_key, ""),
+                "detailed_analysis": notification_analysis.get(detailed_key, ""),
+                "last_updated": shared_data.get("last_update"),
+                "ai_task": self._ai_task,
+                "analysis_type": "detailed_overall"
+            }
+            
+        except Exception as err:
+            _LOGGER.error("Error updating overall detailed analysis sensor: %s", err)
+            self._state = "Analysis unavailable"
             self._available = False
             self._attr_extra_state_attributes = {}
