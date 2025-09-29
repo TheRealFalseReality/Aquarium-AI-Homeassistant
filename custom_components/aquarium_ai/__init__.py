@@ -302,6 +302,8 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             if "overall_notification_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
+                # Add AI disclaimer for AI-generated content
+                message_parts.append("\n⚠️ AI analysis provided for guidance only. AI can sometimes make mistakes - always verify recommendations with your aquarium expertise.")
         else:
             message_parts.append("\nNo analysis available")
             
@@ -337,6 +339,9 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             # Add overall brief analysis (same as used for sensors)
             if "overall_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment: {ai_data['overall_analysis']}")
+            
+            # Add AI disclaimer for AI-generated content
+            message_parts.append("\n⚠️ AI analysis provided for guidance only. AI can sometimes make mistakes - always verify recommendations with your aquarium expertise.")
         else:
             message_parts.append("No analysis available")
             
@@ -372,6 +377,9 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             # Add overall detailed analysis
             if "overall_notification_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
+            
+            # Add AI disclaimer for AI-generated content
+            message_parts.append("\n⚠️ AI analysis provided for guidance only. AI can sometimes make mistakes - always verify recommendations with your aquarium expertise.")
         else:
             message_parts.append("No analysis available")
     
