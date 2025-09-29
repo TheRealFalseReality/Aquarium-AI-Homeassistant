@@ -106,18 +106,18 @@ def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
         # Temperature status - handle different units
         if sensor_name == "Temperature":
             if unit.lower() in ["°f", "f", "fahrenheit"]:
-                # Convert Fahrenheit ranges: 72-79°F (22-26°C), 68-82°F (20-28°C)  
-                if 72 <= numeric_value <= 79:
+                # Convert Fahrenheit ranges: 76-79°F (24-26°C), 72-82°F (22-28°C)
+                if 76 <= numeric_value <= 79:
                     return "Good"
-                elif 68 <= numeric_value <= 82:
+                elif 72 <= numeric_value <= 82:
                     return "OK"
                 else:
                     return "Check"
             else:
                 # Default to Celsius (°C, C, celsius, or no unit)
-                if 22 <= numeric_value <= 26:
+                if 24 <= numeric_value <= 26:
                     return "Good"
-                elif 20 <= numeric_value <= 28:
+                elif 22 <= numeric_value <= 28:
                     return "OK"
                 else:
                     return "Check"
@@ -506,6 +506,14 @@ For overall_notification_analysis: Detailed but short paragraph assessment witho
 Consider the relationships between different parameters 
 Consider impact on aquarium health when the parameters are negative to the aquarium health
 Always correctly write ph as pH.
+
+When considering the parameters, use the following guidelines for healthy ranges:
+- Temperature: 22-28°C (72-82°F) for most fish, 24-28°C (76-82°F) acceptable for tropical fish, 20-24°C (68-75°F) for coldwater fish, 24-26°C (75-79°F) for reef tanks
+- Water Level: 80%+ if percentage, otherwise ensure within acceptable range for tank size
+- pH: 6.5-8.0 for freshwater, 8.0-8.4 for saltwater/marine
+- Salinity: 30-35 ppt/psu for saltwater, 1.020-1.025 SG or 46.25-53.06 mS/cm for saltwater specific gravity/conductivity
+- Dissolved Oxygen: 6+ mg/L, 85%+ saturation, 7+ ppm. But Higher levels (up to 120% saturation or 12+ mg/L) can lead to gas bubble disease
+- ORP: 250-400 mV for freshwater, 300-400 mV for saltwater/marine
 
 IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
 - Temperature: Consider if values are in Celsius (°C) or Fahrenheit (°F)
