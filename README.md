@@ -8,6 +8,9 @@
 
 This integration takes the guesswork out of maintaining a healthy aquatic environment by turning raw sensor data and visual monitoring into actionable insights.
 
+> [!WARNING]
+> **AI Disclaimer**: While this integration leverages advanced AI technology to analyze your aquarium conditions, please remember that AI can sometimes get things wrong. The AI-generated analyses and recommendations should be used as helpful guidance, but should not replace your own expertise, professional advice, or careful observation of your aquarium. Always verify AI suggestions against your knowledge of aquarium care and consult with aquarium professionals when making important decisions about your aquatic environment.
+
 ---
 
 ## Features
