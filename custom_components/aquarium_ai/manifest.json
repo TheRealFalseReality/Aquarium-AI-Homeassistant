@@ -1,13 +1,13 @@
 {
   "domain": "aquarium_ai",
   "name": "Aquarium AI",
-  "config_flow": true,
-  "documentation": "https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant",
-  "issue_tracker": "https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues",
   "codeowners": ["@TheRealFalseReality"],
+  "config_flow": true,
   "dependencies": ["ai_task"],
+  "documentation": "https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant",
+  "integration_type": "service",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues",
   "requirements": [],
-  "version": "1.0.3",
-  "integration_type": "service"
+  "version": "1.0.3"
 }
