@@ -100,6 +100,8 @@ These `sensor` entities provide quick status information:
 * `sensor.[tank_name]_quick_status`: One or two-word status (e.g., "Excellent", "Good", "Needs Attention").
 * `sensor.[tank_name]_[sensor_name]_status`: Status for each parameter with current value (e.g., "Good (24.5°C)").
 
+![Sensors](/assets/sensors_example.png)
+
 ### Notification System
 
 The integration also sends periodic notifications (if enabled) with detailed analysis including:
