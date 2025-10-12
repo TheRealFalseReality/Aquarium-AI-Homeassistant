@@ -6,11 +6,8 @@
   "issue_tracker": "https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues",
   "codeowners": ["@TheRealFalseReality"],
   "dependencies": ["ai_task"],
-  "platforms": ["sensor"],
   "iot_class": "cloud_polling",
-  "homeassistant": "2025.1.0",
   "requirements": [],
   "version": "1.0.3",
-  "integration_type": "service",
-  "icon": "mdi:fish"
+  "integration_type": "service
 }
