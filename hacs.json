@@ -1,8 +1,6 @@
 {
   "name": "Aquarium AI",
   "content_in_root": false,
-  "filename": "aquarium_ai.zip",
   "homeassistant": "2023.5.0",
-  "render_readme": true,
-  "zip_release": true
+  "render_readme": true
 }
