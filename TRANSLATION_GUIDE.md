@@ -6,7 +6,22 @@ Thank you for your interest in translating Aquarium AI to other languages! This 
 
 Currently supported languages:
 - **English (en)** - Default language
-- **German (de)** - Deutsch
+- **German (de)** - Deutsch (Deutsche Übersetzung)
+
+### Preview: German Translation
+
+The German translation provides a fully localized experience:
+
+**Configuration Dialog:**
+- "Aquarium AI Setup" → "Aquarium AI Einrichtung"
+- "Temperature Sensor" → "Temperatursensor"
+- "pH Sensor" → "pH-Sensor"
+- "Update Frequency" → "Aktualisierungsfrequenz"
+
+**Services:**
+- "Run AI Analysis" → "KI-Analyse ausführen"
+
+All descriptions, help text, and error messages are also translated to provide a seamless experience for German-speaking users.
 
 ## How to Add a New Language
 
