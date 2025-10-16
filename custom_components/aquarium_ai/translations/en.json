@@ -1,0 +1,92 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aquarium AI Setup",
+        "description": "Set up AI-powered aquarium monitoring and analysis. This integration uses AI to analyze your aquarium sensors and provide intelligent recommendations through Home Assistant notifications.",
+        "data": {
+          "tank_name": "Aquarium Name",
+          "aquarium_type": "Aquarium Type", 
+          "temperature_sensor": "Temperature Sensor (Optional)",
+          "ph_sensor": "pH Sensor (Optional)",
+          "salinity_sensor": "Salinity Sensor (Optional)",
+          "dissolved_oxygen_sensor": "Dissolved Oxygen Sensor (Optional)",
+          "water_level_sensor": "Water Level Sensor (Optional)",
+          "camera": "Aquarium Camera (Optional)",
+          "update_frequency": "Update Frequency",
+          "ai_task": "AI Task Type",
+          "auto_notifications": "Auto-send Notifications",
+          "notification_format": "Notification Format"
+        },
+        "data_description": {
+          "tank_name": "Enter a custom name for your aquarium (e.g., 'Main Tank', 'Reef Setup', 'Community Tank'). This name will appear in notifications and service calls.",
+          "aquarium_type": "Specify your aquarium type to provide context for AI analysis. Common types include Freshwater, Marine, Brackish, or custom types like 'Cichlid Tank' or 'Reef Aquarium'.",
+          "temperature_sensor": "Choose the temperature sensor entity that monitors your aquarium. Temperature sensors with proper device class are preferred.",
+          "ph_sensor": "Select a sensor that measures pH levels in your aquarium. pH may not have units.",
+          "salinity_sensor": "Choose a sensor that measures salinity or specific gravity in your aquarium.",
+          "dissolved_oxygen_sensor": "Select a sensor that measures dissolved oxygen levels in your aquarium water.",
+          "water_level_sensor": "Choose a sensor that measures water level. This can be numeric (e.g., 80%) or text (e.g., Normal/High/Low).",
+          "camera": "Select a camera entity that provides a view of your aquarium. The AI will analyze the image for water clarity, fish health, plant condition, and general aquarium maintenance needs. Visual analysis complements sensor data for comprehensive monitoring.",
+          "update_frequency": "Select how often the AI should analyze your aquarium sensors and send notifications. Choose based on your monitoring needs - more frequent for sensitive setups, less frequent for stable systems.",
+          "ai_task": "Select an AI task entity from your Home Assistant configuration (e.g., ai_task.google_ai_task or ai_task.openai_ai_task).",
+          "auto_notifications": "When enabled, notifications are sent automatically at the configured frequency. When disabled, notifications are only sent when triggered manually using the service.",
+          "notification_format": "Choose the level of detail for notification messages. Full format provides comprehensive parameter analysis, condensed format shows brief analysis, and minimal format displays only parameter values with overall assessment."
+        }
+      }
+    },
+    "error": {
+      "sensor_not_found": "Selected sensor was not found. Please select a valid sensor.",
+      "sensor_required": "Please select a temperature sensor to monitor your aquarium.",
+      "invalid_sensor": "The selected sensor is not a valid sensor.",
+      "no_sensors": "No sensors found. Please ensure you have sensors set up in Home Assistant before configuring this integration.",
+      "at_least_one_sensor": "At least one sensor must be configured. Please select at least one sensor to monitor.",
+      "ai_task_required": "Please select an AI task entity to use for analysis."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Aquarium AI Options",
+        "description": "Modify your aquarium monitoring settings. Changes will take effect immediately without restarting Home Assistant.",
+        "data": {
+          "tank_name": "Aquarium Name",
+          "aquarium_type": "Aquarium Type",
+          "temperature_sensor": "Temperature Sensor (Optional)",
+          "ph_sensor": "pH Sensor (Optional)",
+          "salinity_sensor": "Salinity Sensor (Optional)",
+          "dissolved_oxygen_sensor": "Dissolved Oxygen Sensor (Optional)",
+          "water_level_sensor": "Water Level Sensor (Optional)",
+          "camera": "Aquarium Camera (Optional)",
+          "update_frequency": "Update Frequency",
+          "ai_task": "AI Task Type",
+          "auto_notifications": "Auto-send Notifications",
+          "notification_format": "Notification Format"
+        },
+        "data_description": {
+          "tank_name": "Update the name for your aquarium. This name appears in all notifications and can help identify multiple tank setups.",
+          "aquarium_type": "Change your aquarium type to improve AI analysis accuracy. The AI provides different recommendations based on aquarium type (e.g., Marine tanks need different parameter ranges than Freshwater).",
+          "temperature_sensor": "Switch to a different temperature sensor if you've added new sensors or want to monitor a different location in your aquarium.",
+          "ph_sensor": "Update or change the pH sensor for your aquarium monitoring.",
+          "salinity_sensor": "Update or change the salinity sensor for your aquarium monitoring.",
+          "dissolved_oxygen_sensor": "Update or change the dissolved oxygen sensor for your aquarium monitoring.",
+          "water_level_sensor": "Update or change the water level sensor for your aquarium monitoring.",
+          "camera": "Update or change the camera for visual aquarium monitoring. The AI will analyze camera images for water quality, fish health, and maintenance needs.",
+          "update_frequency": "Adjust notification frequency based on your needs. Use shorter intervals during critical periods (water changes, new fish) or longer intervals for stable, established tanks.",
+          "ai_task": "Change which AI task entity to use for analysis. Select from available AI task entities in your Home Assistant setup.",
+          "auto_notifications": "Toggle automatic notifications on/off. When disabled, notifications are only sent when manually triggered via the service.",
+          "notification_format": "Choose how detailed the notification messages should be. Full format includes comprehensive analysis, condensed shows brief analysis, minimal shows only parameters and overall assessment."
+        }
+      }
+    },
+    "error": {
+      "at_least_one_sensor": "At least one sensor must be configured. Please select at least one sensor to monitor.",
+      "ai_task_required": "Please select an AI task entity to use for analysis."
+    }
+  },
+  "services": {
+    "run_analysis": {
+      "name": "Run AI Analysis",
+      "description": "Manually trigger an immediate AI analysis for all configured aquarium integrations. This is useful for on-demand analysis after water changes, equipment adjustments, or when creating automations."
+    }
+  }
+}

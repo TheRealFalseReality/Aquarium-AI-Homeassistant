@@ -196,6 +196,37 @@ This integration is a passion project developed with a "just build it" philosoph
 
 ---
 
+## Translations
+
+Aquarium AI supports multiple languages to make it accessible to users worldwide! 
+
+### Available Languages
+
+- 🇬🇧 **English (en)** - Default
+- 🇩🇪 **German (de)** - Deutsch
+
+### Help Translate
+
+We welcome community translations! If you'd like to translate Aquarium AI into your language:
+
+1. Check the [Translation Guide](TRANSLATION_GUIDE.md) for detailed instructions
+2. Copy the `custom_components/aquarium_ai/translations/template.json` file
+3. Translate the strings to your language
+4. Submit a Pull Request
+
+Your translation will help make aquarium monitoring accessible to more users around the world! 🌍🐠
+
+---
+
 ## Contributing
 
-Contributions are welcome! If you have an idea for an improvement or have found a bug, please [open an issue](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues) or submit a pull request.
+Contributions are welcome! Whether you want to translate the integration, report a bug, suggest a feature, or contribute code, we'd love your help!
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+### Quick Links
+
+- **🌍 Translations**: Help translate the integration into other languages → [Translation Guide](TRANSLATION_GUIDE.md)
+- **🐛 Bug Reports**: Report issues → [Open an Issue](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues)
+- **💡 Feature Requests**: Suggest new features → [Open an Issue](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues)
+- **💻 Code Contributions**: Submit pull requests → [Contributing Guide](CONTRIBUTING.md)
