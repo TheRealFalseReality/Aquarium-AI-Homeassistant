@@ -230,3 +230,33 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 - **🐛 Bug Reports**: Report issues → [Open an Issue](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues)
 - **💡 Feature Requests**: Suggest new features → [Open an Issue](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/issues)
 - **💻 Code Contributions**: Submit pull requests → [Contributing Guide](CONTRIBUTING.md)
+
+## [Aquarium AI App](https://play.google.com/store/apps/details?id=com.cca.fishai)
+Your Intelligent Aquatic Assistant
+
+Take the guesswork out of aquarium keeping with Aquarium AI! Our powerful, AI-driven tools help both new and seasoned aquarists create a thriving underwater ecosystem.
+
+Unlock the Power of AI with Your Own API Key!
+
+Aquarium AI is different from other AI-enabled aquarium apps. We empower you by allowing you to use your own AI API keys from Gemini, OpenAI, and Groq. This unique "Bring Your Own Key" model gives you:
+
+Higher AI API Call Limits: Enjoy significantly more interactions with our AI, including the powerful Gemini 2.5 flash.
+
+Unlimited Features: Get unrestricted access to all our features, including the ability to add and manage an unlimited number of tanks.
+
+Key Features:
+
+🤖 Intelligent AI Chatbot: Have a question about your tank? Get expert advice on water parameters, fish health, tank maintenance, and more, 24/7.
+
+🧪 AI Fish Compatibility Tool: Instantly analyze the compatibility of different fish species with in-depth reports and personalized care guides.
+
+🦐 AI Stocking Assistant: Plan your dream aquarium with confidence. Get custom stocking recommendations based on your tank size, experience level, and desired fish type.
+
+🏠 My Tanks: Create and manage your custom tanks with inhabitants. Get personalized stocking recommendations for your tanks.
+
+📸 Photo Analysis: Analyze photos of your fish and tank. Our AI can help identify species, detect potential health issues, and provide recommendations.
+
+📐 Aquarium Calculators: Access essential tools for managing your aquarium's technical details, including a handy Tank Volume Calculator.
+
+[<img width="413" height="122" alt="download" src="https://github.com/user-attachments/assets/24dc9415-94fa-4c65-bcef-f8d5897f7e09" />](https://play.google.com/store/apps/details?id=com.cca.fishai)
+
