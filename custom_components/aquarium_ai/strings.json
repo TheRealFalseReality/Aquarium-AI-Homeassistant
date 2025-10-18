@@ -20,7 +20,9 @@
           "tank_volume": "Tank Volume (Optional)",
           "filtration": "Filtration System (Optional)",
           "water_change_frequency": "Water Change Frequency (Optional)",
-          "inhabitants": "Tank Inhabitants (Optional)"
+          "inhabitants": "Tank Inhabitants (Optional)",
+          "last_water_change": "Last Water Change Date (Optional)",
+          "misc_info": "Additional Information (Optional)"
         },
         "data_description": {
           "tank_name": "Enter a custom name for your aquarium (e.g., 'Main Tank', 'Reef Setup', 'Community Tank'). This name will appear in notifications and service calls.",
@@ -38,7 +40,9 @@
           "tank_volume": "Enter your aquarium's total water volume (e.g., '100 liters', '50 gallons', '200L'). The AI will use this to provide context-aware recommendations for water changes and stocking levels.",
           "filtration": "Describe your filtration system including type, flow rate, and filter media (e.g., 'Canister filter 1200 L/h with ceramic media, activated carbon, and bio-balls'). This helps the AI assess if your filtration is adequate for your tank.",
           "water_change_frequency": "Specify how often you perform water changes (e.g., '25% weekly', '20% every 2 weeks', '10% twice per week'). The AI will consider this when evaluating water quality and making recommendations.",
-          "inhabitants": "List your aquarium inhabitants with approximate quantities (e.g., '10 Neon Tetras, 5 Corydoras Catfish, 2 Angelfish, 10 Cherry Shrimp'). The AI uses this to assess bioload, compatibility, and parameter requirements."
+          "inhabitants": "List your aquarium inhabitants with approximate quantities (e.g., '10 Neon Tetras, 5 Corydoras Catfish, 2 Angelfish, 10 Cherry Shrimp'). The AI uses this to assess bioload, compatibility, and parameter requirements.",
+          "last_water_change": "Select an input_datetime helper (recommended) or date/time sensor that tracks when you last performed a water change. The AI will factor in time elapsed when making water change recommendations. See README for setup instructions.",
+          "misc_info": "Add any additional information about your tank that might help the AI provide better analysis (e.g., 'Recently added new fish', 'Using CO2 injection', 'Treating for ich', 'Heavy planting'). This context helps the AI understand special circumstances."
         }
       }
     },
@@ -72,7 +76,9 @@
           "tank_volume": "Tank Volume (Optional)",
           "filtration": "Filtration System (Optional)",
           "water_change_frequency": "Water Change Frequency (Optional)",
-          "inhabitants": "Tank Inhabitants (Optional)"
+          "inhabitants": "Tank Inhabitants (Optional)",
+          "last_water_change": "Last Water Change Date (Optional)",
+          "misc_info": "Additional Information (Optional)"
         },
         "data_description": {
           "tank_name": "Update the name for your aquarium. This name appears in all notifications and can help identify multiple tank setups.",
@@ -90,7 +96,9 @@
           "tank_volume": "Update your aquarium's total water volume. The AI uses this for water change calculations and stocking recommendations.",
           "filtration": "Update filtration system details. The AI evaluates if your filtration capacity matches your tank's bioload and requirements.",
           "water_change_frequency": "Update your water change schedule. The AI considers this when evaluating water quality trends and making maintenance recommendations.",
-          "inhabitants": "Update your tank's inhabitants list. The AI uses this to assess bioload, parameter requirements, and compatibility."
+          "inhabitants": "Update your tank's inhabitants list. The AI uses this to assess bioload, parameter requirements, and compatibility.",
+          "last_water_change": "Update the helper or sensor that tracks your last water change. The AI uses time elapsed to make timely water change recommendations.",
+          "misc_info": "Update additional tank context that helps AI provide better analysis. Include any special circumstances or recent changes."
         }
       }
     },

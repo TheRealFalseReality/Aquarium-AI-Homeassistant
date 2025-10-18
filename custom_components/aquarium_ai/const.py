@@ -21,6 +21,8 @@ CONF_TANK_VOLUME: Final = "tank_volume"
 CONF_FILTRATION: Final = "filtration"
 CONF_WATER_CHANGE_FREQUENCY: Final = "water_change_frequency"
 CONF_INHABITANTS: Final = "inhabitants"
+CONF_LAST_WATER_CHANGE: Final = "last_water_change"
+CONF_MISC_INFO: Final = "misc_info"
 
 # Default values
 DEFAULT_TANK_NAME: Final = "My Aquarium"
@@ -32,6 +34,8 @@ DEFAULT_TANK_VOLUME: Final = ""
 DEFAULT_FILTRATION: Final = ""
 DEFAULT_WATER_CHANGE_FREQUENCY: Final = ""
 DEFAULT_INHABITANTS: Final = ""
+DEFAULT_LAST_WATER_CHANGE: Final = ""
+DEFAULT_MISC_INFO: Final = ""
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {

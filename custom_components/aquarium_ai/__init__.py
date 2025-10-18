@@ -28,6 +28,8 @@ from .const import (
     CONF_FILTRATION,
     CONF_WATER_CHANGE_FREQUENCY,
     CONF_INHABITANTS,
+    CONF_LAST_WATER_CHANGE,
+    CONF_MISC_INFO,
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
@@ -409,10 +411,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     filtration = entry.data.get(CONF_FILTRATION, "")
     water_change_frequency = entry.data.get(CONF_WATER_CHANGE_FREQUENCY, "")
     inhabitants = entry.data.get(CONF_INHABITANTS, "")
+    last_water_change = entry.data.get(CONF_LAST_WATER_CHANGE, "")
+    misc_info = entry.data.get(CONF_MISC_INFO, "")
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
-    # Set up sensor platform
-    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    # Set up sensor and binary_sensor platforms
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor"])
     
     # Define sensor mappings
     sensor_mappings = [
@@ -465,6 +469,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 conditions_list.append(f"- Water Change Schedule: {water_change_frequency}")
             if inhabitants and inhabitants.strip():
                 conditions_list.append(f"- Inhabitants: {inhabitants}")
+            
+            # Add last water change information if available
+            if last_water_change and last_water_change.strip():
+                last_change_state = hass.states.get(last_water_change)
+                if last_change_state and last_change_state.state not in ["unknown", "unavailable"]:
+                    conditions_list.append(f"- Last Water Change: {last_change_state.state}")
+            
+            # Add misc info if provided
+            if misc_info and misc_info.strip():
+                conditions_list.append(f"- Additional Information: {misc_info}")
             
             for info in sensor_data:
                 if info['unit']:
@@ -537,12 +551,14 @@ For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
 For overall_notification_analysis: Detailed but short paragraph assessment without character limits.
 
 For water_change_recommended: Answer 'Yes' or 'No' with a brief reason considering all factors (under 150 characters).
-For water_change_recommendation: Provide detailed recommendation considering water quality, bioload from inhabitants, filtration capacity, and water change schedule. If a water change is recommended, suggest approximate percentage and timing.
+For water_change_recommendation: Provide detailed recommendation considering water quality, bioload from inhabitants, filtration capacity, water change schedule, and time since last water change if provided. If a water change is recommended, suggest approximate percentage and timing.
 
 Consider the relationships between different parameters 
 Consider impact on aquarium health when the parameters are negative to the aquarium health
 Consider the bioload from inhabitants and whether filtration is adequate
 Consider the water change schedule and whether it's sufficient for the current bioload
+If last water change date is provided, factor in the time elapsed when making water change recommendations
+Consider any additional information provided in the context
 Always correctly write ph as pH.
 
 When considering the parameters, use the following guidelines for healthy ranges:
@@ -699,6 +715,8 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "filtration": filtration,
         "water_change_frequency": water_change_frequency,
         "inhabitants": inhabitants,
+        "last_water_change": last_water_change,
+        "misc_info": misc_info,
         "analysis_function": send_ai_aquarium_analysis,
     }
     
@@ -783,5 +801,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hass.services.has_service(DOMAIN, "run_analysis"):
             hass.services.async_remove(DOMAIN, "run_analysis")
     
-    # Unload sensor platform
-    return await hass.config_entries.async_unload_platforms(entry, ["sensor"])
+    # Unload sensor and binary_sensor platforms
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor"])
