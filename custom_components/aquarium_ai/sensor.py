@@ -123,6 +123,19 @@ async def async_setup_entry(
         )
     )
     
+    # Create water change recommendation sensor
+    entities.append(
+        AquariumAIWaterChangeRecommendation(
+            hass,
+            config_entry,
+            tank_name,
+            aquarium_type,
+            ai_task,
+            frequency_minutes,
+            valid_sensor_mappings,
+        )
+    )
+    
     async_add_entities(entities)
 
 
@@ -625,5 +638,62 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
         except Exception as err:
             _LOGGER.error("Error updating quick status sensor: %s", err)
             self._state = "Unavailable"
+            self._available = False
+            self._attr_extra_state_attributes = {}
+
+
+class AquariumAIWaterChangeRecommendation(AquariumAIBaseSensor):
+    """Sensor for water change recommendation."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        ai_task: str,
+        frequency_minutes: Optional[int],
+        sensor_mappings: list,
+    ):
+        """Initialize the water change recommendation sensor."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._ai_task = ai_task
+        self._attr_name = f"{tank_name} Water Change Recommendation"
+        self._attr_unique_id = f"{config_entry.entry_id}_water_change_recommendation"
+        self._attr_icon = "mdi:water-sync"
+        self._attr_extra_state_attributes = {}
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Get shared analysis data
+            shared_data = self._get_shared_data()
+            sensor_analysis = shared_data["sensor_analysis"]
+            
+            if "water_change_recommended" in sensor_analysis and sensor_analysis["water_change_recommended"]:
+                # Use the brief recommendation from the shared update
+                self._state = sensor_analysis["water_change_recommended"]
+                self._available = True
+                
+                # Add attributes
+                self._attr_extra_state_attributes = {
+                    "aquarium_type": self._aquarium_type,
+                    "last_updated": shared_data.get("last_update"),
+                    "ai_task": self._ai_task,
+                }
+            else:
+                # No analysis available yet
+                self._state = "No analysis available"
+                self._available = True
+                self._attr_extra_state_attributes = {}
+                
+        except Exception as err:
+            _LOGGER.error("Error updating water change recommendation sensor: %s", err)
+            self._state = "Analysis unavailable"
             self._available = False
             self._attr_extra_state_attributes = {}
