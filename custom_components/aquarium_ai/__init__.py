@@ -24,6 +24,10 @@ from .const import (
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
     CONF_NOTIFICATION_FORMAT,
+    CONF_TANK_VOLUME,
+    CONF_FILTRATION,
+    CONF_WATER_CHANGE_FREQUENCY,
+    CONF_INHABITANTS,
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
@@ -375,6 +379,12 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
         else:
             message_parts.append("No analysis available")
     
+    # Add water change recommendation at the end for all formats
+    if response and "data" in response:
+        ai_data = response["data"]
+        if "water_change_recommendation" in ai_data:
+            message_parts.append(f"\n💧 Water Change Recommendation:\n{ai_data['water_change_recommendation']}")
+    
     return "\n".join(message_parts)
 
 
@@ -395,6 +405,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ai_task = entry.data.get(CONF_AI_TASK)
     auto_notifications = entry.data.get(CONF_AUTO_NOTIFICATIONS, DEFAULT_AUTO_NOTIFICATIONS)
     notification_format = entry.data.get(CONF_NOTIFICATION_FORMAT, DEFAULT_NOTIFICATION_FORMAT)
+    tank_volume = entry.data.get(CONF_TANK_VOLUME, "")
+    filtration = entry.data.get(CONF_FILTRATION, "")
+    water_change_frequency = entry.data.get(CONF_WATER_CHANGE_FREQUENCY, "")
+    inhabitants = entry.data.get(CONF_INHABITANTS, "")
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
     # Set up sensor platform
@@ -443,6 +457,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             
             # Build the conditions string for AI instructions with explicit units
             conditions_list = [f"- Type: {aquarium_type}"]
+            if tank_volume and tank_volume.strip():
+                conditions_list.append(f"- Tank Volume: {tank_volume}")
+            if filtration and filtration.strip():
+                conditions_list.append(f"- Filtration: {filtration}")
+            if water_change_frequency and water_change_frequency.strip():
+                conditions_list.append(f"- Water Change Schedule: {water_change_frequency}")
+            if inhabitants and inhabitants.strip():
+                conditions_list.append(f"- Inhabitants: {inhabitants}")
+            
             for info in sensor_data:
                 if info['unit']:
                     conditions_list.append(f"- {info['name']}: {info['raw_value']} {info['unit']}")
@@ -456,8 +479,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "required": True,
                 "selector": {"text": None}
             }
+            analysis_structure_sensors["water_change_recommended"] = {
+                "description": "Simple yes or no answer on whether a water change is recommended based on current parameters, bioload, and water change schedule. Answer with 'Yes' or 'No' followed by a brief reason (under 150 characters total).",
+                "required": True,
+                "selector": {"text": None}
+            }
             analysis_structure_notification["overall_notification_analysis"] = {
                 "description": "Comprehensive overall aquarium health assessment. Provide detailed summary of all parameters, their relationships, overall tank health, and any recommendations for improvement.",
+                "required": True,
+                "selector": {"text": None}
+            }
+            analysis_structure_notification["water_change_recommendation"] = {
+                "description": "Detailed water change recommendation considering current parameters, bioload from inhabitants, filtration capacity, and water change schedule. If recommended, suggest approximate percentage and timing. Consider the relationship between water quality, stocking levels, filtration, and maintenance schedule.",
                 "required": True,
                 "selector": {"text": None}
             }
@@ -503,8 +536,13 @@ For notification analysis fields (ending with '_notification_analysis'):
 For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
 For overall_notification_analysis: Detailed but short paragraph assessment without character limits.
 
+For water_change_recommended: Answer 'Yes' or 'No' with a brief reason considering all factors (under 150 characters).
+For water_change_recommendation: Provide detailed recommendation considering water quality, bioload from inhabitants, filtration capacity, and water change schedule. If a water change is recommended, suggest approximate percentage and timing.
+
 Consider the relationships between different parameters 
 Consider impact on aquarium health when the parameters are negative to the aquarium health
+Consider the bioload from inhabitants and whether filtration is adequate
+Consider the water change schedule and whether it's sufficient for the current bioload
 Always correctly write ph as pH.
 
 When considering the parameters, use the following guidelines for healthy ranges:
@@ -591,6 +629,13 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                         overall_analysis = overall_analysis[:252] + "..."
                     sensor_analysis_data["overall_analysis"] = overall_analysis
                 
+                # Store water change recommendation with brief version for sensors
+                if "water_change_recommended" in ai_data:
+                    water_change_rec = ai_data["water_change_recommended"]
+                    if len(water_change_rec) > 255:
+                        water_change_rec = water_change_rec[:252] + "..."
+                    sensor_analysis_data["water_change_recommended"] = water_change_rec
+                
                 # Store the analysis data and sensor data in hass.data for sensors to access
                 hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = sensor_analysis_data
                 hass.data[DOMAIN][entry.entry_id]["sensor_data"] = sensor_data
@@ -650,6 +695,10 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
         "ai_task": ai_task,
         "auto_notifications": auto_notifications,
         "notification_format": notification_format,
+        "tank_volume": tank_volume,
+        "filtration": filtration,
+        "water_change_frequency": water_change_frequency,
+        "inhabitants": inhabitants,
         "analysis_function": send_ai_aquarium_analysis,
     }
     

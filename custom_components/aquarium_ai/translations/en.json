@@ -16,7 +16,11 @@
           "update_frequency": "Update Frequency",
           "ai_task": "AI Task Type",
           "auto_notifications": "Auto-send Notifications",
-          "notification_format": "Notification Format"
+          "notification_format": "Notification Format",
+          "tank_volume": "Tank Volume (Optional)",
+          "filtration": "Filtration System (Optional)",
+          "water_change_frequency": "Water Change Frequency (Optional)",
+          "inhabitants": "Tank Inhabitants (Optional)"
         },
         "data_description": {
           "tank_name": "Enter a custom name for your aquarium (e.g., 'Main Tank', 'Reef Setup', 'Community Tank'). This name will appear in notifications and service calls.",
@@ -30,7 +34,11 @@
           "update_frequency": "Select how often the AI should analyze your aquarium sensors and send notifications. Choose based on your monitoring needs - more frequent for sensitive setups, less frequent for stable systems.",
           "ai_task": "Select an AI task entity from your Home Assistant configuration (e.g., ai_task.google_ai_task or ai_task.openai_ai_task).",
           "auto_notifications": "When enabled, notifications are sent automatically at the configured frequency. When disabled, notifications are only sent when triggered manually using the service.",
-          "notification_format": "Choose the level of detail for notification messages. Full format provides comprehensive parameter analysis, condensed format shows brief analysis, and minimal format displays only parameter values with overall assessment."
+          "notification_format": "Choose the level of detail for notification messages. Full format provides comprehensive parameter analysis, condensed format shows brief analysis, and minimal format displays only parameter values with overall assessment.",
+          "tank_volume": "Enter your aquarium's total water volume (e.g., '100 liters', '50 gallons', '200L'). The AI will use this to provide context-aware recommendations for water changes and stocking levels.",
+          "filtration": "Describe your filtration system including type, flow rate, and filter media (e.g., 'Canister filter 1200 L/h with ceramic media, activated carbon, and bio-balls'). This helps the AI assess if your filtration is adequate for your tank.",
+          "water_change_frequency": "Specify how often you perform water changes (e.g., '25% weekly', '20% every 2 weeks', '10% twice per week'). The AI will consider this when evaluating water quality and making recommendations.",
+          "inhabitants": "List your aquarium inhabitants with approximate quantities (e.g., '10 Neon Tetras, 5 Corydoras Catfish, 2 Angelfish, 10 Cherry Shrimp'). The AI uses this to assess bioload, compatibility, and parameter requirements."
         }
       }
     },
@@ -60,7 +68,11 @@
           "update_frequency": "Update Frequency",
           "ai_task": "AI Task Type",
           "auto_notifications": "Auto-send Notifications",
-          "notification_format": "Notification Format"
+          "notification_format": "Notification Format",
+          "tank_volume": "Tank Volume (Optional)",
+          "filtration": "Filtration System (Optional)",
+          "water_change_frequency": "Water Change Frequency (Optional)",
+          "inhabitants": "Tank Inhabitants (Optional)"
         },
         "data_description": {
           "tank_name": "Update the name for your aquarium. This name appears in all notifications and can help identify multiple tank setups.",
@@ -74,7 +86,11 @@
           "update_frequency": "Adjust notification frequency based on your needs. Use shorter intervals during critical periods (water changes, new fish) or longer intervals for stable, established tanks.",
           "ai_task": "Change which AI task entity to use for analysis. Select from available AI task entities in your Home Assistant setup.",
           "auto_notifications": "Toggle automatic notifications on/off. When disabled, notifications are only sent when manually triggered via the service.",
-          "notification_format": "Choose how detailed the notification messages should be. Full format includes comprehensive analysis, condensed shows brief analysis, minimal shows only parameters and overall assessment."
+          "notification_format": "Choose how detailed the notification messages should be. Full format includes comprehensive analysis, condensed shows brief analysis, minimal shows only parameters and overall assessment.",
+          "tank_volume": "Update your aquarium's total water volume. The AI uses this for water change calculations and stocking recommendations.",
+          "filtration": "Update filtration system details. The AI evaluates if your filtration capacity matches your tank's bioload and requirements.",
+          "water_change_frequency": "Update your water change schedule. The AI considers this when evaluating water quality trends and making maintenance recommendations.",
+          "inhabitants": "Update your tank's inhabitants list. The AI uses this to assess bioload, parameter requirements, and compatibility."
         }
       }
     },

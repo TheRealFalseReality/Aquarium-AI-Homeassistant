@@ -16,7 +16,11 @@
           "update_frequency": "Aktualisierungsfrequenz",
           "ai_task": "KI-Task-Typ",
           "auto_notifications": "Benachrichtigungen automatisch senden",
-          "notification_format": "Benachrichtigungsformat"
+          "notification_format": "Benachrichtigungsformat",
+          "tank_volume": "Beckenvolumen (Optional)",
+          "filtration": "Filtersystem (Optional)",
+          "water_change_frequency": "Wasserwechselhäufigkeit (Optional)",
+          "inhabitants": "Beckenbewohner (Optional)"
         },
         "data_description": {
           "tank_name": "Geben Sie einen benutzerdefinierten Namen für Ihr Aquarium ein (z.B. 'Hauptbecken', 'Riffaufbau', 'Gesellschaftsbecken'). Dieser Name erscheint in Benachrichtigungen und Serviceaufrufen.",
@@ -30,7 +34,11 @@
           "update_frequency": "Wählen Sie aus, wie oft die KI Ihre Aquariensensoren analysieren und Benachrichtigungen senden soll. Wählen Sie basierend auf Ihren Überwachungsbedürfnissen - häufiger für empfindliche Aufbauten, seltener für stabile Systeme.",
           "ai_task": "Wählen Sie eine KI-Task-Entität aus Ihrer Home Assistant-Konfiguration aus (z.B. ai_task.google_ai_task oder ai_task.openai_ai_task).",
           "auto_notifications": "Wenn aktiviert, werden Benachrichtigungen automatisch in der konfigurierten Häufigkeit gesendet. Wenn deaktiviert, werden Benachrichtigungen nur gesendet, wenn sie manuell über den Service ausgelöst werden.",
-          "notification_format": "Wählen Sie den Detaillierungsgrad für Benachrichtigungsnachrichten. Das vollständige Format bietet eine umfassende Parameteranalyse, das verdichtete Format zeigt eine kurze Analyse und das minimale Format zeigt nur Parameterwerte mit Gesamtbewertung."
+          "notification_format": "Wählen Sie den Detaillierungsgrad für Benachrichtigungsnachrichten. Das vollständige Format bietet eine umfassende Parameteranalyse, das verdichtete Format zeigt eine kurze Analyse und das minimale Format zeigt nur Parameterwerte mit Gesamtbewertung.",
+          "tank_volume": "Geben Sie das Gesamtvolumen Ihres Aquariums ein (z.B. '100 Liter', '50 Gallonen', '200L'). Die KI verwendet dies für kontextbezogene Empfehlungen zu Wasserwechseln und Besatzdichte.",
+          "filtration": "Beschreiben Sie Ihr Filtersystem einschließlich Typ, Durchflussrate und Filtermaterial (z.B. 'Außenfilter 1200 L/h mit Keramikmedien, Aktivkohle und Bio-Bällen'). Dies hilft der KI zu beurteilen, ob Ihre Filterung für Ihr Becken ausreichend ist.",
+          "water_change_frequency": "Geben Sie an, wie oft Sie Wasserwechsel durchführen (z.B. '25% wöchentlich', '20% alle 2 Wochen', '10% zweimal pro Woche'). Die KI berücksichtigt dies bei der Bewertung der Wasserqualität und bei Empfehlungen.",
+          "inhabitants": "Listen Sie Ihre Aquarienbewohner mit ungefähren Mengen auf (z.B. '10 Neonsalmler, 5 Panzerwelse, 2 Skalare, 10 Kirschgarnelen'). Die KI verwendet dies zur Bewertung der Biobelastung, Verträglichkeit und Parameteranforderungen."
         }
       }
     },
@@ -60,7 +68,11 @@
           "update_frequency": "Aktualisierungsfrequenz",
           "ai_task": "KI-Task-Typ",
           "auto_notifications": "Benachrichtigungen automatisch senden",
-          "notification_format": "Benachrichtigungsformat"
+          "notification_format": "Benachrichtigungsformat",
+          "tank_volume": "Beckenvolumen (Optional)",
+          "filtration": "Filtersystem (Optional)",
+          "water_change_frequency": "Wasserwechselhäufigkeit (Optional)",
+          "inhabitants": "Beckenbewohner (Optional)"
         },
         "data_description": {
           "tank_name": "Aktualisieren Sie den Namen für Ihr Aquarium. Dieser Name erscheint in allen Benachrichtigungen und kann helfen, mehrere Becken-Setups zu identifizieren.",
@@ -74,7 +86,11 @@
           "update_frequency": "Passen Sie die Benachrichtigungsfrequenz basierend auf Ihren Bedürfnissen an. Verwenden Sie kürzere Intervalle während kritischer Perioden (Wasserwechsel, neue Fische) oder längere Intervalle für stabile, etablierte Becken.",
           "ai_task": "Ändern Sie, welche KI-Task-Entität für die Analyse verwendet werden soll. Wählen Sie aus den verfügbaren KI-Task-Entitäten in Ihrer Home Assistant-Einrichtung.",
           "auto_notifications": "Schalten Sie automatische Benachrichtigungen ein/aus. Wenn deaktiviert, werden Benachrichtigungen nur gesendet, wenn sie manuell über den Service ausgelöst werden.",
-          "notification_format": "Wählen Sie aus, wie detailliert die Benachrichtigungsnachrichten sein sollen. Das vollständige Format enthält umfassende Analysen, das verdichtete Format zeigt kurze Analysen, das minimale Format zeigt nur Parameter und Gesamtbewertung."
+          "notification_format": "Wählen Sie aus, wie detailliert die Benachrichtigungsnachrichten sein sollen. Das vollständige Format enthält umfassende Analysen, das verdichtete Format zeigt kurze Analysen, das minimale Format zeigt nur Parameter und Gesamtbewertung.",
+          "tank_volume": "Aktualisieren Sie das Gesamtvolumen Ihres Aquariums. Die KI verwendet dies für Wasserwechselberechnungen und Besatzempfehlungen.",
+          "filtration": "Aktualisieren Sie die Details Ihres Filtersystems. Die KI bewertet, ob Ihre Filterkapazität zur Biobelastung und den Anforderungen Ihres Beckens passt.",
+          "water_change_frequency": "Aktualisieren Sie Ihren Wasserwechselplan. Die KI berücksichtigt dies bei der Bewertung von Wasserqualitätstrends und Wartungsempfehlungen.",
+          "inhabitants": "Aktualisieren Sie die Liste der Bewohner Ihres Beckens. Die KI verwendet dies zur Bewertung der Biobelastung, Parameteranforderungen und Verträglichkeit."
         }
       }
     },
