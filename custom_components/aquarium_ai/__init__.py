@@ -303,9 +303,13 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             icon = get_sensor_icon(info['name'])
             message_parts.append(f"{icon} {info['name']}: {info['value']}")
         
-        # Add overall analysis only
+        # Add water change recommendation before overall analysis
         if response and "data" in response:
             ai_data = response["data"]
+            if "water_change_recommendation" in ai_data:
+                message_parts.append(f"\n💧 Water Change:\n{ai_data['water_change_recommendation']}")
+            
+            # Add overall analysis
             if "overall_notification_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
         else:
@@ -339,6 +343,10 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
                         message_parts.append(f"\n{icon} {sensor_name} ({status}): {ai_data[analysis_key]}")
                     else:
                         message_parts.append(f"\n{sensor_name}: {ai_data[analysis_key]}")
+            
+            # Add water change recommendation before overall analysis
+            if "water_change_recommendation" in ai_data:
+                message_parts.append(f"\n💧 Water Change: {ai_data['water_change_recommendation']}")
             
             # Add overall brief analysis (same as used for sensors)
             if "overall_analysis" in ai_data:
@@ -375,17 +383,15 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
                     else:
                         message_parts.append(f"\n{sensor_name}:\n{ai_data[notification_key]}")
             
+            # Add water change recommendation before overall analysis
+            if "water_change_recommendation" in ai_data:
+                message_parts.append(f"\n💧 Water Change:\n{ai_data['water_change_recommendation']}")
+            
             # Add overall detailed analysis
             if "overall_notification_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
         else:
             message_parts.append("No analysis available")
-    
-    # Add water change recommendation at the end for all formats
-    if response and "data" in response:
-        ai_data = response["data"]
-        if "water_change_recommendation" in ai_data:
-            message_parts.append(f"\n💧 Water Change Recommendation:\n{ai_data['water_change_recommendation']}")
     
     return "\n".join(message_parts)
 
@@ -504,7 +510,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "selector": {"text": None}
             }
             analysis_structure_notification["water_change_recommendation"] = {
-                "description": "Detailed water change recommendation considering current parameters, bioload from inhabitants, filtration capacity, and water change schedule. If recommended, suggest approximate percentage and timing. Consider the relationship between water quality, stocking levels, filtration, and maintenance schedule.",
+                "description": "Concise water change recommendation. If recommended, state the percentage and timing (e.g., '30% within 2-3 days' or '25% this week'). If not needed, state when next scheduled change is due based on maintenance schedule. Do not include generic benefits or explanations about why water changes are important - focus only on whether it's needed and when.",
                 "required": True,
                 "selector": {"text": None}
             }
@@ -551,7 +557,7 @@ For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
 For overall_notification_analysis: Detailed but short paragraph assessment without character limits.
 
 For water_change_recommended: Answer 'Yes' or 'No' with a brief reason considering all factors (under 150 characters).
-For water_change_recommendation: Provide detailed recommendation considering water quality, bioload from inhabitants, filtration capacity, water change schedule, and time since last water change if provided. If a water change is recommended, suggest approximate percentage and timing.
+For water_change_recommendation: Keep it concise. State whether a water change is needed, and if so, specify the percentage and when (e.g., '30% within 2-3 days'). If not needed now, mention when the next scheduled change is due. Do not include generic text about benefits like 'to replenish minerals', 'to maintain optimal conditions', or explanations about why water changes are important. Focus only on the specific need and timing based on current parameters, bioload, filtration, water change schedule, and time since last change.
 
 Consider the relationships between different parameters 
 Consider impact on aquarium health when the parameters are negative to the aquarium health
