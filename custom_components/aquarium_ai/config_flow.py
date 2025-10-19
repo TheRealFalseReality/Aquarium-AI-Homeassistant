@@ -32,11 +32,22 @@ from .const import (
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
     CONF_NOTIFICATION_FORMAT,
+    CONF_TANK_VOLUME,
+    CONF_FILTRATION,
+    CONF_WATER_CHANGE_FREQUENCY,
+    CONF_INHABITANTS,
+    CONF_LAST_WATER_CHANGE,
+    CONF_MISC_INFO,
     DEFAULT_TANK_NAME,
     DEFAULT_AQUARIUM_TYPE,
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
+    DEFAULT_TANK_VOLUME,
+    DEFAULT_FILTRATION,
+    DEFAULT_WATER_CHANGE_FREQUENCY,
+    DEFAULT_INHABITANTS,
+    DEFAULT_MISC_INFO,
     UPDATE_FREQUENCIES,
     NOTIFICATION_FORMATS,
 )
@@ -142,6 +153,27 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ],
                     mode=SelectSelectorMode.DROPDOWN
                 )
+            ),
+            vol.Optional(CONF_TANK_VOLUME, default=DEFAULT_TANK_VOLUME): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Optional(CONF_FILTRATION, default=DEFAULT_FILTRATION): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_WATER_CHANGE_FREQUENCY, default=DEFAULT_WATER_CHANGE_FREQUENCY): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT)
+            ),
+            vol.Optional(CONF_INHABITANTS, default=DEFAULT_INHABITANTS): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_LAST_WATER_CHANGE): EntitySelector(
+                EntitySelectorConfig(
+                    domain=["input_datetime", "sensor"],
+                    multiple=False
+                )
+            ),
+            vol.Optional(CONF_MISC_INFO, default=DEFAULT_MISC_INFO): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
             ),
             vol.Optional(CONF_TEMPERATURE_SENSOR): EntitySelector(
                 EntitySelectorConfig(
@@ -315,6 +347,50 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                 mode=SelectSelectorMode.DROPDOWN
             )
         )
+        
+        # Add tank information fields
+        schema_dict[vol.Optional(
+            CONF_TANK_VOLUME,
+            default=current_data.get(CONF_TANK_VOLUME, DEFAULT_TANK_VOLUME),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT))
+        
+        schema_dict[vol.Optional(
+            CONF_FILTRATION,
+            default=current_data.get(CONF_FILTRATION, DEFAULT_FILTRATION),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_WATER_CHANGE_FREQUENCY,
+            default=current_data.get(CONF_WATER_CHANGE_FREQUENCY, DEFAULT_WATER_CHANGE_FREQUENCY),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT))
+        
+        schema_dict[vol.Optional(
+            CONF_INHABITANTS,
+            default=current_data.get(CONF_INHABITANTS, DEFAULT_INHABITANTS),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        # Add last water change sensor field
+        last_water_change = current_data.get(CONF_LAST_WATER_CHANGE)
+        if last_water_change:
+            schema_dict[vol.Optional(CONF_LAST_WATER_CHANGE, default=last_water_change)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain=["input_datetime", "sensor"],
+                    multiple=False
+                )
+            )
+        else:
+            schema_dict[vol.Optional(CONF_LAST_WATER_CHANGE)] = EntitySelector(
+                EntitySelectorConfig(
+                    domain=["input_datetime", "sensor"],
+                    multiple=False
+                )
+            )
+        
+        # Add misc info field
+        schema_dict[vol.Optional(
+            CONF_MISC_INFO,
+            default=current_data.get(CONF_MISC_INFO, DEFAULT_MISC_INFO),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
         
         # Add sensor fields only if they have values to avoid "Entity None" error
         temp_sensor = current_data.get(CONF_TEMPERATURE_SENSOR)

@@ -17,6 +17,12 @@ CONF_UPDATE_FREQUENCY: Final = "update_frequency"
 CONF_AI_TASK: Final = "ai_task"
 CONF_AUTO_NOTIFICATIONS: Final = "auto_notifications"
 CONF_NOTIFICATION_FORMAT: Final = "notification_format"
+CONF_TANK_VOLUME: Final = "tank_volume"
+CONF_FILTRATION: Final = "filtration"
+CONF_WATER_CHANGE_FREQUENCY: Final = "water_change_frequency"
+CONF_INHABITANTS: Final = "inhabitants"
+CONF_LAST_WATER_CHANGE: Final = "last_water_change"
+CONF_MISC_INFO: Final = "misc_info"
 
 # Default values
 DEFAULT_TANK_NAME: Final = "My Aquarium"
@@ -24,6 +30,11 @@ DEFAULT_AQUARIUM_TYPE: Final = "Freshwater"
 DEFAULT_FREQUENCY: Final = "1_hour"
 DEFAULT_AUTO_NOTIFICATIONS: Final = True
 DEFAULT_NOTIFICATION_FORMAT: Final = "detailed"
+DEFAULT_TANK_VOLUME: Final = ""
+DEFAULT_FILTRATION: Final = ""
+DEFAULT_WATER_CHANGE_FREQUENCY: Final = ""
+DEFAULT_INHABITANTS: Final = ""
+DEFAULT_MISC_INFO: Final = ""
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {

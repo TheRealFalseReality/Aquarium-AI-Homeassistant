@@ -3,94 +3,118 @@
     "step": {
       "user": {
         "title": "Aquarium AI Einrichtung",
-        "description": "Richten Sie KI-gestützte Aquarienüberwachung und -analyse ein. Diese Integration nutzt KI, um Ihre Aquariensensoren zu analysieren und intelligente Empfehlungen über Home Assistant-Benachrichtigungen bereitzustellen.",
-        "data": {
-          "tank_name": "Aquarienname",
-          "aquarium_type": "Aquarientyp", 
-          "temperature_sensor": "Temperatursensor (Optional)",
-          "ph_sensor": "pH-Sensor (Optional)",
-          "salinity_sensor": "Salzgehalt-Sensor (Optional)",
-          "dissolved_oxygen_sensor": "Gelöster Sauerstoff-Sensor (Optional)",
-          "water_level_sensor": "Wasserstand-Sensor (Optional)",
-          "orp_sensor": "ORP-Sensor (Optional)",
-          "camera": "Aquarium-Kamera (Optional)",
-          "update_frequency": "Aktualisierungsfrequenz",
-          "ai_task": "KI-Task-Typ",
-          "auto_notifications": "Benachrichtigungen automatisch senden",
-          "notification_format": "Benachrichtigungsformat"
-        },
-        "data_description": {
-          "tank_name": "Geben Sie einen benutzerdefinierten Namen für Ihr Aquarium ein (z.B. 'Hauptbecken', 'Riffaufbau', 'Gesellschaftsbecken'). Dieser Name erscheint in Benachrichtigungen und Serviceaufrufen.",
-          "aquarium_type": "Geben Sie Ihren Aquarientyp an, um Kontext für die KI-Analyse bereitzustellen. Gängige Typen sind Süßwasser, Meerwasser, Brackwasser oder benutzerdefinierte Typen wie 'Cichliden-Becken' oder 'Riffaquarium'.",
-          "temperature_sensor": "Wählen Sie den Temperatursensor aus, der Ihr Aquarium überwacht. Temperatursensoren mit geeigneter Geräteklasse werden bevorzugt.",
-          "ph_sensor": "Wählen Sie einen Sensor aus, der den pH-Wert in Ihrem Aquarium misst. Der pH-Wert hat möglicherweise keine Einheiten.",
-          "salinity_sensor": "Wählen Sie einen Sensor aus, der den Salzgehalt oder die spezifische Dichte in Ihrem Aquarium misst.",
-          "dissolved_oxygen_sensor": "Wählen Sie einen Sensor aus, der den Gehalt an gelöstem Sauerstoff im Aquarienwasser misst.",
-          "water_level_sensor": "Wählen Sie einen Sensor aus, der den Wasserstand misst. Dies kann numerisch sein (z.B. 80%) oder Text (z.B. Normal/Hoch/Niedrig).",
-          "orp_sensor": "Wählen Sie einen Sensor aus, der das Oxidations-Reduktions-Potential (ORP/Redox) in Ihrem Aquarium misst. ORP zeigt die Wasserqualität und das Gleichgewicht von oxidierenden und reduzierenden Substanzen an.",
-          "camera": "Wählen Sie eine Kamera-Entität aus, die einen Blick auf Ihr Aquarium bietet. Die KI analysiert das Bild auf Wasserklarheit, Fischgesundheit, Pflanzenzustand und allgemeine Aquarienwartungsbedürfnisse. Die visuelle Analyse ergänzt die Sensordaten für eine umfassende Überwachung.",
-          "update_frequency": "Wählen Sie aus, wie oft die KI Ihre Aquariensensoren analysieren und Benachrichtigungen senden soll. Wählen Sie basierend auf Ihren Überwachungsbedürfnissen - häufiger für empfindliche Aufbauten, seltener für stabile Systeme.",
-          "ai_task": "Wählen Sie eine KI-Task-Entität aus Ihrer Home Assistant-Konfiguration aus (z.B. ai_task.google_ai_task oder ai_task.openai_ai_task).",
-          "auto_notifications": "Wenn aktiviert, werden Benachrichtigungen automatisch in der konfigurierten Häufigkeit gesendet. Wenn deaktiviert, werden Benachrichtigungen nur gesendet, wenn sie manuell über den Service ausgelöst werden.",
-          "notification_format": "Wählen Sie den Detaillierungsgrad für Benachrichtigungsnachrichten. Das vollständige Format bietet eine umfassende Parameteranalyse, das verdichtete Format zeigt eine kurze Analyse und das minimale Format zeigt nur Parameterwerte mit Gesamtbewertung."
-        }
-      }
-    },
-    "error": {
-      "sensor_not_found": "Ausgewählter Sensor wurde nicht gefunden. Bitte wählen Sie einen gültigen Sensor aus.",
-      "sensor_required": "Bitte wählen Sie einen Temperatursensor zur Überwachung Ihres Aquariums aus.",
-      "invalid_sensor": "Der ausgewählte Sensor ist kein gültiger Sensor.",
-      "no_sensors": "Keine Sensoren gefunden. Bitte stellen Sie sicher, dass Sie Sensoren in Home Assistant eingerichtet haben, bevor Sie diese Integration konfigurieren.",
-      "at_least_one_sensor": "Mindestens ein Sensor muss konfiguriert werden. Bitte wählen Sie mindestens einen Sensor zur Überwachung aus.",
-      "ai_task_required": "Bitte wählen Sie eine KI-Task-Entität für die Analyse aus."
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "title": "Aquarium AI Optionen",
-        "description": "Ändern Sie Ihre Aquarienüberwachungseinstellungen. Änderungen werden sofort wirksam, ohne Home Assistant neu zu starten.",
+        "description": "Richten Sie KI-gest\u00fctzte Aquarien\u00fcberwachung und -analyse ein. Diese Integration nutzt KI, um Ihre Aquariensensoren zu analysieren und intelligente Empfehlungen \u00fcber Home Assistant-Benachrichtigungen bereitzustellen.",
         "data": {
           "tank_name": "Aquarienname",
           "aquarium_type": "Aquarientyp",
           "temperature_sensor": "Temperatursensor (Optional)",
           "ph_sensor": "pH-Sensor (Optional)",
           "salinity_sensor": "Salzgehalt-Sensor (Optional)",
-          "dissolved_oxygen_sensor": "Gelöster Sauerstoff-Sensor (Optional)",
+          "dissolved_oxygen_sensor": "Gel\u00f6ster Sauerstoff-Sensor (Optional)",
           "water_level_sensor": "Wasserstand-Sensor (Optional)",
           "orp_sensor": "ORP-Sensor (Optional)",
           "camera": "Aquarium-Kamera (Optional)",
           "update_frequency": "Aktualisierungsfrequenz",
           "ai_task": "KI-Task-Typ",
           "auto_notifications": "Benachrichtigungen automatisch senden",
-          "notification_format": "Benachrichtigungsformat"
+          "notification_format": "Benachrichtigungsformat",
+          "tank_volume": "Beckenvolumen (Optional)",
+          "filtration": "Filtersystem (Optional)",
+          "water_change_frequency": "Wasserwechselh\u00e4ufigkeit (Optional)",
+          "inhabitants": "Beckenbewohner (Optional)",
+          "last_water_change": "Letzter Wasserwechsel Datum (Optional)",
+          "misc_info": "Zus\u00e4tzliche Informationen (Optional)"
         },
         "data_description": {
-          "tank_name": "Aktualisieren Sie den Namen für Ihr Aquarium. Dieser Name erscheint in allen Benachrichtigungen und kann helfen, mehrere Becken-Setups zu identifizieren.",
-          "aquarium_type": "Ändern Sie Ihren Aquarientyp, um die Genauigkeit der KI-Analyse zu verbessern. Die KI gibt unterschiedliche Empfehlungen basierend auf dem Aquarientyp (z.B. Meerwasserbecken benötigen andere Parameterbereiche als Süßwasser).",
-          "temperature_sensor": "Wechseln Sie zu einem anderen Temperatursensor, wenn Sie neue Sensoren hinzugefügt haben oder einen anderen Standort in Ihrem Aquarium überwachen möchten.",
-          "ph_sensor": "Aktualisieren oder ändern Sie den pH-Sensor für Ihre Aquarienüberwachung.",
-          "salinity_sensor": "Aktualisieren oder ändern Sie den Salzgehalt-Sensor für Ihre Aquarienüberwachung.",
-          "dissolved_oxygen_sensor": "Aktualisieren oder ändern Sie den Sensor für gelösten Sauerstoff für Ihre Aquarienüberwachung.",
-          "water_level_sensor": "Aktualisieren oder ändern Sie den Wasserstand-Sensor für Ihre Aquarienüberwachung.",
-          "orp_sensor": "Aktualisieren oder ändern Sie den ORP-Sensor für Ihre Aquarienüberwachung.",
-          "camera": "Aktualisieren oder ändern Sie die Kamera für die visuelle Aquarienüberwachung. Die KI analysiert Kamerabilder auf Wasserqualität, Fischgesundheit und Wartungsbedarf.",
-          "update_frequency": "Passen Sie die Benachrichtigungsfrequenz basierend auf Ihren Bedürfnissen an. Verwenden Sie kürzere Intervalle während kritischer Perioden (Wasserwechsel, neue Fische) oder längere Intervalle für stabile, etablierte Becken.",
-          "ai_task": "Ändern Sie, welche KI-Task-Entität für die Analyse verwendet werden soll. Wählen Sie aus den verfügbaren KI-Task-Entitäten in Ihrer Home Assistant-Einrichtung.",
-          "auto_notifications": "Schalten Sie automatische Benachrichtigungen ein/aus. Wenn deaktiviert, werden Benachrichtigungen nur gesendet, wenn sie manuell über den Service ausgelöst werden.",
-          "notification_format": "Wählen Sie aus, wie detailliert die Benachrichtigungsnachrichten sein sollen. Das vollständige Format enthält umfassende Analysen, das verdichtete Format zeigt kurze Analysen, das minimale Format zeigt nur Parameter und Gesamtbewertung."
+          "tank_name": "Geben Sie einen benutzerdefinierten Namen f\u00fcr Ihr Aquarium ein (z.B. 'Hauptbecken', 'Riffaufbau', 'Gesellschaftsbecken'). Dieser Name erscheint in Benachrichtigungen und Serviceaufrufen.",
+          "aquarium_type": "Geben Sie Ihren Aquarientyp an, um Kontext f\u00fcr die KI-Analyse bereitzustellen. G\u00e4ngige Typen sind S\u00fc\u00dfwasser, Meerwasser, Brackwasser oder benutzerdefinierte Typen wie 'Cichliden-Becken' oder 'Riffaquarium'.",
+          "temperature_sensor": "W\u00e4hlen Sie den Temperatursensor aus, der Ihr Aquarium \u00fcberwacht. Temperatursensoren mit geeigneter Ger\u00e4teklasse werden bevorzugt.",
+          "ph_sensor": "W\u00e4hlen Sie einen Sensor aus, der den pH-Wert in Ihrem Aquarium misst. Der pH-Wert hat m\u00f6glicherweise keine Einheiten.",
+          "salinity_sensor": "W\u00e4hlen Sie einen Sensor aus, der den Salzgehalt oder die spezifische Dichte in Ihrem Aquarium misst.",
+          "dissolved_oxygen_sensor": "W\u00e4hlen Sie einen Sensor aus, der den Gehalt an gel\u00f6stem Sauerstoff im Aquarienwasser misst.",
+          "water_level_sensor": "W\u00e4hlen Sie einen Sensor aus, der den Wasserstand misst. Dies kann numerisch sein (z.B. 80%) oder Text (z.B. Normal/Hoch/Niedrig).",
+          "orp_sensor": "Wählen Sie einen Sensor aus, der das Oxidations-Reduktions-Potential (ORP/Redox) in Ihrem Aquarium misst. ORP zeigt die Wasserqualität und das Gleichgewicht von oxidierenden und reduzierenden Substanzen an." 
+          "camera": "W\u00e4hlen Sie eine Kamera-Entit\u00e4t aus, die einen Blick auf Ihr Aquarium bietet. Die KI analysiert das Bild auf Wasserklarheit, Fischgesundheit, Pflanzenzustand und allgemeine Aquarienwartungsbed\u00fcrfnisse. Die visuelle Analyse erg\u00e4nzt die Sensordaten f\u00fcr eine umfassende \u00dcberwachung.",
+          "update_frequency": "W\u00e4hlen Sie aus, wie oft die KI Ihre Aquariensensoren analysieren und Benachrichtigungen senden soll. W\u00e4hlen Sie basierend auf Ihren \u00dcberwachungsbed\u00fcrfnissen - h\u00e4ufiger f\u00fcr empfindliche Aufbauten, seltener f\u00fcr stabile Systeme.",
+          "ai_task": "W\u00e4hlen Sie eine KI-Task-Entit\u00e4t aus Ihrer Home Assistant-Konfiguration aus (z.B. ai_task.google_ai_task oder ai_task.openai_ai_task).",
+          "auto_notifications": "Wenn aktiviert, werden Benachrichtigungen automatisch in der konfigurierten H\u00e4ufigkeit gesendet. Wenn deaktiviert, werden Benachrichtigungen nur gesendet, wenn sie manuell \u00fcber den Service ausgel\u00f6st werden.",
+          "notification_format": "W\u00e4hlen Sie den Detaillierungsgrad f\u00fcr Benachrichtigungsnachrichten. Das vollst\u00e4ndige Format bietet eine umfassende Parameteranalyse, das verdichtete Format zeigt eine kurze Analyse und das minimale Format zeigt nur Parameterwerte mit Gesamtbewertung.",
+          "tank_volume": "Geben Sie das Gesamtvolumen Ihres Aquariums ein (z.B. '100 Liter', '50 Gallonen', '200L'). Die KI verwendet dies f\u00fcr kontextbezogene Empfehlungen zu Wasserwechseln und Besatzdichte.",
+          "filtration": "Beschreiben Sie Ihr Filtersystem einschlie\u00dflich Typ, Durchflussrate und Filtermaterial (z.B. 'Au\u00dfenfilter 1200 L/h mit Keramikmedien, Aktivkohle und Bio-B\u00e4llen'). Dies hilft der KI zu beurteilen, ob Ihre Filterung f\u00fcr Ihr Becken ausreichend ist.",
+          "water_change_frequency": "Geben Sie an, wie oft Sie Wasserwechsel durchf\u00fchren (z.B. '25% w\u00f6chentlich', '20% alle 2 Wochen', '10% zweimal pro Woche'). Die KI ber\u00fccksichtigt dies bei der Bewertung der Wasserqualit\u00e4t und bei Empfehlungen.",
+          "inhabitants": "Listen Sie Ihre Aquarienbewohner mit ungef\u00e4hren Mengen auf (z.B. '10 Neonsalmler, 5 Panzerwelse, 2 Skalare, 10 Kirschgarnelen'). Die KI verwendet dies zur Bewertung der Biobelastung, Vertr\u00e4glichkeit und Parameteranforderungen.",
+          "last_water_change": "W\u00e4hlen Sie einen input_datetime-Helper (empfohlen) oder Datums-/Zeitsensor, der den Zeitpunkt Ihres letzten Wasserwechsels verfolgt. Die KI ber\u00fccksichtigt die verstrichene Zeit bei Wasserwechselempfehlungen. Siehe README f\u00fcr Einrichtungsanweisungen.",
+          "misc_info": "F\u00fcgen Sie zus\u00e4tzliche Informationen zu Ihrem Becken hinzu, die der KI helfen k\u00f6nnten, eine bessere Analyse zu liefern (z.B. \"K\u00fcrzlich neue Fische hinzugef\u00fcgt\", \"Verwende CO2-Injektion\", \"Behandlung gegen Ichthyo\", \"Starke Bepflanzung\"). Dieser Kontext hilft der KI, besondere Umst\u00e4nde zu verstehen."
         }
       }
     },
     "error": {
-      "at_least_one_sensor": "Mindestens ein Sensor muss konfiguriert werden. Bitte wählen Sie mindestens einen Sensor zur Überwachung aus.",
-      "ai_task_required": "Bitte wählen Sie eine KI-Task-Entität für die Analyse aus."
+      "sensor_not_found": "Ausgew\u00e4hlter Sensor wurde nicht gefunden. Bitte w\u00e4hlen Sie einen g\u00fcltigen Sensor aus.",
+      "sensor_required": "Bitte w\u00e4hlen Sie einen Temperatursensor zur \u00dcberwachung Ihres Aquariums aus.",
+      "invalid_sensor": "Der ausgew\u00e4hlte Sensor ist kein g\u00fcltiger Sensor.",
+      "no_sensors": "Keine Sensoren gefunden. Bitte stellen Sie sicher, dass Sie Sensoren in Home Assistant eingerichtet haben, bevor Sie diese Integration konfigurieren.",
+      "at_least_one_sensor": "Mindestens ein Sensor muss konfiguriert werden. Bitte w\u00e4hlen Sie mindestens einen Sensor zur \u00dcberwachung aus.",
+      "ai_task_required": "Bitte w\u00e4hlen Sie eine KI-Task-Entit\u00e4t f\u00fcr die Analyse aus."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Aquarium AI Optionen",
+        "description": "\u00c4ndern Sie Ihre Aquarien\u00fcberwachungseinstellungen. \u00c4nderungen werden sofort wirksam, ohne Home Assistant neu zu starten.",
+        "data": {
+          "tank_name": "Aquarienname",
+          "aquarium_type": "Aquarientyp",
+          "temperature_sensor": "Temperatursensor (Optional)",
+          "ph_sensor": "pH-Sensor (Optional)",
+          "salinity_sensor": "Salzgehalt-Sensor (Optional)",
+          "dissolved_oxygen_sensor": "Gel\u00f6ster Sauerstoff-Sensor (Optional)",
+          "water_level_sensor": "Wasserstand-Sensor (Optional)",
+          "orp_sensor": "ORP-Sensor (Optional)",
+          "camera": "Aquarium-Kamera (Optional)",
+          "update_frequency": "Aktualisierungsfrequenz",
+          "ai_task": "KI-Task-Typ",
+          "auto_notifications": "Benachrichtigungen automatisch senden",
+          "notification_format": "Benachrichtigungsformat",
+          "tank_volume": "Beckenvolumen (Optional)",
+          "filtration": "Filtersystem (Optional)",
+          "water_change_frequency": "Wasserwechselh\u00e4ufigkeit (Optional)",
+          "inhabitants": "Beckenbewohner (Optional)",
+          "last_water_change": "Letzter Wasserwechsel Datum (Optional)",
+          "misc_info": "Zus\u00e4tzliche Informationen (Optional)"
+        },
+        "data_description": {
+          "tank_name": "Aktualisieren Sie den Namen f\u00fcr Ihr Aquarium. Dieser Name erscheint in allen Benachrichtigungen und kann helfen, mehrere Becken-Setups zu identifizieren.",
+          "aquarium_type": "\u00c4ndern Sie Ihren Aquarientyp, um die Genauigkeit der KI-Analyse zu verbessern. Die KI gibt unterschiedliche Empfehlungen basierend auf dem Aquarientyp (z.B. Meerwasserbecken ben\u00f6tigen andere Parameterbereiche als S\u00fc\u00dfwasser).",
+          "temperature_sensor": "Wechseln Sie zu einem anderen Temperatursensor, wenn Sie neue Sensoren hinzugef\u00fcgt haben oder einen anderen Standort in Ihrem Aquarium \u00fcberwachen m\u00f6chten.",
+          "ph_sensor": "Aktualisieren oder \u00e4ndern Sie den pH-Sensor f\u00fcr Ihre Aquarien\u00fcberwachung.",
+          "salinity_sensor": "Aktualisieren oder \u00e4ndern Sie den Salzgehalt-Sensor f\u00fcr Ihre Aquarien\u00fcberwachung.",
+          "dissolved_oxygen_sensor": "Aktualisieren oder \u00e4ndern Sie den Sensor f\u00fcr gel\u00f6sten Sauerstoff f\u00fcr Ihre Aquarien\u00fcberwachung.",
+          "water_level_sensor": "Aktualisieren oder \u00e4ndern Sie den Wasserstand-Sensor f\u00fcr Ihre Aquarien\u00fcberwachung.",
+          "orp_sensor": "Aktualisieren oder ändern Sie den ORP-Sensor für Ihre Aquarienüberwachung.",
+          "camera": "Aktualisieren oder \u00e4ndern Sie die Kamera f\u00fcr die visuelle Aquarien\u00fcberwachung. Die KI analysiert Kamerabilder auf Wasserqualit\u00e4t, Fischgesundheit und Wartungsbedarf.",
+          "update_frequency": "Passen Sie die Benachrichtigungsfrequenz basierend auf Ihren Bed\u00fcrfnissen an. Verwenden Sie k\u00fcrzere Intervalle w\u00e4hrend kritischer Perioden (Wasserwechsel, neue Fische) oder l\u00e4ngere Intervalle f\u00fcr stabile, etablierte Becken.",
+          "ai_task": "\u00c4ndern Sie, welche KI-Task-Entit\u00e4t f\u00fcr die Analyse verwendet werden soll. W\u00e4hlen Sie aus den verf\u00fcgbaren KI-Task-Entit\u00e4ten in Ihrer Home Assistant-Einrichtung.",
+          "auto_notifications": "Schalten Sie automatische Benachrichtigungen ein/aus. Wenn deaktiviert, werden Benachrichtigungen nur gesendet, wenn sie manuell \u00fcber den Service ausgel\u00f6st werden.",
+          "notification_format": "W\u00e4hlen Sie aus, wie detailliert die Benachrichtigungsnachrichten sein sollen. Das vollst\u00e4ndige Format enth\u00e4lt umfassende Analysen, das verdichtete Format zeigt kurze Analysen, das minimale Format zeigt nur Parameter und Gesamtbewertung.",
+          "tank_volume": "Aktualisieren Sie das Gesamtvolumen Ihres Aquariums. Die KI verwendet dies f\u00fcr Wasserwechselberechnungen und Besatzempfehlungen.",
+          "filtration": "Aktualisieren Sie die Details Ihres Filtersystems. Die KI bewertet, ob Ihre Filterkapazit\u00e4t zur Biobelastung und den Anforderungen Ihres Beckens passt.",
+          "water_change_frequency": "Aktualisieren Sie Ihren Wasserwechselplan. Die KI ber\u00fccksichtigt dies bei der Bewertung von Wasserqualit\u00e4tstrends und Wartungsempfehlungen.",
+          "inhabitants": "Aktualisieren Sie die Liste der Bewohner Ihres Beckens. Die KI verwendet dies zur Bewertung der Biobelastung, Parameteranforderungen und Vertr\u00e4glichkeit.",
+          "last_water_change": "Aktualisieren Sie den Helper oder Sensor, der Ihren letzten Wasserwechsel verfolgt. Die KI verwendet die verstrichene Zeit f\u00fcr rechtzeitige Wasserwechselempfehlungen.",
+          "misc_info": "Aktualisieren Sie zus\u00e4tzlichen Beckenkontext, der der KI hilft, eine bessere Analyse zu liefern. F\u00fcgen Sie besondere Umst\u00e4nde oder k\u00fcrzliche \u00c4nderungen hinzu."
+        }
+      }
+    },
+    "error": {
+      "at_least_one_sensor": "Mindestens ein Sensor muss konfiguriert werden. Bitte w\u00e4hlen Sie mindestens einen Sensor zur \u00dcberwachung aus.",
+      "ai_task_required": "Bitte w\u00e4hlen Sie eine KI-Task-Entit\u00e4t f\u00fcr die Analyse aus."
     }
   },
   "services": {
     "run_analysis": {
-      "name": "KI-Analyse ausführen",
-      "description": "Lösen Sie manuell eine sofortige KI-Analyse für alle konfigurierten Aquarium-Integrationen aus. Dies ist nützlich für On-Demand-Analysen nach Wasserwechseln, Geräteeinstellungen oder beim Erstellen von Automationen."
+      "name": "KI-Analyse ausf\u00fchren",
+      "description": "L\u00f6sen Sie manuell eine sofortige KI-Analyse f\u00fcr alle konfigurierten Aquarium-Integrationen aus. Dies ist n\u00fctzlich f\u00fcr On-Demand-Analysen nach Wasserwechseln, Ger\u00e4teeinstellungen oder beim Erstellen von Automationen."
     }
   }
 }
