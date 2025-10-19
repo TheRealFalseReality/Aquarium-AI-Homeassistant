@@ -47,7 +47,6 @@ from .const import (
     DEFAULT_FILTRATION,
     DEFAULT_WATER_CHANGE_FREQUENCY,
     DEFAULT_INHABITANTS,
-    DEFAULT_LAST_WATER_CHANGE,
     DEFAULT_MISC_INFO,
     UPDATE_FREQUENCIES,
     NOTIFICATION_FORMATS,
@@ -167,7 +166,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Optional(CONF_INHABITANTS, default=DEFAULT_INHABITANTS): TextSelector(
                 TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
             ),
-            vol.Optional(CONF_LAST_WATER_CHANGE, default=DEFAULT_LAST_WATER_CHANGE): EntitySelector(
+            vol.Optional(CONF_LAST_WATER_CHANGE): EntitySelector(
                 EntitySelectorConfig(
                     domain=["input_datetime", "sensor"],
                     multiple=False

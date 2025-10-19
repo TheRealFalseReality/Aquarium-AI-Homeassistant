@@ -34,7 +34,6 @@ DEFAULT_TANK_VOLUME: Final = ""
 DEFAULT_FILTRATION: Final = ""
 DEFAULT_WATER_CHANGE_FREQUENCY: Final = ""
 DEFAULT_INHABITANTS: Final = ""
-DEFAULT_LAST_WATER_CHANGE: Final = ""
 DEFAULT_MISC_INFO: Final = ""
 
 # Update frequency options (in minutes)
