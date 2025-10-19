@@ -17,10 +17,14 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 
 * **AI-Powered Analysis**: Leverages the built-in `ai_task` service to generate natural language analyses of your aquarium's conditions.
 * **Dynamic Entity Creation**: Automatically creates text sensors for each AI analysis point (e.g., temperature, pH, overall health) based on the sensors you provide.
+* **Water Change Recommendations**: AI evaluates when water changes are needed based on parameters, bioload, filtration, and maintenance schedule.
+* **Context-Aware Analysis**: Optionally provide tank volume, filtration details, inhabitants, and maintenance history for more accurate recommendations.
 * **Camera Visual Analysis**: Optional camera integration for AI-powered visual monitoring of water clarity, fish health, plant condition, and maintenance needs.
+* **Binary Sensors**: Simple on/off indicators for water change needs and other critical conditions.
 * **UI Configuration**: Simple setup process through the Home Assistant UI. No YAML configuration is required.
 * **Customizable Polling**: Choose how often the AI analysis should run, from every hour to once a day.
 * **On-Demand Updates**: Trigger an analysis at any time using a service call, perfect for automations and custom schedules.
+* **Multiple Notification Formats**: Choose between detailed, condensed, or minimal notification styles.
 
 ---
 
@@ -73,9 +77,36 @@ Once installed, the integration must be configured through the UI.
    * **AI Task**: Choose the AI task entity to use for analysis (e.g., ai_task.google_ai_task).
    * **Update Frequency**: Choose how often you want the analysis to run automatically.
    * **Auto-send Notifications**: Enable or disable automatic notifications.
-   * **Sensors**: Select the sensor entities you wish for the AI to analyze (temperature, pH, salinity, dissolved oxygen, water level).
+   * **Notification Format**: Choose between detailed, condensed, or minimal notification styles.
+   * **Sensors**: Select the sensor entities you wish for the AI to analyze (temperature, pH, salinity, dissolved oxygen, water level, ORP).
    * **Camera** (Optional): Select a camera entity for visual analysis of water quality, fish health, and maintenance needs.
+   
+   **Enhanced Tank Context (Optional - Recommended for Better AI Analysis):**
+   * **Tank Volume**: Enter your aquarium's total water volume (e.g., "100 liters", "50 gallons").
+   * **Filtration System**: Describe your filter setup including type, flow rate, and media (e.g., "Canister filter 1200 L/h with bio-media").
+   * **Water Change Frequency**: Specify your maintenance schedule (e.g., "25% weekly", "20% every 2 weeks").
+   * **Tank Inhabitants**: List your fish, invertebrates, and plants with quantities (e.g., "10 Neon Tetras, 5 Corydoras, 20 Cherry Shrimp").
+   * **Last Water Change Date**: Select an input_datetime helper or sensor tracking your last water change (see setup instructions below).
+   * **Additional Information**: Add any other context (e.g., "Recently added new fish", "Using CO2 injection").
+   
 5. Click **"Submit"**. The integration will set up all the necessary entities.
+
+### Setting Up Last Water Change Tracking
+
+To enable the AI to consider time since your last water change, you need to create a helper:
+
+1. Navigate to **Settings** -> **Devices & Services** -> **Helpers**.
+2. Click **"+ Create Helper"** and select **"Date and/or time"**.
+3. Configure the helper:
+   * **Name**: "Last Water Change" (or your preferred name)
+   * **Icon**: `mdi:water-sync`
+   * **Has date**: ✓ (checked)
+   * **Has time**: ✓ (optional but recommended)
+4. Click **"Create"**.
+5. Update this helper's value whenever you perform a water change (manually or via automation).
+6. In the Aquarium AI configuration, select this helper as the "Last Water Change Date" sensor.
+
+**Pro Tip:** Create an automation to remind you to update this helper after each water change, or use a dashboard button to quickly update it.
 
 ---
 
@@ -91,6 +122,7 @@ These `sensor` entities contain AI-generated text analysis limited to 1-2 senten
 
 * `sensor.[tank_name]_[sensor_name]_analysis`: AI analysis of each specific parameter (e.g., Temperature Analysis, pH Analysis).
 * `sensor.[tank_name]_overall_analysis`: Comprehensive AI summary of the aquarium's overall health.
+* `sensor.[tank_name]_water_change_recommendation`: AI-powered water change recommendation with brief reasoning.
 
 ### Status Sensors
 
@@ -99,6 +131,12 @@ These `sensor` entities provide quick status information:
 * `sensor.[tank_name]_simple_status`: Overall status message with emoji (e.g., "Your Marine Aquarium is Excellent! 🌟").
 * `sensor.[tank_name]_quick_status`: One or two-word status (e.g., "Excellent", "Good", "Needs Attention").
 * `sensor.[tank_name]_[sensor_name]_status`: Status for each parameter with current value (e.g., "Good (24.5°C)").
+
+### Binary Sensors
+
+These `binary_sensor` entities provide simple on/off states:
+
+* `binary_sensor.[tank_name]_water_change_needed`: Indicates whether a water change is currently recommended (On = Yes, Off = No).
 
 ![Sensors](/assets/sensors_example.png)
 
@@ -110,6 +148,7 @@ The integration also sends periodic notifications (if enabled) with detailed ana
 * Current sensor readings with icons
 * Detailed AI analysis for each parameter
 * Visual observations from camera (if configured)
+* **Water change recommendations** based on parameters, bioload, and maintenance schedule
 * Recommendations when needed
 
 #### Example Notifications
@@ -174,7 +213,9 @@ This service will:
 * Update all status sensors with current readings  
 * Send a notification (if notifications are enabled)
 
-### Example Automation
+### Example Automations
+
+#### Schedule Daily Analysis
 
 This automation runs an analysis every day at 8:00 AM, overriding the schedule you chose in the config.
 
@@ -187,6 +228,77 @@ automation:
     action:
       - service: aquarium_ai.run_analysis
 ```
+
+#### Water Change Reminder
+
+Get notified when the AI recommends a water change:
+
+```yaml
+automation:
+  - alias: "Notify When Water Change Needed"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.my_aquarium_water_change_needed
+        to: "on"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "🐠 Aquarium Maintenance"
+          message: >
+            Water change recommended for {{ state_attr('binary_sensor.my_aquarium_water_change_needed', 'recommendation') }}
+```
+
+#### Update Last Water Change After Maintenance
+
+Automatically update your water change tracker when you perform maintenance:
+
+```yaml
+automation:
+  - alias: "Update Last Water Change"
+    trigger:
+      - platform: event
+        event_type: call_service
+        event_data:
+          domain: input_boolean
+          service: turn_on
+          service_data:
+            entity_id: input_boolean.water_change_completed
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.last_water_change
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.water_change_completed
+```
+
+---
+
+## Water Change Recommendations
+
+The integration now includes intelligent water change recommendations based on:
+
+* **Current Water Parameters**: Evaluates if parameters are trending towards unsafe levels
+* **Tank Volume**: Calculates appropriate water change percentages
+* **Bioload**: Considers fish/invertebrate population and waste production
+* **Filtration Capacity**: Assesses if your filter can handle the current bioload
+* **Water Change Schedule**: Factors in your maintenance frequency
+* **Time Since Last Change**: Uses the elapsed time when the helper is configured
+
+### How It Works
+
+The AI analyzes all available information and provides:
+
+1. **Binary Sensor** (`binary_sensor.[tank_name]_water_change_needed`): Simple on/off indicator
+2. **Text Sensor** (`sensor.[tank_name]_water_change_recommendation`): Detailed recommendation with reasoning
+3. **Notification Section**: Included in all notifications with specific guidance
+
+**Example Recommendations:**
+* "Yes - High nitrate levels suggest 40% change recommended within 2-3 days"
+* "No - Parameters stable with current 25% weekly maintenance schedule"
+* "Yes - It's been 10 days since last change, time for routine 30% water change"
 
 ---
 
