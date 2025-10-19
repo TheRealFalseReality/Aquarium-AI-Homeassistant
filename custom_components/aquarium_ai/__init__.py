@@ -297,9 +297,13 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             icon = get_sensor_icon(info['name'])
             message_parts.append(f"{icon} {info['name']}: {info['value']}")
         
-        # Add overall analysis only
+        # Add water change recommendation before overall analysis
         if response and "data" in response:
             ai_data = response["data"]
+            if "water_change_recommendation" in ai_data:
+                message_parts.append(f"\n💧 Water Change: {ai_data['water_change_recommendation']}")
+            
+            # Add overall analysis
             if "overall_notification_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
         else:
@@ -333,6 +337,10 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
                         message_parts.append(f"\n{icon} {sensor_name} ({status}): {ai_data[analysis_key]}")
                     else:
                         message_parts.append(f"\n{sensor_name}: {ai_data[analysis_key]}")
+            
+            # Add water change recommendation before overall assessment
+            if "water_change_recommendation" in ai_data:
+                message_parts.append(f"\n💧 Water Change: {ai_data['water_change_recommendation']}")
             
             # Add overall brief analysis (same as used for sensors)
             if "overall_analysis" in ai_data:
@@ -368,6 +376,10 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
                         message_parts.append(f"\n{icon} {sensor_name} ({status}):\n{ai_data[notification_key]}")
                     else:
                         message_parts.append(f"\n{sensor_name}:\n{ai_data[notification_key]}")
+            
+            # Add water change recommendation before overall assessment
+            if "water_change_recommendation" in ai_data:
+                message_parts.append(f"\n💧 Water Change:\n{ai_data['water_change_recommendation']}")
             
             # Add overall detailed analysis
             if "overall_notification_analysis" in ai_data:
@@ -450,6 +462,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     conditions_list.append(f"- {info['name']}: {info['raw_value']} (no units)")
             conditions_str = "\n".join(conditions_list)
             
+            # Add water change recommendation to notification structure
+            analysis_structure_notification["water_change_recommendation"] = {
+                "description": "Concise water change recommendation if needed. State only when (timing/frequency) and why (specific reason) a water change is needed based on current parameters. Do not explain benefits. If parameters are optimal, state 'No water change needed at this time.'",
+                "required": True,
+                "selector": {"text": None}
+            }
+            
             # Add overall analysis to both structures
             analysis_structure_sensors["overall_analysis"] = {
                 "description": "Brief 1-2 sentence overall aquarium health assessment (under 200 characters).",
@@ -502,6 +521,7 @@ For notification analysis fields (ending with '_notification_analysis'):
 
 For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
 For overall_notification_analysis: Detailed but short paragraph assessment without character limits.
+For water_change_recommendation: Provide concise recommendation stating only when (timing/frequency like "within 24 hours", "this week", etc.) and why (specific parameter concern) a water change is needed. Do NOT include benefits like "to replenish minerals", "to maintain optimal conditions", etc. If all parameters are optimal, state "No water change needed at this time."
 
 Consider the relationships between different parameters 
 Consider impact on aquarium health when the parameters are negative to the aquarium health
