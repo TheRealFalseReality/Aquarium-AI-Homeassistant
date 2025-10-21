@@ -299,7 +299,8 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                 return self.async_show_form(
                     step_id="basic_settings", 
                     data_schema=self._get_basic_settings_schema(self.config_entry.data),
-                    errors={CONF_AI_TASK: "ai_task_required"}
+                    errors={CONF_AI_TASK: "ai_task_required"},
+                    last_step=False
                 )
             
             # Update the config entry data directly
@@ -313,7 +314,8 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="basic_settings", 
             data_schema=self._get_basic_settings_schema(self.config_entry.data),
-            description_placeholders={"step_description": "Configure basic tank settings and AI preferences"}
+            description_placeholders={"step_description": "Configure basic tank settings and AI preferences"},
+            last_step=False
         )
     
     async def async_step_sensors(self, user_input=None):
@@ -336,7 +338,8 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                 return self.async_show_form(
                     step_id="sensors", 
                     data_schema=self._get_sensors_schema(self.config_entry.data),
-                    errors={"base": "at_least_one_sensor"}
+                    errors={"base": "at_least_one_sensor"},
+                    last_step=False
                 )
             
             # Update the config entry data directly
@@ -349,7 +352,8 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="sensors", 
             data_schema=self._get_sensors_schema(self.config_entry.data),
-            description_placeholders={"step_description": "Select sensors to monitor (at least one required)"}
+            description_placeholders={"step_description": "Select sensors to monitor (at least one required)"},
+            last_step=False
         )
     
     async def async_step_tank_info(self, user_input=None):
@@ -365,7 +369,8 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="tank_info", 
             data_schema=self._get_tank_info_schema(self.config_entry.data),
-            description_placeholders={"step_description": "Optional: Add tank details for better AI analysis"}
+            description_placeholders={"step_description": "Optional: Add tank details for better AI analysis"},
+            last_step=False
         )
     
     def _get_basic_settings_schema(self, current_data):
