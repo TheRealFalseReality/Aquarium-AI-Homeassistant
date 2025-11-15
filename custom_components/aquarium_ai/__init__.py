@@ -309,6 +309,10 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             if "water_change_recommendation" in ai_data:
                 message_parts.append(f"\n💧 Water Change:\n{ai_data['water_change_recommendation']}")
             
+            # Add camera visual analysis if available
+            if "camera_visual_notification_analysis" in ai_data:
+                message_parts.append(f"\n📷 Camera Analysis:\n{ai_data['camera_visual_notification_analysis']}")
+            
             # Add overall analysis
             if "overall_notification_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment:\n{ai_data['overall_notification_analysis']}")
@@ -348,6 +352,10 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             if "water_change_recommendation" in ai_data:
                 message_parts.append(f"\n💧 Water Change: {ai_data['water_change_recommendation']}")
             
+            # Add camera visual analysis if available (brief version for condensed)
+            if "camera_visual_analysis" in ai_data:
+                message_parts.append(f"\n📷 Camera Analysis: {ai_data['camera_visual_analysis']}")
+            
             # Add overall brief analysis (same as used for sensors)
             if "overall_analysis" in ai_data:
                 message_parts.append(f"\n🎯 Overall Assessment: {ai_data['overall_analysis']}")
@@ -386,6 +394,10 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             # Add water change recommendation before overall analysis
             if "water_change_recommendation" in ai_data:
                 message_parts.append(f"\n💧 Water Change:\n{ai_data['water_change_recommendation']}")
+            
+            # Add camera visual analysis if available (detailed version)
+            if "camera_visual_notification_analysis" in ai_data:
+                message_parts.append(f"\n📷 Camera Analysis:\n{ai_data['camera_visual_notification_analysis']}")
             
             # Add overall detailed analysis
             if "overall_notification_analysis" in ai_data:
@@ -521,6 +533,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Prepare camera instructions if camera is configured
             camera_instructions = ""
             if camera:
+                # Add camera analysis fields to the structure
+                combined_analysis_structure["camera_visual_analysis"] = {
+                    "description": "Brief 1-2 sentence visual analysis of the aquarium from the camera image (under 200 characters). Focus on water clarity, fish/plant health, and any maintenance needs visible.",
+                    "required": True,
+                    "selector": {"text": None}
+                }
+                combined_analysis_structure["camera_visual_notification_analysis"] = {
+                    "description": "Detailed visual analysis of the aquarium from the camera image. Include observations about water clarity, fish identification and behavior, plant health, equipment condition, and any visible maintenance needs. Provide specific observations and recommendations based on what is visible in the image.",
+                    "required": True,
+                    "selector": {"text": None}
+                }
+                
                 camera_instructions = """
 
 If an aquarium camera image is provided:
@@ -533,7 +557,10 @@ If an aquarium camera image is provided:
   * Any visible algae, debris, or maintenance needs
 - Focus only on aquarium-related observations that can be determined visually
 - Do not attempt to provide numerical measurements from the image
-- Integrate visual observations with sensor data when drawing conclusions"""
+- Integrate visual observations with sensor data when drawing conclusions
+
+For camera_visual_analysis: Provide a brief 1-2 sentence summary of visual observations (under 200 characters).
+For camera_visual_notification_analysis: Provide detailed visual analysis with specific observations and recommendations."""
 
             # Prepare AI Task data with separate instructions for sensor vs notification analysis
             ai_task_data = {
@@ -657,6 +684,13 @@ IMPORTANT: Pay careful attention to the units provided for each parameter. Use t
                     if len(water_change_rec) > 255:
                         water_change_rec = water_change_rec[:252] + "..."
                     sensor_analysis_data["water_change_recommended"] = water_change_rec
+                
+                # Store camera visual analysis with brief version for sensors (if camera configured)
+                if "camera_visual_analysis" in ai_data:
+                    camera_analysis = ai_data["camera_visual_analysis"]
+                    if len(camera_analysis) > 255:
+                        camera_analysis = camera_analysis[:252] + "..."
+                    sensor_analysis_data["camera_visual_analysis"] = camera_analysis
                 
                 # Store the analysis data and sensor data in hass.data for sensors to access
                 hass.data[DOMAIN][entry.entry_id]["sensor_analysis"] = sensor_analysis_data
