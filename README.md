@@ -1,8 +1,14 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg?style=popout)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/wiki) 
+
+[![pytest](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/pytest.yaml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/pytest.yaml)
+[![hassfest](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/hassfest.yaml)
+[![HACS](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/validate.yml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/validate.yml)
+
 # Aquarium AI for Home Assistant
 
 ![Aquarium AI](/assets/logo.png)
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 
 **Aquarium AI** is a custom integration for [Home Assistant](https://www.home-assistant.io/) that uses the power of AI to analyze the conditions of your aquarium. It dynamically evaluates your existing sensors and camera feeds, providing clear text-based analyses of both quantitative sensor data and qualitative visual observations.
 
