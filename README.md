@@ -140,6 +140,38 @@ These `binary_sensor` entities provide simple on/off states:
 
 ![Sensors](/assets/sensors_example.png)
 
+Example Card:
+```
+type: markdown
+content: >-
+  ## **Marine tank is ***{{ states('sensor.marine_quick_status') }}*****
+
+
+  {{ states('sensor.marine_overall_analysis') }}
+
+
+  **Temperature is ***{{ states('sensor.marine_temperature_status') }}*****
+
+  {{ states('sensor.marine_temperature_analysis') }}
+
+
+  **pH is ***{{ states('sensor.marine_ph_status') }}*****
+
+  {{ states('sensor.marine_ph_analysis') }}
+
+
+  **Salinity is ***{{ states('sensor.marine_salinity_status') }}*****
+
+  {{ states('sensor.marine_salinity_analysis') }}
+
+
+  **Dissolved Oxygen is ***{{ states('sensor.marine_dissolved_oxygen_status')
+  }}*****
+
+  {{ states('sensor.marine_dissolved_oxygen_analysis') }}
+
+```
+
 ### Notification System
 
 The integration also sends periodic notifications (if enabled) with detailed analysis including:
@@ -299,6 +331,17 @@ The AI analyzes all available information and provides:
 * "Yes - High nitrate levels suggest 40% change recommended within 2-3 days"
 * "No - Parameters stable with current 25% weekly maintenance schedule"
 * "Yes - It's been 10 days since last change, time for routine 30% water change"
+
+Example Card, conditional:
+```
+type: markdown
+content: "{{states('sensor.marine_water_change_recommendation')}}"
+title: Water Change
+visibility:
+  - condition: state
+    entity: binary_sensor.marine_water_change_needed
+    state: "on"
+```
 
 ---
 
