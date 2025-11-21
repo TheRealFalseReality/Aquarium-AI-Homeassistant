@@ -398,7 +398,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 ## [AquaPi for ESPHome](https://github.com/TheRealFalseReality/aquapi)
 <img width="120" alt="AquaPi Logo Blue" src="https://github.com/user-attachments/assets/762d1dad-4381-45a5-b74b-aac4bb446185" align="left"/>
 
-The Aquarium meets the Smart Home! Add more sensors to Home Assisant! 
+The Aquarium meets the Smart Home! Add more sensors to Home Assistant! 
 
 **[Setup Guide](https://github.com/TheRealFalseReality/aquapi/wiki/Setup-AquaPi)**  
 **[Build It Yourself](https://github.com/TheRealFalseReality/aquapi/wiki/Build-It-Yourself)**  
