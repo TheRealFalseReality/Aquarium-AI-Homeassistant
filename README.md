@@ -56,6 +56,7 @@ Before you can install and use Aquarium AI, you must have the following set up:
 ## Installation
 
 ### Method 1: HACS (Recommended)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=TheRealFalseReality&repository=Aquarium-AI-Homeassistant&category=Integration)
 
 1. Navigate to the **HACS** section in your Home Assistant.
 2. Click on **Integrations**, then click the three-dots menu in the top-right and select **"Custom repositories"**.
