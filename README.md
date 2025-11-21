@@ -1,9 +1,12 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg?style=popout)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/wiki) 
-
-[![pytest](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/pytest.yaml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/pytest.yaml)
+[![Community Forum](https://img.shields.io/badge/Community-Forum-41BDF5.svg?style=popout)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/wiki)
 [![hassfest](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/hassfest.yaml)
-[![HACS](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/validate.yml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/validate.yml)
+[![HACS](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/validate.yml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/validate.yml)  
+
+[![GitHub release](https://img.shields.io/github/release/TheRealFalseReality/Aquarium-AI-Homeassistant.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/releases)
+![Installs](https://img.shields.io/badge/dynamic/json?color=41BDF5&logo=home-assistant&label=Installations&cacheSeconds=15600&url=https://analytics.home-assistant.io/custom_integrations.json&query=$.aquarium_ai.total)
+![GitHub All Releases](https://img.shields.io/github/downloads/TheRealFalseReality/Aquarium-AI-Homeassistant/total)
+![GitHub Latest Release](https://img.shields.io/github/downloads/TheRealFalseReality/Aquarium-AI-Homeassistant/latest/total)
 
 # Aquarium AI for Home Assistant
 
@@ -434,3 +437,4 @@ Key Features:
 
 [<img width="413" height="122" alt="download" src="https://github.com/user-attachments/assets/24dc9415-94fa-4c65-bcef-f8d5897f7e09" />](https://play.google.com/store/apps/details?id=com.cca.fishai)
 
+[![pytest](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/pytest.yaml/badge.svg)](https://github.com/TheRealFalseReality/Aquarium-AI-Homeassistant/actions/workflows/pytest.yaml)
