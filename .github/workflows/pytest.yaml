@@ -5,11 +5,11 @@ name: pytest
 
 on:
   push:
-    branches: [master, dev]
+    branches: [main, dev]
     tags-ignore:
       - '**'  # Don't run on tag pushes (release workflow handles this)
   pull_request:
-    branches: [master]
+    branches: [main]
   workflow_call:
 
 jobs:
