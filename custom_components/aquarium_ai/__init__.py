@@ -133,9 +133,9 @@ def get_simple_status(sensor_name, value, unit="", aquarium_type=""):
             aquarium_type_lower = aquarium_type.lower()
             if "saltwater" in aquarium_type_lower or "marine" in aquarium_type_lower or "reef" in aquarium_type_lower:
                 # Saltwater/Marine aquarium pH ranges
-                if 8.0 <= numeric_value <= 8.4:
+                if 8.2 <= numeric_value <= 8.4:
                     return "Good"
-                elif 7.8 <= numeric_value <= 8.6:
+                elif 8.0 <= numeric_value <= 8.6:
                     return "OK"
                 else:
                     return "Adjust"
