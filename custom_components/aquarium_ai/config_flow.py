@@ -65,7 +65,6 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._data = {}
 
     @staticmethod
-    @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return AquariumAIOptionsFlow(config_entry)
