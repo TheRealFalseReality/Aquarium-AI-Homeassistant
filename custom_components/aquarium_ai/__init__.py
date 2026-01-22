@@ -30,9 +30,23 @@ from .const import (
     CONF_INHABITANTS,
     CONF_LAST_WATER_CHANGE,
     CONF_MISC_INFO,
+    CONF_PROMPT_MAIN_INSTRUCTIONS,
+    CONF_PROMPT_PARAMETER_GUIDELINES,
+    CONF_PROMPT_CAMERA_INSTRUCTIONS,
+    CONF_PROMPT_BRIEF_ANALYSIS,
+    CONF_PROMPT_DETAILED_ANALYSIS,
+    CONF_PROMPT_WATER_CHANGE,
+    CONF_PROMPT_OVERALL_ANALYSIS,
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
+    DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
+    DEFAULT_PROMPT_PARAMETER_GUIDELINES,
+    DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
+    DEFAULT_PROMPT_BRIEF_ANALYSIS,
+    DEFAULT_PROMPT_DETAILED_ANALYSIS,
+    DEFAULT_PROMPT_WATER_CHANGE,
+    DEFAULT_PROMPT_OVERALL_ANALYSIS,
     UPDATE_FREQUENCIES,
 )
 
@@ -433,6 +447,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     misc_info = entry.data.get(CONF_MISC_INFO, "")
     frequency_minutes = UPDATE_FREQUENCIES.get(frequency_key, 60)
     
+    # Load custom AI prompts or use defaults
+    prompt_main_instructions = entry.data.get(CONF_PROMPT_MAIN_INSTRUCTIONS, DEFAULT_PROMPT_MAIN_INSTRUCTIONS)
+    prompt_parameter_guidelines = entry.data.get(CONF_PROMPT_PARAMETER_GUIDELINES, DEFAULT_PROMPT_PARAMETER_GUIDELINES)
+    prompt_camera_instructions = entry.data.get(CONF_PROMPT_CAMERA_INSTRUCTIONS, DEFAULT_PROMPT_CAMERA_INSTRUCTIONS)
+    prompt_brief_analysis = entry.data.get(CONF_PROMPT_BRIEF_ANALYSIS, DEFAULT_PROMPT_BRIEF_ANALYSIS)
+    prompt_detailed_analysis = entry.data.get(CONF_PROMPT_DETAILED_ANALYSIS, DEFAULT_PROMPT_DETAILED_ANALYSIS)
+    prompt_water_change = entry.data.get(CONF_PROMPT_WATER_CHANGE, DEFAULT_PROMPT_WATER_CHANGE)
+    prompt_overall_analysis = entry.data.get(CONF_PROMPT_OVERALL_ANALYSIS, DEFAULT_PROMPT_OVERALL_ANALYSIS)
+    
     # Set up sensor and binary_sensor platforms
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor"])
     
@@ -545,69 +568,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "selector": {"text": None}
                 }
                 
-                camera_instructions = """
+                # Use custom camera instructions
+                camera_instructions = f"\n\n{prompt_camera_instructions}"
 
-If an aquarium camera image is provided:
-- Analyze the visual aspects of the aquarium focusing on:
-  * Water clarity and quality (cloudy, clear, tinted, etc.) - NO NUMERICAL ANALYSIS
-  * Fish identification and count if visible (species, behavior, health appearance)
-  * Plant health and growth if visible
-  * Equipment visibility and condition
-  * Overall aquarium aesthetics and cleanliness
-  * Any visible algae, debris, or maintenance needs
-- Focus only on aquarium-related observations that can be determined visually
-- Do not attempt to provide numerical measurements from the image
-- Integrate visual observations with sensor data when drawing conclusions
-
-For camera_visual_analysis: Provide a brief 1-2 sentence summary of visual observations (under 200 characters).
-For camera_visual_notification_analysis: Provide detailed visual analysis with specific observations and recommendations."""
-
-            # Prepare AI Task data with separate instructions for sensor vs notification analysis
+            # Build AI instructions from custom prompts
+            instructions_parts = [
+                f"Based on the current conditions:\n\n{conditions_str}{camera_instructions}\n",
+                prompt_main_instructions.format(aquarium_type=aquarium_type.lower()),
+                "\n\n" + prompt_brief_analysis,
+                "\n\n" + prompt_detailed_analysis,
+                "\n\n" + prompt_overall_analysis,
+                "\n\n" + prompt_water_change,
+                "\n\n" + prompt_parameter_guidelines
+            ]
+            
+            # Prepare AI Task data with custom instructions
             ai_task_data = {
                 "task_name": tank_name,
-                "instructions": f"""Based on the current conditions:
-
-{conditions_str}{camera_instructions}
-
-Provide analysis for this {aquarium_type.lower()} aquarium. 
-
-For sensor analysis fields (ending with '_analysis'):
-- Provide brief 1-2 sentence analysis under 200 characters
-- Focus on current status and immediate concerns only
-
-For notification analysis fields (ending with '_notification_analysis'):
-- Provide detailed analysis of the parameter
-- Include current status, potential issues, relationships with other parameters
-- Provide recommendations for improvement only if the parameter is negative to the aquarium health, do not mention if everything is fine. If there are no concerns, issues or recommendations simply state that the parameter is within optimal range.
-
-For overall_analysis: Brief 1-2 sentence health assessment under 200 characters.
-For overall_notification_analysis: Detailed but short paragraph assessment without character limits.
-
-For water_change_recommended: Answer 'Yes' or 'No' with a brief reason considering all factors (under 150 characters).
-For water_change_recommendation: Keep it concise. State whether a water change is needed, and if so, specify the percentage and when (e.g., '30% within 2-3 days'). If not needed now, mention when the next scheduled change is due. Do not include generic text about benefits like 'to replenish minerals', 'to maintain optimal conditions', or explanations about why water changes are important. Focus only on the specific need and timing based on current parameters, bioload, filtration, water change schedule, and time since last change.
-
-Consider the relationships between different parameters 
-Consider impact on aquarium health when the parameters are negative to the aquarium health
-Consider the bioload from inhabitants and whether filtration is adequate
-Consider the water change schedule and whether it's sufficient for the current bioload
-If last water change date is provided, factor in the time elapsed when making water change recommendations
-Consider any additional information provided in the context
-Always correctly write ph as pH.
-
-When considering the parameters, use the following guidelines for healthy ranges:
-- Temperature: 22-28°C (72-82°F) for most fish, 24-28°C (76-82°F) acceptable for tropical fish, 20-24°C (68-75°F) for coldwater fish, 24-26°C (75-79°F) for reef tanks
-- Water Level: 80%+ if percentage, otherwise ensure within acceptable range for tank size
-- pH: 6.5-8.0 for freshwater, 8.0-8.4 for saltwater/marine
-- Salinity: 30-35 ppt/psu for saltwater, 1.020-1.025 SG or 46.25-53.06 mS/cm for saltwater specific gravity/conductivity
-- Dissolved Oxygen: 6+ mg/L, 85%+ saturation, 7+ ppm. But Higher levels (up to 120% saturation or 12+ mg/L) can lead to gas bubble disease
-- ORP: 250-400 mV for freshwater, 300-400 mV for saltwater/marine
-
-IMPORTANT: Pay careful attention to the units provided for each parameter. Use the actual units when evaluating if values are appropriate:
-- Temperature: Consider if values are in Celsius (°C) or Fahrenheit (°F)
-- Salinity: Consider if values are in ppt/psu (parts per thousand) or specific gravity (SG)
-- Dissolved Oxygen: Consider if values are in mg/L, ppm, or percentage saturation
-- Water Level: Consider if values are percentages or absolute measurements
-- pH: Typically has no units (pure number scale 0-14)""",
+                "instructions": "".join(instructions_parts),
                 "structure": combined_analysis_structure
             }
             
