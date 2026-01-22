@@ -68,7 +68,7 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return AquariumAIOptionsFlow(config_entry)
+        return AquariumAIOptionsFlow()
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step - Basic Configuration."""
@@ -279,11 +279,6 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class AquariumAIOptionsFlow(config_entries.OptionsFlow):
     """Handle an options flow for Aquarium AI."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry):
-        """Initialize options flow."""
-        self.config_entry = config_entry
-        self._data = {}
 
     async def async_step_init(self, user_input=None):
         """Manage the options - Main menu."""
