@@ -67,14 +67,14 @@ class RunAnalysisOnStartupSwitch(SwitchEntity):
     
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
-        self._attr_is_on = True
-        
         # Update config entry data
         new_data = {**self._config_entry.data, CONF_RUN_ANALYSIS_ON_STARTUP: True}
         self._hass.config_entries.async_update_entry(
             self._config_entry, data=new_data
         )
         
+        # Update state after config is updated
+        self._attr_is_on = True
         self.async_write_ha_state()
         _LOGGER.info(
             "Startup analysis enabled for %s. Will run on next HA restart.",
@@ -83,14 +83,14 @@ class RunAnalysisOnStartupSwitch(SwitchEntity):
     
     async def async_turn_off(self, **kwargs):
         """Turn the switch off."""
-        self._attr_is_on = False
-        
         # Update config entry data
         new_data = {**self._config_entry.data, CONF_RUN_ANALYSIS_ON_STARTUP: False}
         self._hass.config_entries.async_update_entry(
             self._config_entry, data=new_data
         )
         
+        # Update state after config is updated
+        self._attr_is_on = False
         self.async_write_ha_state()
         _LOGGER.info(
             "Startup analysis disabled for %s. Will not run on next HA restart.",
