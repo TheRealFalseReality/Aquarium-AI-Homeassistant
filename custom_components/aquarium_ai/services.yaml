@@ -1,6 +1,14 @@
 run_analysis:
   name: Run AI Analysis
   description: Trigger an immediate AI analysis for all aquariums configured by this integration
+  fields:
+    send_notification:
+      name: Send Notification
+      description: Whether to send a persistent notification with the analysis results
+      required: false
+      default: true
+      selector:
+        boolean:
 
 run_analysis_for_aquarium:
   name: Run AI Analysis for Specific Aquarium
@@ -13,3 +21,10 @@ run_analysis_for_aquarium:
       selector:
         config_entry:
           integration: aquarium_ai
+    send_notification:
+      name: Send Notification
+      description: Whether to send a persistent notification with the analysis results
+      required: false
+      default: true
+      selector:
+        boolean:
