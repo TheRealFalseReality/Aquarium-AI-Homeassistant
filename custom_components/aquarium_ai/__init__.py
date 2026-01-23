@@ -867,5 +867,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hass.services.has_service(DOMAIN, "run_analysis_for_aquarium"):
             hass.services.async_remove(DOMAIN, "run_analysis_for_aquarium")
     
-    # Unload sensor and binary_sensor platforms
-    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor"])
+    # Unload sensor, binary_sensor, and switch platforms
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor", "switch"])
