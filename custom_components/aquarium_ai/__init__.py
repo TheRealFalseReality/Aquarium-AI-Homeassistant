@@ -366,7 +366,7 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             
             # Use brief sensor analysis (same as used for sensors)
-            for sensor_entity, sensor_name, _, _ in sensor_mappings:
+            for sensor_entity, sensor_name, analyze_conf, default_analyze in sensor_mappings:
                 analysis_key = sensor_name.lower().replace(" ", "_") + "_analysis"
                 if analysis_key in ai_data:
                     # Find corresponding sensor info for icon
@@ -409,7 +409,7 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             
             # Use detailed notification analysis for notifications
-            for sensor_entity, sensor_name, _, _ in sensor_mappings:
+            for sensor_entity, sensor_name, analyze_conf, default_analyze in sensor_mappings:
                 notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
                 if notification_key in ai_data:
                     # Find corresponding sensor info for status and icon

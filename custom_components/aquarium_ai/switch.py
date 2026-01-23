@@ -5,6 +5,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity import EntityCategory
 
 from .const import (
     DOMAIN,
@@ -259,7 +260,7 @@ class ParameterAnalysisSwitch(SwitchEntity):
     @property
     def entity_category(self):
         """Return the entity category."""
-        return "config"
+        return EntityCategory.CONFIG
     
     async def async_turn_on(self, **kwargs):
         """Turn the switch on."""
