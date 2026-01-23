@@ -35,7 +35,6 @@ async def async_setup_entry(
             tank_name,
         )
     )
-    
     # Create auto-send notifications switch
     entities.append(
         AutoNotificationsSwitch(

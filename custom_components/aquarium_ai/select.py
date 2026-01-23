@@ -47,7 +47,6 @@ async def async_setup_entry(
             tank_name,
         )
     )
-    
     async_add_entities(entities)
 
 
