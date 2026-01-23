@@ -68,15 +68,7 @@ class UpdateFrequencySelect(SelectEntity):
         self._attr_icon = "mdi:clock-outline"
         
         # Set options based on UPDATE_FREQUENCIES keys
-        self._attr_options = [
-            "1_hour",
-            "2_hours",
-            "4_hours",
-            "6_hours",
-            "12_hours",
-            "daily",
-            "never",
-        ]
+        self._attr_options = list(UPDATE_FREQUENCIES.keys())
         
         # Get initial value from config
         self._attr_current_option = config_entry.data.get(
@@ -133,11 +125,7 @@ class NotificationFormatSelect(SelectEntity):
         self._attr_icon = "mdi:format-text"
         
         # Set options based on NOTIFICATION_FORMATS keys
-        self._attr_options = [
-            "detailed",
-            "condensed",
-            "minimal",
-        ]
+        self._attr_options = list(NOTIFICATION_FORMATS.keys())
         
         # Get initial value from config
         self._attr_current_option = config_entry.data.get(
