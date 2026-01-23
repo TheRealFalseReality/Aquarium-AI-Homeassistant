@@ -3,8 +3,9 @@ import logging
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.core import HomeAssistant
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryNotReady
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     DOMAIN,
@@ -116,7 +117,7 @@ class UpdateFrequencySelect(SelectEntity):
         )
         try:
             await self._hass.config_entries.async_reload(self._config_entry.entry_id)
-        except Exception as err:
+        except (ConfigEntryNotReady, HomeAssistantError) as err:
             _LOGGER.warning(
                 "Failed to reload integration after frequency change: %s",
                 err
