@@ -799,11 +799,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Register the specific aquarium analysis service
     async def run_analysis_for_aquarium_service(call: ServiceCall):
         """Handle the run_analysis_for_aquarium service call - runs on a specific aquarium."""
-        config_entry_id = call.data.get("config_entry")
-        
-        if not config_entry_id:
-            _LOGGER.error("No config_entry provided for run_analysis_for_aquarium service")
-            return
+        config_entry_id = call.data["config_entry"]
         
         _LOGGER.info("Manual analysis service called for config entry: %s", config_entry_id)
         
