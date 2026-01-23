@@ -507,6 +507,7 @@ automation:
             Status changed from {{ trigger.from_state.state }} to {{ trigger.to_state.state }}
             
             {{ states('sensor.marine_overall_analysis') }}
+```
 
 #### Scheduled Analysis with Conditional Notifications
 
