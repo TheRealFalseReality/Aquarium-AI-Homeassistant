@@ -75,7 +75,7 @@ class RunAnalysisButton(ButtonEntity):
             
             if analysis_function:
                 try:
-                    # Send notification by default when button is pressed
+                    # Force notification to be sent when button is pressed
                     await analysis_function(None, override_notification=True)
                     _LOGGER.info("Successfully triggered analysis for %s", self._tank_name)
                 except Exception as err:
