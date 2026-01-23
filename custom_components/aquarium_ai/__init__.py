@@ -30,6 +30,7 @@ from .const import (
     CONF_INHABITANTS,
     CONF_LAST_WATER_CHANGE,
     CONF_MISC_INFO,
+    CONF_RUN_ANALYSIS_ON_STARTUP,
     CONF_PROMPT_MAIN_INSTRUCTIONS,
     CONF_PROMPT_PARAMETER_GUIDELINES,
     CONF_PROMPT_CAMERA_INSTRUCTIONS,
@@ -40,6 +41,7 @@ from .const import (
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
+    DEFAULT_RUN_ANALYSIS_ON_STARTUP,
     DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
     DEFAULT_PROMPT_PARAMETER_GUIDELINES,
     DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
@@ -52,12 +54,15 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Service schema - no parameters needed for run_analysis
-RUN_ANALYSIS_SCHEMA = vol.Schema({})
+# Service schema - optional send_notification parameter for run_analysis
+RUN_ANALYSIS_SCHEMA = vol.Schema({
+    vol.Optional("send_notification", default=True): cv.boolean,
+})
 
-# Service schema for run_analysis_for_aquarium - requires config_entry parameter
+# Service schema for run_analysis_for_aquarium - requires config_entry parameter, optional send_notification
 RUN_ANALYSIS_FOR_AQUARIUM_SCHEMA = vol.Schema({
     vol.Required("config_entry"): cv.string,
+    vol.Optional("send_notification", default=True): cv.boolean,
 })
 
 
@@ -461,8 +466,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     prompt_water_change = entry.data.get(CONF_PROMPT_WATER_CHANGE, DEFAULT_PROMPT_WATER_CHANGE)
     prompt_overall_analysis = entry.data.get(CONF_PROMPT_OVERALL_ANALYSIS, DEFAULT_PROMPT_OVERALL_ANALYSIS)
     
-    # Set up sensor and binary_sensor platforms
-    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor"])
+    # Get run_analysis_on_startup setting, default to False
+    run_analysis_on_startup = entry.data.get(CONF_RUN_ANALYSIS_ON_STARTUP, DEFAULT_RUN_ANALYSIS_ON_STARTUP)
+    
+    # Set up sensor, binary_sensor, switch, select, and button platforms
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "switch", "select", "button"])
     
     # Define sensor mappings
     sensor_mappings = [
@@ -474,9 +482,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         (orp_sensor, "ORP"),
     ]
     
-    async def send_ai_aquarium_analysis(now):
-        """Send an AI analysis notification about all configured sensors."""
+    async def send_ai_aquarium_analysis(now, override_notification=None):
+        """Send an AI analysis notification about all configured sensors.
+        
+        Args:
+            now: Timestamp or None
+            override_notification: Optional bool to override auto_notifications setting.
+                                  If True, forces notification. If False, prevents notification.
+                                  If None, uses auto_notifications config.
+        """
         try:
+            # Determine whether to send notification
+            should_send_notification = override_notification if override_notification is not None else auto_notifications
+            
             # Collect all available sensor data
             sensor_data = []
             analysis_structure_sensors = {}
@@ -632,7 +650,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # Send notification using consolidated helper
             await _send_notification_if_enabled(
                 hass, 
-                auto_notifications,
+                should_send_notification,
                 f"🐠 {tank_name} AI Analysis",
                 message,
                 f"aquarium_ai_{entry.entry_id}",
@@ -703,7 +721,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     # Send fallback notification using consolidated helper
                     await _send_notification_if_enabled(
                         hass,
-                        auto_notifications,
+                        should_send_notification,
                         f"🐠 {tank_name} Aquarium Update",
                         fallback_message,
                         f"aquarium_ai_{entry.entry_id}",
@@ -743,7 +761,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Schedule delayed AI analysis on startup to ensure HA is fully ready (only if not manual-only)
+    # Schedule delayed AI analysis on startup to ensure HA is fully ready (only if enabled via switch)
     async def delayed_startup_analysis(now):
         """Run initial AI analysis after HA is fully started."""
         _LOGGER.info("Running delayed startup AI analysis for %s", tank_name)
@@ -754,8 +772,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Only schedule automatic analysis if frequency is not "never"
     if frequency_minutes is not None:
-        # Run initial analysis after 60 seconds to ensure HA is fully ready
-        async_call_later(hass, 60, delayed_startup_analysis)
+        # Run initial analysis after 60 seconds only if run_analysis_on_startup is enabled
+        if run_analysis_on_startup:
+            async_call_later(hass, 60, delayed_startup_analysis)
+            _LOGGER.info("Startup analysis enabled for %s - will run in 60 seconds", tank_name)
+        else:
+            _LOGGER.info("Startup analysis disabled for %s - skipping initial analysis", tank_name)
         
         # Schedule AI analyses based on configured frequency
         unsub = async_track_time_interval(
@@ -771,7 +793,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Register the manual analysis service
     async def run_analysis_service(call: ServiceCall):
         """Handle the run_analysis service call - runs on all aquarium integrations."""
-        _LOGGER.info("Manual analysis service called")
+        send_notification = call.data.get("send_notification", True)
+        _LOGGER.info("Manual analysis service called (send_notification=%s)", send_notification)
         
         # Run analysis on all configured aquarium integrations
         if DOMAIN in hass.data:
@@ -780,7 +803,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     try:
                         analysis_function = entry_data["analysis_function"]
                         tank_name = entry_data.get("tank_name", "Unknown Tank")
-                        await analysis_function(None)
+                        await analysis_function(None, override_notification=send_notification)
                         _LOGGER.info("Manual analysis completed for: %s", tank_name)
                     except Exception as err:
                         _LOGGER.error("Error running manual analysis for entry %s: %s", entry_id, err)
@@ -800,8 +823,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def run_analysis_for_aquarium_service(call: ServiceCall):
         """Handle the run_analysis_for_aquarium service call - runs on a specific aquarium."""
         config_entry_id = call.data["config_entry"]
+        send_notification = call.data.get("send_notification", True)
         
-        _LOGGER.info("Manual analysis service called for config entry: %s", config_entry_id)
+        _LOGGER.info("Manual analysis service called for config entry: %s (send_notification=%s)", config_entry_id, send_notification)
         
         # Run analysis on the specific aquarium integration
         if DOMAIN in hass.data and config_entry_id in hass.data[DOMAIN]:
@@ -810,7 +834,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 try:
                     analysis_function = entry_data["analysis_function"]
                     tank_name = entry_data.get("tank_name", "Unknown Tank")
-                    await analysis_function(None)
+                    await analysis_function(None, override_notification=send_notification)
                     _LOGGER.info("Manual analysis completed for: %s", tank_name)
                 except Exception as err:
                     _LOGGER.error("Error running manual analysis for entry %s: %s", config_entry_id, err)
@@ -858,5 +882,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hass.services.has_service(DOMAIN, "run_analysis_for_aquarium"):
             hass.services.async_remove(DOMAIN, "run_analysis_for_aquarium")
     
-    # Unload sensor and binary_sensor platforms
-    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor"])
+    # Unload sensor, binary_sensor, switch, select, and button platforms
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor", "switch", "select", "button"])
