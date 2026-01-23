@@ -148,6 +148,24 @@ These `binary_sensor` entities provide simple on/off states:
 
 * `binary_sensor.[tank_name]_water_change_needed`: Indicates whether a water change is currently recommended (On = Yes, Off = No).
 
+### Parameter Analysis Toggle Switches
+
+These `switch` entities control which parameters are included in AI analysis, allowing you to save on tokens and rate limits:
+
+* `switch.[tank_name]_analyze_temperature`: Enable/disable AI analysis of temperature readings.
+* `switch.[tank_name]_analyze_ph`: Enable/disable AI analysis of pH readings.
+* `switch.[tank_name]_analyze_salinity`: Enable/disable AI analysis of salinity readings.
+* `switch.[tank_name]_analyze_dissolved_oxygen`: Enable/disable AI analysis of dissolved oxygen readings.
+* `switch.[tank_name]_analyze_water_level`: Enable/disable AI analysis of water level readings.
+* `switch.[tank_name]_analyze_orp`: Enable/disable AI analysis of ORP (oxidation-reduction potential) readings.
+
+**Usage:**
+* When a parameter toggle is **ON** (default), the AI will analyze that parameter and include it in notifications.
+* When a parameter toggle is **OFF**, the AI will skip analysis of that parameter entirely, reducing token usage.
+* Useful for temporarily disabling analysis of specific parameters that don't need monitoring.
+* Changes take effect on the next scheduled analysis or when you manually trigger an analysis via service call.
+* Only switches for configured sensors will be created (e.g., if you don't have a salinity sensor configured, there won't be an "Analyze Salinity" switch).
+
 ![Sensors](/assets/sensors_example.png)
 
 Example Card:
@@ -247,13 +265,15 @@ Visual analysis complements sensor readings by providing context that numbers al
 
 The integration adds services that allow you to trigger analysis updates manually. This is useful for creating automations based on specific events (e.g., after a water change).
 
+**Note:** Only parameters with their analysis toggle switches enabled will be included in the analysis. Use the parameter analysis toggle switches to control which parameters are analyzed and save on AI tokens/rate limits.
+
 ### Service: `aquarium_ai.run_analysis`
 
 Triggers analysis for **all configured aquariums**.
 
 This service will:
 
-* Update all AI analysis sensors with fresh analysis
+* Update all AI analysis sensors with fresh analysis (only for parameters with analysis enabled)
 * Update all status sensors with current readings  
 * Send a notification (if notifications are enabled)
 
@@ -266,7 +286,7 @@ Triggers analysis for **a specific aquarium**.
 
 This service will:
 
-* Update all AI analysis sensors with fresh analysis for the selected aquarium
+* Update all AI analysis sensors with fresh analysis for the selected aquarium (only for parameters with analysis enabled)
 * Update all status sensors with current readings for the selected aquarium
 * Send a notification (if notifications are enabled) for the selected aquarium
 
