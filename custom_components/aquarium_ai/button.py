@@ -17,7 +17,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Aquarium AI buttons from a config entry."""
-    tank_name = config_entry.data["tank_name"]
+    tank_name = config_entry.data.get("tank_name", "Unknown Tank")
     
     entities = []
     
@@ -76,6 +76,7 @@ class RunAnalysisButton(ButtonEntity):
             if analysis_function:
                 try:
                     # Force notification to be sent when button is pressed
+                    # Pass None for timestamp (triggers immediate analysis)
                     await analysis_function(None, override_notification=True)
                     _LOGGER.info("Successfully triggered analysis for %s", self._tank_name)
                 except Exception as err:
