@@ -466,8 +466,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Get run_analysis_on_startup setting, default to False
     run_analysis_on_startup = entry.data.get(CONF_RUN_ANALYSIS_ON_STARTUP, DEFAULT_RUN_ANALYSIS_ON_STARTUP)
     
-    # Set up sensor, binary_sensor, and switch platforms
-    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "switch"])
+    # Set up sensor, binary_sensor, switch, and select platforms
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "switch", "select"])
     
     # Define sensor mappings
     sensor_mappings = [
@@ -867,5 +867,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if hass.services.has_service(DOMAIN, "run_analysis_for_aquarium"):
             hass.services.async_remove(DOMAIN, "run_analysis_for_aquarium")
     
-    # Unload sensor, binary_sensor, and switch platforms
-    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor", "switch"])
+    # Unload sensor, binary_sensor, switch, and select platforms
+    return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor", "switch", "select"])
