@@ -31,6 +31,12 @@ from .const import (
     CONF_LAST_WATER_CHANGE,
     CONF_MISC_INFO,
     CONF_RUN_ANALYSIS_ON_STARTUP,
+    CONF_ANALYZE_TEMPERATURE,
+    CONF_ANALYZE_PH,
+    CONF_ANALYZE_SALINITY,
+    CONF_ANALYZE_DISSOLVED_OXYGEN,
+    CONF_ANALYZE_WATER_LEVEL,
+    CONF_ANALYZE_ORP,
     CONF_PROMPT_MAIN_INSTRUCTIONS,
     CONF_PROMPT_PARAMETER_GUIDELINES,
     CONF_PROMPT_CAMERA_INSTRUCTIONS,
@@ -42,6 +48,12 @@ from .const import (
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
     DEFAULT_RUN_ANALYSIS_ON_STARTUP,
+    DEFAULT_ANALYZE_TEMPERATURE,
+    DEFAULT_ANALYZE_PH,
+    DEFAULT_ANALYZE_SALINITY,
+    DEFAULT_ANALYZE_DISSOLVED_OXYGEN,
+    DEFAULT_ANALYZE_WATER_LEVEL,
+    DEFAULT_ANALYZE_ORP,
     DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
     DEFAULT_PROMPT_PARAMETER_GUIDELINES,
     DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
@@ -355,7 +367,7 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             
             # Use brief sensor analysis (same as used for sensors)
-            for sensor_entity, sensor_name in sensor_mappings:
+            for sensor_entity, sensor_name, _, _ in sensor_mappings:
                 analysis_key = sensor_name.lower().replace(" ", "_") + "_analysis"
                 if analysis_key in ai_data:
                     # Find corresponding sensor info for icon
@@ -398,7 +410,7 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             
             # Use detailed notification analysis for notifications
-            for sensor_entity, sensor_name in sensor_mappings:
+            for sensor_entity, sensor_name, _, _ in sensor_mappings:
                 notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
                 if notification_key in ai_data:
                     # Find corresponding sensor info for status and icon
@@ -472,14 +484,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Set up sensor, binary_sensor, switch, select, and button platforms
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "switch", "select", "button"])
     
-    # Define sensor mappings
+    # Define sensor mappings with their analysis toggle configurations
+    # Format: (sensor_entity, sensor_name, analyze_config_key, default_analyze_value)
     sensor_mappings = [
-        (temp_sensor, "Temperature"),
-        (ph_sensor, "pH"),
-        (salinity_sensor, "Salinity"),
-        (dissolved_oxygen_sensor, "Dissolved Oxygen"),
-        (water_level_sensor, "Water Level"),
-        (orp_sensor, "ORP"),
+        (temp_sensor, "Temperature", CONF_ANALYZE_TEMPERATURE, DEFAULT_ANALYZE_TEMPERATURE),
+        (ph_sensor, "pH", CONF_ANALYZE_PH, DEFAULT_ANALYZE_PH),
+        (salinity_sensor, "Salinity", CONF_ANALYZE_SALINITY, DEFAULT_ANALYZE_SALINITY),
+        (dissolved_oxygen_sensor, "Dissolved Oxygen", CONF_ANALYZE_DISSOLVED_OXYGEN, DEFAULT_ANALYZE_DISSOLVED_OXYGEN),
+        (water_level_sensor, "Water Level", CONF_ANALYZE_WATER_LEVEL, DEFAULT_ANALYZE_WATER_LEVEL),
+        (orp_sensor, "ORP", CONF_ANALYZE_ORP, DEFAULT_ANALYZE_ORP),
     ]
     
     async def send_ai_aquarium_analysis(now, override_notification=None):
@@ -500,24 +513,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             analysis_structure_sensors = {}
             analysis_structure_notification = {}
             
-            for sensor_entity, sensor_name in sensor_mappings:
-                sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
-                if sensor_info:
-                    sensor_data.append(sensor_info)
-                    # Add to AI analysis structure for sensors (brief)
-                    structure_key = sensor_name.lower().replace(" ", "_") + "_analysis"
-                    analysis_structure_sensors[structure_key] = {
-                        "description": f"Brief 1-2 sentence analysis of the aquarium's {sensor_name.lower()} conditions (under 200 characters).",
-                        "required": True,
-                        "selector": {"text": None}
-                    }
-                    # Add to AI analysis structure for notifications (detailed)
-                    notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
-                    analysis_structure_notification[notification_key] = {
-                        "description": f"Detailed analysis of the aquarium's {sensor_name.lower()} conditions. Provide comprehensive explanation including current status, potential issues, trends, and detailed recommendations if needed.",
-                        "required": True,
-                        "selector": {"text": None}
-                    }
+            for sensor_entity, sensor_name, analyze_conf, default_analyze in sensor_mappings:
+                # Check if analysis is enabled for this parameter
+                analyze_enabled = entry.data.get(analyze_conf, default_analyze)
+                
+                # Only process sensor if it's configured AND analysis is enabled
+                if sensor_entity and analyze_enabled:
+                    sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
+                    if sensor_info:
+                        sensor_data.append(sensor_info)
+                        # Add to AI analysis structure for sensors (brief)
+                        structure_key = sensor_name.lower().replace(" ", "_") + "_analysis"
+                        analysis_structure_sensors[structure_key] = {
+                            "description": f"Brief 1-2 sentence analysis of the aquarium's {sensor_name.lower()} conditions (under 200 characters).",
+                            "required": True,
+                            "selector": {"text": None}
+                        }
+                        # Add to AI analysis structure for notifications (detailed)
+                        notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
+                        analysis_structure_notification[notification_key] = {
+                            "description": f"Detailed analysis of the aquarium's {sensor_name.lower()} conditions. Provide comprehensive explanation including current status, potential issues, trends, and detailed recommendations if needed.",
+                            "required": True,
+                            "selector": {"text": None}
+                        }
+                elif sensor_entity and not analyze_enabled:
+                    _LOGGER.debug("Skipping %s analysis for %s (toggle disabled)", sensor_name, tank_name)
             
             if not sensor_data:
                 _LOGGER.warning("No valid sensor data available for analysis")
@@ -705,12 +725,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 fallback_message_parts = []
                 fallback_sensor_data = []
                 
-                for sensor_entity, sensor_name in sensor_mappings:
-                    sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
-                    if sensor_info:
-                        fallback_sensor_data.append(sensor_info)
-                        icon = get_sensor_icon(sensor_info['name'])
-                        fallback_message_parts.append(f"{icon} {sensor_info['name']}: {sensor_info['value']}")
+                for sensor_entity, sensor_name, analyze_conf, default_analyze in sensor_mappings:
+                    # Only process sensor if analysis is enabled
+                    analyze_enabled = entry.data.get(analyze_conf, default_analyze)
+                    if sensor_entity and analyze_enabled:
+                        sensor_info = get_sensor_info(hass, sensor_entity, sensor_name)
+                        if sensor_info:
+                            fallback_sensor_data.append(sensor_info)
+                            icon = get_sensor_icon(sensor_info['name'])
+                            fallback_message_parts.append(f"{icon} {sensor_info['name']}: {sensor_info['value']}")
                 
                 if fallback_message_parts:
                     # Add overall status at the top of fallback message too
