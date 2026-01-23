@@ -243,11 +243,13 @@ Visual analysis complements sensor readings by providing context that numbers al
 
 ---
 
-## Advanced Usage: Service Call
+## Advanced Usage: Service Calls
 
-The integration adds a service that allows you to trigger analysis updates manually. This is useful for creating automations based on specific events (e.g., after a water change).
+The integration adds services that allow you to trigger analysis updates manually. This is useful for creating automations based on specific events (e.g., after a water change).
 
-**Service:** `aquarium_ai.run_analysis`
+### Service: `aquarium_ai.run_analysis`
+
+Triggers analysis for **all configured aquariums**.
 
 This service will:
 
@@ -255,11 +257,24 @@ This service will:
 * Update all status sensors with current readings  
 * Send a notification (if notifications are enabled)
 
+### Service: `aquarium_ai.run_analysis_for_aquarium`
+
+Triggers analysis for **a specific aquarium**.
+
+**Parameters:**
+* `config_entry` (required): The config entry ID of the aquarium to analyze. You can select this from the UI using the aquarium selector.
+
+This service will:
+
+* Update all AI analysis sensors with fresh analysis for the selected aquarium
+* Update all status sensors with current readings for the selected aquarium
+* Send a notification (if notifications are enabled) for the selected aquarium
+
 ### Example Automations
 
-#### Schedule Daily Analysis
+#### Schedule Daily Analysis for All Aquariums
 
-This automation runs an analysis every day at 8:00 AM, overriding the schedule you chose in the config.
+This automation runs an analysis every day at 8:00 AM for all configured aquariums, overriding the schedule you chose in the config.
 
 ```yaml
 automation:
@@ -270,6 +285,24 @@ automation:
     action:
       - service: aquarium_ai.run_analysis
 ```
+
+#### Schedule Analysis for a Specific Aquarium
+
+This automation runs an analysis for a specific aquarium every day at 9:00 AM.
+
+```yaml
+automation:
+  - alias: "Run Marine Tank Analysis Daily at 9 AM"
+    trigger:
+      - platform: time
+        at: "09:00:00"
+    action:
+      - service: aquarium_ai.run_analysis_for_aquarium
+        data:
+          config_entry: "your_config_entry_id_here"
+```
+
+**Tip:** To find your config entry ID, go to **Settings** -> **Devices & Services**, click on your Aquarium AI integration, and the ID will be in the URL.
 
 #### Water Change Reminder
 
