@@ -30,6 +30,7 @@ from .const import (
     CONF_INHABITANTS,
     CONF_LAST_WATER_CHANGE,
     CONF_MISC_INFO,
+    CONF_RUN_ANALYSIS_ON_STARTUP,
     CONF_PROMPT_MAIN_INSTRUCTIONS,
     CONF_PROMPT_PARAMETER_GUIDELINES,
     CONF_PROMPT_CAMERA_INSTRUCTIONS,
@@ -40,6 +41,7 @@ from .const import (
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
+    DEFAULT_RUN_ANALYSIS_ON_STARTUP,
     DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
     DEFAULT_PROMPT_PARAMETER_GUIDELINES,
     DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
@@ -461,8 +463,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     prompt_water_change = entry.data.get(CONF_PROMPT_WATER_CHANGE, DEFAULT_PROMPT_WATER_CHANGE)
     prompt_overall_analysis = entry.data.get(CONF_PROMPT_OVERALL_ANALYSIS, DEFAULT_PROMPT_OVERALL_ANALYSIS)
     
-    # Set up sensor and binary_sensor platforms
-    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor"])
+    # Get run_analysis_on_startup setting, default to False
+    run_analysis_on_startup = entry.data.get(CONF_RUN_ANALYSIS_ON_STARTUP, DEFAULT_RUN_ANALYSIS_ON_STARTUP)
+    
+    # Set up sensor, binary_sensor, and switch platforms
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "switch"])
     
     # Define sensor mappings
     sensor_mappings = [
@@ -743,7 +748,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "analysis_function": send_ai_aquarium_analysis,
     }
     
-    # Schedule delayed AI analysis on startup to ensure HA is fully ready (only if not manual-only)
+    # Schedule delayed AI analysis on startup to ensure HA is fully ready (only if enabled via switch)
     async def delayed_startup_analysis(now):
         """Run initial AI analysis after HA is fully started."""
         _LOGGER.info("Running delayed startup AI analysis for %s", tank_name)
@@ -754,8 +759,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     
     # Only schedule automatic analysis if frequency is not "never"
     if frequency_minutes is not None:
-        # Run initial analysis after 60 seconds to ensure HA is fully ready
-        async_call_later(hass, 60, delayed_startup_analysis)
+        # Run initial analysis after 60 seconds only if run_analysis_on_startup is enabled
+        if run_analysis_on_startup:
+            async_call_later(hass, 60, delayed_startup_analysis)
+            _LOGGER.info("Startup analysis enabled for %s - will run in 60 seconds", tank_name)
+        else:
+            _LOGGER.info("Startup analysis disabled for %s - skipping initial analysis", tank_name)
         
         # Schedule AI analyses based on configured frequency
         unsub = async_track_time_interval(

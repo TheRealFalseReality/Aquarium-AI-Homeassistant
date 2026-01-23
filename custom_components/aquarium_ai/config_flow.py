@@ -32,6 +32,7 @@ from .const import (
     CONF_AI_TASK,
     CONF_AUTO_NOTIFICATIONS,
     CONF_NOTIFICATION_FORMAT,
+    CONF_RUN_ANALYSIS_ON_STARTUP,
     CONF_TANK_VOLUME,
     CONF_FILTRATION,
     CONF_WATER_CHANGE_FREQUENCY,
@@ -50,6 +51,7 @@ from .const import (
     DEFAULT_FREQUENCY,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_NOTIFICATION_FORMAT,
+    DEFAULT_RUN_ANALYSIS_ON_STARTUP,
     DEFAULT_TANK_VOLUME,
     DEFAULT_FILTRATION,
     DEFAULT_WATER_CHANGE_FREQUENCY,
@@ -138,6 +140,9 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ],
                     mode=SelectSelectorMode.DROPDOWN
                 )
+            ),
+            vol.Required(CONF_RUN_ANALYSIS_ON_STARTUP, default=DEFAULT_RUN_ANALYSIS_ON_STARTUP): BooleanSelector(
+                BooleanSelectorConfig()
             ),
         })
 
@@ -508,6 +513,12 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
                 mode=SelectSelectorMode.DROPDOWN
             )
         )
+        
+        # Add run analysis on startup toggle
+        schema_dict[vol.Required(
+            CONF_RUN_ANALYSIS_ON_STARTUP,
+            default=current_data.get(CONF_RUN_ANALYSIS_ON_STARTUP, DEFAULT_RUN_ANALYSIS_ON_STARTUP),
+        )] = BooleanSelector(BooleanSelectorConfig())
         
         return vol.Schema(schema_dict)
     

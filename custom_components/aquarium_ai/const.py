@@ -23,6 +23,7 @@ CONF_WATER_CHANGE_FREQUENCY: Final = "water_change_frequency"
 CONF_INHABITANTS: Final = "inhabitants"
 CONF_LAST_WATER_CHANGE: Final = "last_water_change"
 CONF_MISC_INFO: Final = "misc_info"
+CONF_RUN_ANALYSIS_ON_STARTUP: Final = "run_analysis_on_startup"
 
 # AI Prompt Configuration constants
 CONF_PROMPT_MAIN_INSTRUCTIONS: Final = "prompt_main_instructions"
@@ -44,6 +45,7 @@ DEFAULT_FILTRATION: Final = ""
 DEFAULT_WATER_CHANGE_FREQUENCY: Final = ""
 DEFAULT_INHABITANTS: Final = ""
 DEFAULT_MISC_INFO: Final = ""
+DEFAULT_RUN_ANALYSIS_ON_STARTUP: Final = False
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {

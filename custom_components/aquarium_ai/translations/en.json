@@ -10,7 +10,8 @@
           "update_frequency": "Update Frequency",
           "ai_task": "AI Task Type",
           "auto_notifications": "Auto-send Notifications",
-          "notification_format": "Notification Format"
+          "notification_format": "Notification Format",
+          "run_analysis_on_startup": "Run Analysis on Home Assistant Startup"
         },
         "data_description": {
           "tank_name": "Enter a custom name for your aquarium (e.g., 'Main Tank', 'Reef Setup', 'Community Tank'). This name will appear in notifications and service calls.",
@@ -18,7 +19,8 @@
           "update_frequency": "Select how often the AI should analyze your aquarium sensors and send notifications. Choose based on your monitoring needs - more frequent for sensitive setups, less frequent for stable systems.",
           "ai_task": "Select an AI task entity from your Home Assistant configuration (e.g., ai_task.google_ai_task or ai_task.openai_ai_task).",
           "auto_notifications": "When enabled, notifications are sent automatically at the configured frequency. When disabled, notifications are only sent when triggered manually using the service.",
-          "notification_format": "Choose the level of detail for notification messages. Full format provides comprehensive parameter analysis, condensed format shows brief analysis, and minimal format displays only parameter values with overall assessment."
+          "notification_format": "Choose the level of detail for notification messages. Full format provides comprehensive parameter analysis, condensed format shows brief analysis, and minimal format displays only parameter values with overall assessment.",
+          "run_analysis_on_startup": "When enabled, the AI analysis will run 60 seconds after Home Assistant starts (in addition to the regular scheduled interval). When disabled (default), analysis only runs at the scheduled interval or when manually triggered."
         }
       },
       "sensors": {
@@ -116,7 +118,8 @@
           "update_frequency": "Update Frequency",
           "ai_task": "AI Task Type",
           "auto_notifications": "Auto-send Notifications",
-          "notification_format": "Notification Format"
+          "notification_format": "Notification Format",
+          "run_analysis_on_startup": "Run Analysis on Home Assistant Startup"
         },
         "data_description": {
           "tank_name": "Update the name for your aquarium. This name appears in all notifications and can help identify multiple tank setups.",
@@ -124,7 +127,8 @@
           "update_frequency": "Adjust notification frequency based on your needs. Use shorter intervals during critical periods (water changes, new fish) or longer intervals for stable, established tanks.",
           "ai_task": "Change which AI task entity to use for analysis. Select from available AI task entities in your Home Assistant setup.",
           "auto_notifications": "Toggle automatic notifications on/off. When disabled, notifications are only sent when manually triggered via the service.",
-          "notification_format": "Choose how detailed the notification messages should be. Full format includes comprehensive analysis, condensed shows brief analysis, minimal shows only parameters and overall assessment."
+          "notification_format": "Choose how detailed the notification messages should be. Full format includes comprehensive analysis, condensed shows brief analysis, minimal shows only parameters and overall assessment.",
+          "run_analysis_on_startup": "Toggle whether AI analysis runs when Home Assistant starts. When enabled, analysis runs 60 seconds after startup. When disabled (default), analysis only runs at the scheduled interval or when manually triggered."
         }
       },
       "sensors": {
