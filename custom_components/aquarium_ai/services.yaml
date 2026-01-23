@@ -1,10 +1,10 @@
 run_analysis:
   name: Run AI Analysis
-  description: Trigger an immediate AI temperature analysis for all configured aquarium integrations
+  description: Trigger an immediate AI analysis for all aquariums configured by this integration
 
 run_analysis_for_aquarium:
   name: Run AI Analysis for Specific Aquarium
-  description: Trigger an immediate AI temperature analysis for a specific aquarium configured by this integration
+  description: Trigger an immediate AI analysis for a specific aquarium configured by this integration
   fields:
     config_entry:
       name: Aquarium
