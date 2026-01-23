@@ -52,8 +52,13 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Service schema - no parameters needed
+# Service schema - no parameters needed for run_analysis
 RUN_ANALYSIS_SCHEMA = vol.Schema({})
+
+# Service schema for run_analysis_for_aquarium - requires config_entry parameter
+RUN_ANALYSIS_FOR_AQUARIUM_SCHEMA = vol.Schema({
+    vol.Required("config_entry"): cv.string,
+})
 
 
 async def _send_notification_if_enabled(hass, auto_notifications, title, message, notification_id, tank_name, log_msg_type="analysis"):
@@ -791,6 +796,42 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             schema=RUN_ANALYSIS_SCHEMA,
         )
     
+    # Register the specific aquarium analysis service
+    async def run_analysis_for_aquarium_service(call: ServiceCall):
+        """Handle the run_analysis_for_aquarium service call - runs on a specific aquarium."""
+        config_entry_id = call.data.get("config_entry")
+        
+        if not config_entry_id:
+            _LOGGER.error("No config_entry provided for run_analysis_for_aquarium service")
+            return
+        
+        _LOGGER.info("Manual analysis service called for config entry: %s", config_entry_id)
+        
+        # Run analysis on the specific aquarium integration
+        if DOMAIN in hass.data and config_entry_id in hass.data[DOMAIN]:
+            entry_data = hass.data[DOMAIN][config_entry_id]
+            if "analysis_function" in entry_data:
+                try:
+                    analysis_function = entry_data["analysis_function"]
+                    tank_name = entry_data.get("tank_name", "Unknown Tank")
+                    await analysis_function(None)
+                    _LOGGER.info("Manual analysis completed for: %s", tank_name)
+                except Exception as err:
+                    _LOGGER.error("Error running manual analysis for entry %s: %s", config_entry_id, err)
+            else:
+                _LOGGER.error("No analysis function found for entry %s", config_entry_id)
+        else:
+            _LOGGER.error("Aquarium integration %s not found", config_entry_id)
+    
+    # Register service only once
+    if not hass.services.has_service(DOMAIN, "run_analysis_for_aquarium"):
+        hass.services.async_register(
+            DOMAIN,
+            "run_analysis_for_aquarium",
+            run_analysis_for_aquarium_service,
+            schema=RUN_ANALYSIS_FOR_AQUARIUM_SCHEMA,
+        )
+    
     # Add listener for options updates
     entry.async_on_unload(entry.add_update_listener(async_options_updated))
     
@@ -818,6 +859,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not hass.data[DOMAIN]:  # If no more entries exist
         if hass.services.has_service(DOMAIN, "run_analysis"):
             hass.services.async_remove(DOMAIN, "run_analysis")
+        if hass.services.has_service(DOMAIN, "run_analysis_for_aquarium"):
+            hass.services.async_remove(DOMAIN, "run_analysis_for_aquarium")
     
     # Unload sensor and binary_sensor platforms
     return await hass.config_entries.async_unload_platforms(entry, ["sensor", "binary_sensor"])
