@@ -88,6 +88,16 @@ class UpdateFrequencySelect(SelectEntity):
     
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
+        # Validate option
+        if option not in self._attr_options:
+            _LOGGER.error(
+                "Invalid update frequency option '%s' for %s. Valid options: %s",
+                option,
+                self._tank_name,
+                self._attr_options
+            )
+            return
+        
         # Update config entry data
         new_data = {**self._config_entry.data, CONF_UPDATE_FREQUENCY: option}
         self._hass.config_entries.async_update_entry(
@@ -104,7 +114,13 @@ class UpdateFrequencySelect(SelectEntity):
             option,
             self._tank_name
         )
-        await self._hass.config_entries.async_reload(self._config_entry.entry_id)
+        try:
+            await self._hass.config_entries.async_reload(self._config_entry.entry_id)
+        except Exception as err:
+            _LOGGER.warning(
+                "Failed to reload integration after frequency change: %s",
+                err
+            )
 
 
 class NotificationFormatSelect(SelectEntity):
@@ -145,6 +161,16 @@ class NotificationFormatSelect(SelectEntity):
     
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
+        # Validate option
+        if option not in self._attr_options:
+            _LOGGER.error(
+                "Invalid notification format option '%s' for %s. Valid options: %s",
+                option,
+                self._tank_name,
+                self._attr_options
+            )
+            return
+        
         # Update config entry data
         new_data = {**self._config_entry.data, CONF_NOTIFICATION_FORMAT: option}
         self._hass.config_entries.async_update_entry(
