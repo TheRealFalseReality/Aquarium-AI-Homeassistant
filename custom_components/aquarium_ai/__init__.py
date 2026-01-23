@@ -1,5 +1,4 @@
 """The Aquarium AI integration."""
-import asyncio
 import logging
 from datetime import timedelta
 
