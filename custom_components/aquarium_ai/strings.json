@@ -62,6 +62,28 @@
           "last_water_change": "Select an input_datetime helper (recommended) or date/time sensor that tracks when you last performed a water change. The AI will factor in time elapsed when making water change recommendations. See README for setup instructions.",
           "misc_info": "Add any additional information about your tank that might help the AI provide better analysis (e.g., 'Recently added new fish', 'Using CO2 injection', 'Treating for ich', 'Heavy planting'). This context helps the AI understand special circumstances."
         }
+      },
+      "ai_prompts": {
+        "title": "Aquarium AI Setup - AI Prompts",
+        "description": "Optional: Customize AI prompts for analysis. Default prompts are provided and can be edited as needed.",
+        "data": {
+          "prompt_main_instructions": "Main Instructions",
+          "prompt_parameter_guidelines": "Parameter Guidelines",
+          "prompt_camera_instructions": "Camera Analysis Instructions",
+          "prompt_brief_analysis": "Brief Analysis Format",
+          "prompt_detailed_analysis": "Detailed Analysis Format",
+          "prompt_water_change": "Water Change Instructions",
+          "prompt_overall_analysis": "Overall Analysis Format"
+        },
+        "data_description": {
+          "prompt_main_instructions": "Main instructions for AI analysis. Include general guidelines about how to analyze the aquarium. Use {aquarium_type} placeholder where needed.",
+          "prompt_parameter_guidelines": "Guidelines for parameter ranges and units. Define healthy ranges for temperature, pH, salinity, dissolved oxygen, ORP, and water level.",
+          "prompt_camera_instructions": "Instructions for analyzing camera images. Define what the AI should look for in aquarium photos.",
+          "prompt_brief_analysis": "Instructions for brief sensor analysis fields (ending with '_analysis'). Define format and length constraints.",
+          "prompt_detailed_analysis": "Instructions for detailed notification analysis fields (ending with '_notification_analysis'). Define what details to include.",
+          "prompt_water_change": "Instructions for water change recommendations. Define how to format water_change_recommended and water_change_recommendation fields.",
+          "prompt_overall_analysis": "Instructions for overall health assessments. Define format for overall_analysis and overall_notification_analysis fields."
+        }
       }
     },
     "error": {
@@ -81,7 +103,8 @@
         "menu_options": {
           "basic_settings": "Basic Settings",
           "sensors": "Sensors & Camera",
-          "tank_info": "Tank Information"
+          "tank_info": "Tank Information",
+          "ai_prompts": "AI Prompts"
         }
       },
       "basic_settings": {
@@ -144,6 +167,28 @@
           "inhabitants": "Update your tank's inhabitants list. The AI uses this to assess bioload, parameter requirements, and compatibility.",
           "last_water_change": "Update the helper or sensor that tracks your last water change. The AI uses time elapsed to make timely water change recommendations.",
           "misc_info": "Update additional tank context that helps AI provide better analysis. Include any special circumstances or recent changes."
+        }
+      },
+      "ai_prompts": {
+        "title": "AI Prompts",
+        "description": "Customize AI prompts for analysis",
+        "data": {
+          "prompt_main_instructions": "Main Instructions",
+          "prompt_parameter_guidelines": "Parameter Guidelines",
+          "prompt_camera_instructions": "Camera Analysis Instructions",
+          "prompt_brief_analysis": "Brief Analysis Format",
+          "prompt_detailed_analysis": "Detailed Analysis Format",
+          "prompt_water_change": "Water Change Instructions",
+          "prompt_overall_analysis": "Overall Analysis Format"
+        },
+        "data_description": {
+          "prompt_main_instructions": "Customize main analysis instructions. Use {aquarium_type} placeholder to insert aquarium type dynamically.",
+          "prompt_parameter_guidelines": "Customize parameter ranges and unit handling guidelines for temperature, pH, salinity, dissolved oxygen, ORP, and water level.",
+          "prompt_camera_instructions": "Customize how the AI should analyze camera images of your aquarium.",
+          "prompt_brief_analysis": "Customize instructions for brief sensor analysis fields. Define format and constraints.",
+          "prompt_detailed_analysis": "Customize instructions for detailed notification analysis fields. Define what level of detail to include.",
+          "prompt_water_change": "Customize water change recommendation format and logic.",
+          "prompt_overall_analysis": "Customize overall health assessment format for both brief and detailed versions."
         }
       }
     },

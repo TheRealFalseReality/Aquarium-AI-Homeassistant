@@ -38,6 +38,13 @@ from .const import (
     CONF_INHABITANTS,
     CONF_LAST_WATER_CHANGE,
     CONF_MISC_INFO,
+    CONF_PROMPT_MAIN_INSTRUCTIONS,
+    CONF_PROMPT_PARAMETER_GUIDELINES,
+    CONF_PROMPT_CAMERA_INSTRUCTIONS,
+    CONF_PROMPT_BRIEF_ANALYSIS,
+    CONF_PROMPT_DETAILED_ANALYSIS,
+    CONF_PROMPT_WATER_CHANGE,
+    CONF_PROMPT_OVERALL_ANALYSIS,
     DEFAULT_TANK_NAME,
     DEFAULT_AQUARIUM_TYPE,
     DEFAULT_FREQUENCY,
@@ -48,6 +55,13 @@ from .const import (
     DEFAULT_WATER_CHANGE_FREQUENCY,
     DEFAULT_INHABITANTS,
     DEFAULT_MISC_INFO,
+    DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
+    DEFAULT_PROMPT_PARAMETER_GUIDELINES,
+    DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
+    DEFAULT_PROMPT_BRIEF_ANALYSIS,
+    DEFAULT_PROMPT_DETAILED_ANALYSIS,
+    DEFAULT_PROMPT_WATER_CHANGE,
+    DEFAULT_PROMPT_OVERALL_ANALYSIS,
     UPDATE_FREQUENCIES,
     NOTIFICATION_FORMATS,
 )
@@ -240,11 +254,8 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             # Merge all collected data
             self._data.update(user_input)
-            
-            # Use the tank name as the title
-            tank_name = self._data.get(CONF_TANK_NAME, DEFAULT_TANK_NAME)
-            _LOGGER.debug("Creating config entry with title: %s", tank_name)
-            return self.async_create_entry(title=tank_name, data=self._data)
+            # Move to AI prompts step
+            return await self.async_step_ai_prompts()
 
         data_schema = vol.Schema({
             vol.Optional(CONF_TANK_VOLUME, default=DEFAULT_TANK_VOLUME): TextSelector(
@@ -275,6 +286,49 @@ class AquariumAIConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=data_schema,
             description_placeholders={"step_description": "Optional: Add tank details for better AI analysis"}
         )
+    
+    async def async_step_ai_prompts(self, user_input=None):
+        """Handle the AI prompts configuration step."""
+        _LOGGER.debug("Config flow step_ai_prompts called with input: %s", user_input)
+        
+        if user_input is not None:
+            # Merge all collected data
+            self._data.update(user_input)
+            
+            # Use the tank name as the title
+            tank_name = self._data.get(CONF_TANK_NAME, DEFAULT_TANK_NAME)
+            _LOGGER.debug("Creating config entry with title: %s", tank_name)
+            return self.async_create_entry(title=tank_name, data=self._data)
+
+        data_schema = vol.Schema({
+            vol.Optional(CONF_PROMPT_MAIN_INSTRUCTIONS, default=DEFAULT_PROMPT_MAIN_INSTRUCTIONS): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_PROMPT_PARAMETER_GUIDELINES, default=DEFAULT_PROMPT_PARAMETER_GUIDELINES): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_PROMPT_CAMERA_INSTRUCTIONS, default=DEFAULT_PROMPT_CAMERA_INSTRUCTIONS): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_PROMPT_BRIEF_ANALYSIS, default=DEFAULT_PROMPT_BRIEF_ANALYSIS): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_PROMPT_DETAILED_ANALYSIS, default=DEFAULT_PROMPT_DETAILED_ANALYSIS): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_PROMPT_WATER_CHANGE, default=DEFAULT_PROMPT_WATER_CHANGE): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+            vol.Optional(CONF_PROMPT_OVERALL_ANALYSIS, default=DEFAULT_PROMPT_OVERALL_ANALYSIS): TextSelector(
+                TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True)
+            ),
+        })
+
+        return self.async_show_form(
+            step_id="ai_prompts", 
+            data_schema=data_schema,
+            description_placeholders={"step_description": "Optional: Customize AI prompts (defaults provided)"}
+        )
 
 
 class AquariumAIOptionsFlow(config_entries.OptionsFlow):
@@ -284,7 +338,7 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
         """Manage the options - Main menu."""
         return self.async_show_menu(
             step_id="init",
-            menu_options=["basic_settings", "sensors", "tank_info"]
+            menu_options=["basic_settings", "sensors", "tank_info", "ai_prompts"]
         )
     
     async def async_step_basic_settings(self, user_input=None):
@@ -365,6 +419,23 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
             step_id="tank_info", 
             data_schema=self._get_tank_info_schema(self.config_entry.data),
             description_placeholders={"step_description": "Optional: Add tank details for better AI analysis"},
+            last_step=False
+        )
+    
+    async def async_step_ai_prompts(self, user_input=None):
+        """Handle AI prompts configuration."""
+        if user_input is not None:
+            # Update the config entry data directly
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={**self.config_entry.data, **user_input}
+            )
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="ai_prompts", 
+            data_schema=self._get_ai_prompts_schema(self.config_entry.data),
+            description_placeholders={"step_description": "Customize AI prompts for analysis (defaults provided)"},
             last_step=False
         )
     
@@ -607,6 +678,48 @@ class AquariumAIOptionsFlow(config_entries.OptionsFlow):
         schema_dict[vol.Optional(
             CONF_MISC_INFO,
             default=current_data.get(CONF_MISC_INFO, DEFAULT_MISC_INFO),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        return vol.Schema(schema_dict)
+    
+    def _get_ai_prompts_schema(self, current_data):
+        """Get the AI prompts schema with current values."""
+        schema_dict = {}
+        
+        # Add AI prompt fields
+        schema_dict[vol.Optional(
+            CONF_PROMPT_MAIN_INSTRUCTIONS,
+            default=current_data.get(CONF_PROMPT_MAIN_INSTRUCTIONS, DEFAULT_PROMPT_MAIN_INSTRUCTIONS),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_PROMPT_PARAMETER_GUIDELINES,
+            default=current_data.get(CONF_PROMPT_PARAMETER_GUIDELINES, DEFAULT_PROMPT_PARAMETER_GUIDELINES),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_PROMPT_CAMERA_INSTRUCTIONS,
+            default=current_data.get(CONF_PROMPT_CAMERA_INSTRUCTIONS, DEFAULT_PROMPT_CAMERA_INSTRUCTIONS),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_PROMPT_BRIEF_ANALYSIS,
+            default=current_data.get(CONF_PROMPT_BRIEF_ANALYSIS, DEFAULT_PROMPT_BRIEF_ANALYSIS),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_PROMPT_DETAILED_ANALYSIS,
+            default=current_data.get(CONF_PROMPT_DETAILED_ANALYSIS, DEFAULT_PROMPT_DETAILED_ANALYSIS),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_PROMPT_WATER_CHANGE,
+            default=current_data.get(CONF_PROMPT_WATER_CHANGE, DEFAULT_PROMPT_WATER_CHANGE),
+        )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
+        
+        schema_dict[vol.Optional(
+            CONF_PROMPT_OVERALL_ANALYSIS,
+            default=current_data.get(CONF_PROMPT_OVERALL_ANALYSIS, DEFAULT_PROMPT_OVERALL_ANALYSIS),
         )] = TextSelector(TextSelectorConfig(type=TextSelectorType.TEXT, multiline=True))
         
         return vol.Schema(schema_dict)
