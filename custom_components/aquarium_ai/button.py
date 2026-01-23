@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_TANK_NAME
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Aquarium AI buttons from a config entry."""
-    tank_name = config_entry.data.get("tank_name", "Unknown Tank")
+    tank_name = config_entry.data.get("tank_name", DEFAULT_TANK_NAME)
     
     entities = []
     
