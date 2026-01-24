@@ -374,16 +374,16 @@ automation:
           send_notification: true
       - service: notify.mobile_app_your_phone
         data:
-          title: "🐠 {{ states('sensor.marine_tank_name') }} Update"
+          title: "🐠 {{ states('sensor.your_tank_name') }} Update"
           message: >
-            Status: {{ states('sensor.marine_quick_status') }}
+            Status: {{ states('sensor.your_tank_quick_status') }}
             
-            {{ states('sensor.marine_overall_analysis') }}
+            {{ states('sensor.your_tank_overall_analysis') }}
             
-            Temperature: {{ states('sensor.marine_temperature_status') }}
-            pH: {{ states('sensor.marine_ph_status') }}
+            Temperature: {{ states('sensor.your_tank_temperature_status') }}
+            pH: {{ states('sensor.your_tank_ph_status') }}
             
-            {{ states('sensor.marine_water_change_recommendation') }}
+            {{ states('sensor.your_tank_water_change_recommendation') }}
 ```
 
 #### Trigger Automation When Parameter Status Changes
@@ -395,23 +395,23 @@ automation:
   - alias: "Alert on Temperature Issues"
     trigger:
       - platform: state
-        entity_id: sensor.marine_temperature_status
+        entity_id: sensor.your_tank_temperature_status
         to: "Check"
     action:
       - service: notify.mobile_app_your_phone
         data:
           title: "⚠️ Aquarium Temperature Alert"
           message: >
-            Temperature status is now {{ states('sensor.marine_temperature_status') }}!
-            Current reading: {{ state_attr('sensor.marine_temperature', 'state') }}
-            Analysis: {{ states('sensor.marine_temperature_analysis') }}
+            Temperature status is now {{ states('sensor.your_tank_temperature_status') }}!
+            Current reading: {{ state_attr('sensor.your_tank_temperature', 'state') }}
+            Analysis: {{ states('sensor.your_tank_temperature_analysis') }}
           data:
             priority: high
             tag: "aquarium_temp_alert"
       - service: persistent_notification.create
         data:
           title: "Temperature Check Required"
-          message: "{{ states('sensor.marine_temperature_analysis') }}"
+          message: "{{ states('sensor.your_tank_temperature_analysis') }}"
 ```
 
 #### pH Level Monitoring with Multiple Actions
@@ -423,14 +423,14 @@ automation:
   - alias: "pH Adjustment Needed"
     trigger:
       - platform: state
-        entity_id: sensor.marine_ph_status
+        entity_id: sensor.your_tank_ph_status
         to: "Adjust"
     action:
       # Send mobile notification
       - service: notify.mobile_app_your_phone
         data:
           title: "🧪 pH Adjustment Required"
-          message: "{{ states('sensor.marine_ph_analysis') }}"
+          message: "{{ states('sensor.your_tank_ph_analysis') }}"
           data:
             priority: high
       # Flash aquarium light red as visual indicator
@@ -461,7 +461,7 @@ automation:
   - alias: "Low Oxygen - Increase Aeration"
     trigger:
       - platform: state
-        entity_id: sensor.marine_dissolved_oxygen_status
+        entity_id: sensor.your_tank_dissolved_oxygen_status
         to: "Low"
     action:
       # Send notification
@@ -470,7 +470,7 @@ automation:
           title: "💨 Low Oxygen Alert"
           message: >
             Dissolved oxygen is low!
-            {{ states('sensor.marine_dissolved_oxygen_analysis') }}
+            {{ states('sensor.your_tank_dissolved_oxygen_analysis') }}
             Auto-increasing air pump speed.
       # Turn on additional air pump or increase speed
       - service: switch.turn_on
@@ -493,7 +493,7 @@ automation:
   - alias: "Tank Status Change Notification"
     trigger:
       - platform: state
-        entity_id: sensor.marine_quick_status
+        entity_id: sensor.your_tank_quick_status
     condition:
       - condition: template
         value_template: >
@@ -506,7 +506,7 @@ automation:
           message: >
             Status changed from {{ trigger.from_state.state }} to {{ trigger.to_state.state }}
             
-            {{ states('sensor.marine_overall_analysis') }}
+            {{ states('sensor.your_tank_overall_analysis') }}
 ```
 
 #### Scheduled Analysis with Conditional Notifications
@@ -534,20 +534,20 @@ automation:
               - condition: or
                 conditions:
                   - condition: state
-                    entity_id: binary_sensor.marine_water_change_needed
+                    entity_id: binary_sensor.your_tank_water_change_needed
                     state: "on"
                   - condition: template
                     value_template: >
-                      {{ states('sensor.marine_quick_status') not in ['Excellent', 'Good'] }}
+                      {{ states('sensor.your_tank_quick_status') not in ['Excellent', 'Good'] }}
             sequence:
               - service: notify.mobile_app_your_phone
                 data:
                   title: "⚠️ Aquarium Needs Attention"
                   message: >
-                    Quick Status: {{ states('sensor.marine_quick_status') }}
-                    {{ states('sensor.marine_overall_analysis') }}
+                    Quick Status: {{ states('sensor.your_tank_quick_status') }}
+                    {{ states('sensor.your_tank_overall_analysis') }}
                     
-                    Water Change: {{ states('sensor.marine_water_change_recommendation') }}
+                    Water Change: {{ states('sensor.your_tank_water_change_recommendation') }}
 ```
 
 #### Multi-Tank Monitoring
@@ -572,14 +572,14 @@ automation:
         data:
           title: "🐠 Daily Aquarium Report"
           message: >
-            **Marine Tank:** {{ states('sensor.marine_quick_status') }}
-            {{ states('sensor.marine_overall_analysis') }}
+            **Tank 1:** {{ states('sensor.tank1_quick_status') }}
+            {{ states('sensor.tank1_overall_analysis') }}
             
-            **Freshwater Tank:** {{ states('sensor.freshwater_quick_status') }}
-            {{ states('sensor.freshwater_overall_analysis') }}
+            **Tank 2:** {{ states('sensor.tank2_quick_status') }}
+            {{ states('sensor.tank2_overall_analysis') }}
             
-            **Reef Tank:** {{ states('sensor.reef_quick_status') }}
-            {{ states('sensor.reef_overall_analysis') }}
+            **Tank 3:** {{ states('sensor.tank3_quick_status') }}
+            {{ states('sensor.tank3_overall_analysis') }}
 ```
 
 #### Trigger Analysis After Water Change
@@ -613,7 +613,7 @@ automation:
           title: "✅ Water Change Complete"
           message: >
             Analysis after water change:
-            {{ states('sensor.marine_overall_analysis') }}
+            {{ states('sensor.your_tank_overall_analysis') }}
 ```
 
 #### Critical Alert with Voice Announcement
@@ -626,12 +626,12 @@ automation:
     trigger:
       - platform: template
         value_template: >
-          {{ states('sensor.marine_quick_status') in ['Critical', 'Problem', 'Needs Attention'] }}
+          {{ states('sensor.your_tank_quick_status') in ['Critical', 'Problem', 'Needs Attention'] }}
     action:
       - service: notify.mobile_app_your_phone
         data:
           title: "🚨 CRITICAL: Aquarium Issue"
-          message: "{{ states('sensor.marine_overall_analysis') }}"
+          message: "{{ states('sensor.your_tank_overall_analysis') }}"
           data:
             priority: high
             ttl: 0
@@ -642,7 +642,7 @@ automation:
         data:
           message: >
             Attention! Critical aquarium alert. 
-            {{ states('sensor.marine_overall_analysis') }}
+            {{ states('sensor.your_tank_overall_analysis') }}
 ```
 
 ### Creative Automation Ideas
@@ -707,10 +707,10 @@ Understanding the status values returned by the integration helps you create bet
 | **High** | Parameter is above acceptable range | Decrease parameter value | Alert + equipment automation |
 
 **Example Status Sensors:**
-* `sensor.marine_temperature_status` → "Good", "OK", "Check"
-* `sensor.marine_ph_status` → "Good", "OK", "Adjust"
-* `sensor.marine_dissolved_oxygen_status` → "Good", "OK", "Low", "High"
-* `sensor.marine_quick_status` → "Excellent", "Good", "Needs Attention", "Critical"
+* `sensor.your_tank_temperature_status` → "Good", "OK", "Check"
+* `sensor.your_tank_ph_status` → "Good", "OK", "Adjust"
+* `sensor.your_tank_dissolved_oxygen_status` → "Good", "OK", "Low", "High"
+* `sensor.your_tank_quick_status` → "Excellent", "Good", "Needs Attention", "Critical"
 
 **Tip:** Use these status values in your automation conditions and triggers to create smart, responsive aquarium management systems.
 
@@ -745,11 +745,11 @@ The AI analyzes all available information and provides:
 Example Card, conditional:
 ```
 type: markdown
-content: "{{states('sensor.marine_water_change_recommendation')}}"
+content: "{{states('sensor.your_tank_water_change_recommendation')}}"
 title: Water Change
 visibility:
   - condition: state
-    entity: binary_sensor.marine_water_change_needed
+    entity: binary_sensor.your_tank_water_change_needed
     state: "on"
 ```
 
