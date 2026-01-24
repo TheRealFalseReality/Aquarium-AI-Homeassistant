@@ -32,6 +32,7 @@ CONF_ANALYZE_SALINITY: Final = "analyze_salinity"
 CONF_ANALYZE_DISSOLVED_OXYGEN: Final = "analyze_dissolved_oxygen"
 CONF_ANALYZE_WATER_LEVEL: Final = "analyze_water_level"
 CONF_ANALYZE_ORP: Final = "analyze_orp"
+CONF_ANALYZE_CAMERA: Final = "analyze_camera"
 
 # AI Prompt Configuration constants
 CONF_PROMPT_MAIN_INSTRUCTIONS: Final = "prompt_main_instructions"
@@ -62,6 +63,7 @@ DEFAULT_ANALYZE_SALINITY: Final = True
 DEFAULT_ANALYZE_DISSOLVED_OXYGEN: Final = True
 DEFAULT_ANALYZE_WATER_LEVEL: Final = True
 DEFAULT_ANALYZE_ORP: Final = True
+DEFAULT_ANALYZE_CAMERA: Final = True
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {

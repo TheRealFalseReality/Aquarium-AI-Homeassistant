@@ -36,6 +36,7 @@ from .const import (
     CONF_ANALYZE_DISSOLVED_OXYGEN,
     CONF_ANALYZE_WATER_LEVEL,
     CONF_ANALYZE_ORP,
+    CONF_ANALYZE_CAMERA,
     CONF_PROMPT_MAIN_INSTRUCTIONS,
     CONF_PROMPT_PARAMETER_GUIDELINES,
     CONF_PROMPT_CAMERA_INSTRUCTIONS,
@@ -53,6 +54,7 @@ from .const import (
     DEFAULT_ANALYZE_DISSOLVED_OXYGEN,
     DEFAULT_ANALYZE_WATER_LEVEL,
     DEFAULT_ANALYZE_ORP,
+    DEFAULT_ANALYZE_CAMERA,
     DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
     DEFAULT_PROMPT_PARAMETER_GUIDELINES,
     DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
@@ -597,7 +599,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             
             # Prepare camera instructions if camera is configured
             camera_instructions = ""
-            if camera:
+            # Check if camera is configured AND camera analysis is enabled
+            analyze_camera = entry.data.get(CONF_ANALYZE_CAMERA, DEFAULT_ANALYZE_CAMERA)
+            if camera and analyze_camera:
                 # Add camera analysis fields to the structure
                 combined_analysis_structure["camera_visual_analysis"] = {
                     "description": "Brief 1-2 sentence visual analysis of the aquarium from the camera image (under 200 characters). Focus on water clarity, fish/plant health, and any maintenance needs visible.",
@@ -612,6 +616,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 
                 # Use custom camera instructions
                 camera_instructions = f"\n\n{prompt_camera_instructions}"
+            elif camera and not analyze_camera:
+                _LOGGER.debug("Skipping camera analysis for %s (toggle disabled)", tank_name)
 
             # Build AI instructions from custom prompts
             instructions_parts = [
@@ -631,8 +637,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 "structure": combined_analysis_structure
             }
             
-            # Add camera attachment if configured
-            if camera:
+            # Add camera attachment if configured and analysis enabled
+            if camera and analyze_camera:
                 ai_task_data["attachments"] = {
                     "media_content_id": f"media-source://camera/{camera}",
                     "media_content_type": "application/vnd.apple.mpegurl",

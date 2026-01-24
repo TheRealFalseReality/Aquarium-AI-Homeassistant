@@ -158,13 +158,15 @@ These `switch` entities control which parameters are included in AI analysis, al
 * `switch.[tank_name]_analyze_dissolved_oxygen`: Enable/disable AI analysis of dissolved oxygen readings.
 * `switch.[tank_name]_analyze_water_level`: Enable/disable AI analysis of water level readings.
 * `switch.[tank_name]_analyze_orp`: Enable/disable AI analysis of ORP (oxidation-reduction potential) readings.
+* `switch.[tank_name]_analyze_camera`: Enable/disable AI visual analysis from camera images.
 
 **Usage:**
 * When a parameter toggle is **ON** (default), the AI will analyze that parameter and include it in notifications.
 * When a parameter toggle is **OFF**, the AI will skip analysis of that parameter entirely, reducing token usage.
+* The **camera toggle** controls whether camera images are sent to the AI for visual analysis - useful when you want to reduce token usage or don't need visual monitoring temporarily.
 * Useful for temporarily disabling analysis of specific parameters that don't need monitoring.
 * Changes take effect on the next scheduled analysis or when you manually trigger an analysis via service call.
-* Only switches for configured sensors will be created (e.g., if you don't have a salinity sensor configured, there won't be an "Analyze Salinity" switch).
+* Only switches for configured sensors/camera will be created (e.g., if you don't have a camera configured, there won't be an "Analyze Camera" switch).
 
 ![Sensors](/assets/sensors_example.png)
 
