@@ -1,6 +1,9 @@
 run_analysis:
   name: Run AI Analysis
-  description: Trigger an immediate AI analysis for all aquariums configured by this integration
+  description: >
+    Trigger an immediate AI analysis for all aquariums configured by this integration.
+    Only parameters with their analysis toggle switches enabled will be included in the analysis.
+    Use the parameter analysis toggle switches (e.g., "Analyze Temperature", "Analyze pH") to control which parameters are analyzed.
   fields:
     send_notification:
       name: Send Notification
@@ -12,7 +15,10 @@ run_analysis:
 
 run_analysis_for_aquarium:
   name: Run AI Analysis for Specific Aquarium
-  description: Trigger an immediate AI analysis for a specific aquarium configured by this integration
+  description: >
+    Trigger an immediate AI analysis for a specific aquarium configured by this integration.
+    Only parameters with their analysis toggle switches enabled will be included in the analysis.
+    Use the parameter analysis toggle switches (e.g., "Analyze Temperature", "Analyze pH") to control which parameters are analyzed.
   fields:
     config_entry:
       name: Aquarium

@@ -25,6 +25,15 @@ CONF_LAST_WATER_CHANGE: Final = "last_water_change"
 CONF_MISC_INFO: Final = "misc_info"
 CONF_RUN_ANALYSIS_ON_STARTUP: Final = "run_analysis_on_startup"
 
+# Parameter analysis toggle configuration constants
+CONF_ANALYZE_TEMPERATURE: Final = "analyze_temperature"
+CONF_ANALYZE_PH: Final = "analyze_ph"
+CONF_ANALYZE_SALINITY: Final = "analyze_salinity"
+CONF_ANALYZE_DISSOLVED_OXYGEN: Final = "analyze_dissolved_oxygen"
+CONF_ANALYZE_WATER_LEVEL: Final = "analyze_water_level"
+CONF_ANALYZE_ORP: Final = "analyze_orp"
+CONF_ANALYZE_CAMERA: Final = "analyze_camera"
+
 # AI Prompt Configuration constants
 CONF_PROMPT_MAIN_INSTRUCTIONS: Final = "prompt_main_instructions"
 CONF_PROMPT_PARAMETER_GUIDELINES: Final = "prompt_parameter_guidelines"
@@ -46,6 +55,15 @@ DEFAULT_WATER_CHANGE_FREQUENCY: Final = ""
 DEFAULT_INHABITANTS: Final = ""
 DEFAULT_MISC_INFO: Final = ""
 DEFAULT_RUN_ANALYSIS_ON_STARTUP: Final = False
+
+# Default values for parameter analysis toggles (all enabled by default)
+DEFAULT_ANALYZE_TEMPERATURE: Final = True
+DEFAULT_ANALYZE_PH: Final = True
+DEFAULT_ANALYZE_SALINITY: Final = True
+DEFAULT_ANALYZE_DISSOLVED_OXYGEN: Final = True
+DEFAULT_ANALYZE_WATER_LEVEL: Final = True
+DEFAULT_ANALYZE_ORP: Final = True
+DEFAULT_ANALYZE_CAMERA: Final = True
 
 # Update frequency options (in minutes)
 UPDATE_FREQUENCIES: Final = {
