@@ -368,22 +368,14 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             
             # Use brief sensor analysis (same as used for sensors)
-            for sensor_entity, sensor_name, analyze_conf, default_analyze in sensor_mappings:
+            # Only iterate over sensors that were actually analyzed (in sensor_data)
+            for info in sensor_data:
+                sensor_name = info['name']
                 analysis_key = sensor_name.lower().replace(" ", "_") + "_analysis"
                 if analysis_key in ai_data:
-                    # Find corresponding sensor info for icon
-                    corresponding_sensor = None
-                    for info in sensor_data:
-                        if info['name'].lower() == sensor_name.lower():
-                            corresponding_sensor = info
-                            break
-                    
-                    if corresponding_sensor:
-                        icon = get_sensor_icon(corresponding_sensor['name'])
-                        status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
-                        message_parts.append(f"\n{icon} {sensor_name} ({status}): {ai_data[analysis_key]}")
-                    else:
-                        message_parts.append(f"\n{sensor_name}: {ai_data[analysis_key]}")
+                    icon = get_sensor_icon(sensor_name)
+                    status = get_simple_status(sensor_name, info['raw_value'], info['unit'], aquarium_type)
+                    message_parts.append(f"\n{icon} {sensor_name} ({status}): {ai_data[analysis_key]}")
             
             # Add water change recommendation before overall analysis
             if "water_change_recommendation" in ai_data:
@@ -411,22 +403,14 @@ def _build_notification_message(notification_format, sensor_data, sensor_mapping
             ai_data = response["data"]
             
             # Use detailed notification analysis for notifications
-            for sensor_entity, sensor_name, analyze_conf, default_analyze in sensor_mappings:
+            # Only iterate over sensors that were actually analyzed (in sensor_data)
+            for info in sensor_data:
+                sensor_name = info['name']
                 notification_key = sensor_name.lower().replace(" ", "_") + "_notification_analysis"
                 if notification_key in ai_data:
-                    # Find corresponding sensor info for status and icon
-                    corresponding_sensor = None
-                    for info in sensor_data:
-                        if info['name'].lower() == sensor_name.lower():
-                            corresponding_sensor = info
-                            break
-                    
-                    if corresponding_sensor:
-                        icon = get_sensor_icon(corresponding_sensor['name'])
-                        status = get_simple_status(corresponding_sensor['name'], corresponding_sensor['raw_value'], corresponding_sensor['unit'], aquarium_type)
-                        message_parts.append(f"\n{icon} {sensor_name} ({status}):\n{ai_data[notification_key]}")
-                    else:
-                        message_parts.append(f"\n{sensor_name}:\n{ai_data[notification_key]}")
+                    icon = get_sensor_icon(sensor_name)
+                    status = get_simple_status(sensor_name, info['raw_value'], info['unit'], aquarium_type)
+                    message_parts.append(f"\n{icon} {sensor_name} ({status}):\n{ai_data[notification_key]}")
             
             # Add water change recommendation before overall analysis
             if "water_change_recommendation" in ai_data:
