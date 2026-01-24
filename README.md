@@ -175,31 +175,20 @@ Example Card:
 type: markdown
 content: >-
   ## **Marine tank is ***{{ states('sensor.marine_quick_status') }}*****
-
-
   {{ states('sensor.marine_overall_analysis') }}
 
-
   **Temperature is ***{{ states('sensor.marine_temperature_status') }}*****
-
   {{ states('sensor.marine_temperature_analysis') }}
 
-
   **pH is ***{{ states('sensor.marine_ph_status') }}*****
-
   {{ states('sensor.marine_ph_analysis') }}
 
-
   **Salinity is ***{{ states('sensor.marine_salinity_status') }}*****
-
   {{ states('sensor.marine_salinity_analysis') }}
-
 
   **Dissolved Oxygen is ***{{ states('sensor.marine_dissolved_oxygen_status')
   }}*****
-
   {{ states('sensor.marine_dissolved_oxygen_analysis') }}
-
 ```
 
 ### Notification System
