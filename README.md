@@ -263,12 +263,20 @@ Triggers analysis for **a specific aquarium**.
 
 **Parameters:**
 * `config_entry` (required): The config entry ID of the aquarium to analyze. You can select this from the UI using the aquarium selector.
+* `send_notification` (optional, default: true): Whether to send a notification with the analysis results.
 
 This service will:
 
 * Update all AI analysis sensors with fresh analysis for the selected aquarium
 * Update all status sensors with current readings for the selected aquarium
-* Send a notification (if notifications are enabled) for the selected aquarium
+* Send a notification (if notifications are enabled and send_notification is true) for the selected aquarium
+
+**Use Cases:**
+* Run on-demand analysis on a specific tank without affecting other aquariums
+* Trigger analysis after water changes or maintenance
+* Send instant notifications to your mobile device about your tank's status
+* Create automations based on parameter status changes (Good, OK, Check, Adjust, Low, High)
+* Integrate with other Home Assistant features like lights, switches, and scripts
 
 ### Example Automations
 
@@ -349,6 +357,365 @@ automation:
           entity_id: input_boolean.water_change_completed
 ```
 
+#### Send Mobile Notification After Analysis
+
+Send a detailed notification to your phone after running analysis on a specific aquarium:
+
+```yaml
+automation:
+  - alias: "Aquarium Analysis to Phone"
+    trigger:
+      - platform: time
+        at: "20:00:00"
+    action:
+      - service: aquarium_ai.run_analysis_for_aquarium
+        data:
+          config_entry: "your_config_entry_id_here"
+          send_notification: true
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "🐠 {{ states('sensor.your_tank_name') }} Update"
+          message: >
+            Status: {{ states('sensor.your_tank_quick_status') }}
+            
+            {{ states('sensor.your_tank_overall_analysis') }}
+            
+            Temperature: {{ states('sensor.your_tank_temperature_status') }}
+            pH: {{ states('sensor.your_tank_ph_status') }}
+            
+            {{ states('sensor.your_tank_water_change_recommendation') }}
+```
+
+#### Trigger Automation When Parameter Status Changes
+
+Run automations when any parameter status changes to "Check", "Adjust", "Low", or "High":
+
+```yaml
+automation:
+  - alias: "Alert on Temperature Issues"
+    trigger:
+      - platform: state
+        entity_id: sensor.your_tank_temperature_status
+        to: "Check"
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "⚠️ Aquarium Temperature Alert"
+          message: >
+            Temperature status is now {{ states('sensor.your_tank_temperature_status') }}!
+            Current reading: {{ state_attr('sensor.your_tank_temperature', 'state') }}
+            Analysis: {{ states('sensor.your_tank_temperature_analysis') }}
+          data:
+            priority: high
+            tag: "aquarium_temp_alert"
+      - service: persistent_notification.create
+        data:
+          title: "Temperature Check Required"
+          message: "{{ states('sensor.your_tank_temperature_analysis') }}"
+```
+
+#### pH Level Monitoring with Multiple Actions
+
+Trigger multiple actions when pH needs adjustment:
+
+```yaml
+automation:
+  - alias: "pH Adjustment Needed"
+    trigger:
+      - platform: state
+        entity_id: sensor.your_tank_ph_status
+        to: "Adjust"
+    action:
+      # Send mobile notification
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "🧪 pH Adjustment Required"
+          message: "{{ states('sensor.your_tank_ph_analysis') }}"
+          data:
+            priority: high
+      # Flash aquarium light red as visual indicator
+      - service: light.turn_on
+        target:
+          entity_id: light.aquarium_light
+        data:
+          rgb_color: [255, 0, 0]
+          brightness: 255
+      - delay:
+          seconds: 2
+      - service: light.turn_off
+        target:
+          entity_id: light.aquarium_light
+      - delay:
+          seconds: 1
+      - service: light.turn_on
+        target:
+          entity_id: light.aquarium_light
+```
+
+#### Low Oxygen Alert with Equipment Control
+
+Increase aeration when dissolved oxygen is low:
+
+```yaml
+automation:
+  - alias: "Low Oxygen - Increase Aeration"
+    trigger:
+      - platform: state
+        entity_id: sensor.your_tank_dissolved_oxygen_status
+        to: "Low"
+    action:
+      # Send notification
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "💨 Low Oxygen Alert"
+          message: >
+            Dissolved oxygen is low!
+            {{ states('sensor.your_tank_dissolved_oxygen_analysis') }}
+            Auto-increasing air pump speed.
+      # Turn on additional air pump or increase speed
+      - service: switch.turn_on
+        target:
+          entity_id: switch.aquarium_air_pump_boost
+      # Run fresh analysis after 30 minutes
+      - delay:
+          minutes: 30
+      - service: aquarium_ai.run_analysis_for_aquarium
+        data:
+          config_entry: "your_config_entry_id_here"
+```
+
+#### Dashboard Notification for Overall Status Change
+
+Create a dashboard notification when overall tank status changes:
+
+```yaml
+automation:
+  - alias: "Tank Status Change Notification"
+    trigger:
+      - platform: state
+        entity_id: sensor.your_tank_quick_status
+    condition:
+      - condition: template
+        value_template: >
+          {{ trigger.from_state.state != trigger.to_state.state and 
+             trigger.from_state.state not in ['unknown', 'unavailable'] }}
+    action:
+      - service: notify.persistent_notification
+        data:
+          title: "🌊 Aquarium Status Changed"
+          message: >
+            Status changed from {{ trigger.from_state.state }} to {{ trigger.to_state.state }}
+            
+            {{ states('sensor.your_tank_overall_analysis') }}
+```
+
+#### Scheduled Analysis with Conditional Notifications
+
+Run analysis daily but only send notifications if action is needed:
+
+```yaml
+automation:
+  - alias: "Daily Aquarium Check - Smart Notifications"
+    trigger:
+      - platform: time
+        at: "08:00:00"
+    action:
+      # Run analysis without automatic notification
+      - service: aquarium_ai.run_analysis_for_aquarium
+        data:
+          config_entry: "your_config_entry_id_here"
+          send_notification: false
+      # Wait for analysis to complete
+      - delay:
+          seconds: 10
+      # Only send notification if water change is needed or status isn't "Good"
+      - choose:
+          - conditions:
+              - condition: or
+                conditions:
+                  - condition: state
+                    entity_id: binary_sensor.your_tank_water_change_needed
+                    state: "on"
+                  - condition: template
+                    value_template: >
+                      {{ states('sensor.your_tank_quick_status') not in ['Excellent', 'Good'] }}
+            sequence:
+              - service: notify.mobile_app_your_phone
+                data:
+                  title: "⚠️ Aquarium Needs Attention"
+                  message: >
+                    Quick Status: {{ states('sensor.your_tank_quick_status') }}
+                    {{ states('sensor.your_tank_overall_analysis') }}
+                    
+                    Water Change: {{ states('sensor.your_tank_water_change_recommendation') }}
+```
+
+#### Multi-Tank Monitoring
+
+Monitor multiple aquariums and send a consolidated report:
+
+```yaml
+automation:
+  - alias: "Multi-Tank Daily Report"
+    trigger:
+      - platform: time
+        at: "19:00:00"
+    action:
+      # Analyze all tanks
+      - service: aquarium_ai.run_analysis
+        data:
+          send_notification: false
+      - delay:
+          seconds: 15
+      # Send consolidated notification
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "🐠 Daily Aquarium Report"
+          message: >
+            **Tank 1:** {{ states('sensor.tank1_quick_status') }}
+            {{ states('sensor.tank1_overall_analysis') }}
+            
+            **Tank 2:** {{ states('sensor.tank2_quick_status') }}
+            {{ states('sensor.tank2_overall_analysis') }}
+            
+            **Tank 3:** {{ states('sensor.tank3_quick_status') }}
+            {{ states('sensor.tank3_overall_analysis') }}
+```
+
+#### Trigger Analysis After Water Change
+
+Automatically run analysis after completing a water change to verify parameters:
+
+```yaml
+automation:
+  - alias: "Analyze After Water Change"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.water_change_done
+        to: "on"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.last_water_change
+        data:
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - delay:
+          minutes: 15  # Wait for parameters to stabilize
+      - service: aquarium_ai.run_analysis_for_aquarium
+        data:
+          config_entry: "your_config_entry_id_here"
+          send_notification: true
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.water_change_done
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "✅ Water Change Complete"
+          message: >
+            Analysis after water change:
+            {{ states('sensor.your_tank_overall_analysis') }}
+```
+
+#### Critical Alert with Voice Announcement
+
+Use Google Home or Alexa to announce critical aquarium issues:
+
+```yaml
+automation:
+  - alias: "Critical Aquarium Alert"
+    trigger:
+      - platform: template
+        value_template: >
+          {{ states('sensor.your_tank_quick_status') in ['Critical', 'Problem', 'Needs Attention'] }}
+    action:
+      - service: notify.mobile_app_your_phone
+        data:
+          title: "🚨 CRITICAL: Aquarium Issue"
+          message: "{{ states('sensor.your_tank_overall_analysis') }}"
+          data:
+            priority: high
+            ttl: 0
+            channel: alarm_stream
+      - service: tts.google_translate_say
+        target:
+          entity_id: media_player.living_room_speaker
+        data:
+          message: >
+            Attention! Critical aquarium alert. 
+            {{ states('sensor.your_tank_overall_analysis') }}
+```
+
+### Creative Automation Ideas
+
+The `run_analysis_for_aquarium` service opens up many possibilities for Home Assistant automation. Here are some creative ideas:
+
+#### 📱 **Notification Scenarios**
+* Send morning briefings to your phone before work
+* Alert family members when maintenance is needed
+* Send photos from your aquarium camera along with analysis
+* Create priority alerts for critical parameter changes
+* Weekly summary reports via email or messaging apps
+
+#### 🎨 **Visual Indicators**
+* Change smart bulb colors based on tank status (green=good, yellow=check, red=problem)
+* Flash aquarium lights when parameters need attention
+* Display status on LED matrices or smart displays
+* Use presence detection to show status when you walk by
+
+#### 🔧 **Equipment Automation**
+* Auto-adjust heater when temperature is off
+* Increase/decrease air pump based on oxygen levels
+* Control protein skimmers based on water quality
+* Trigger automatic feeders based on fish health observations
+* Manage dosing pumps for calcium/alkalinity
+
+#### 📊 **Data & Monitoring**
+* Log analysis results to InfluxDB or Google Sheets
+* Create graphs showing parameter trends over time
+* Compare multiple tanks side-by-side
+* Track correlations between maintenance and water quality
+
+#### 🏡 **Smart Home Integration**
+* Pause aquarium analysis during vacation mode
+* Include tank status in good morning/night routines
+* Voice control: "Hey Google, how's my aquarium?"
+* Dashboard widgets for at-a-glance monitoring
+
+#### ⏰ **Time-Based Actions**
+* Run analysis after feeding times
+* Check parameters before and after water changes
+* Weekend deep-dive analysis vs. weekday quick checks
+* Seasonal adjustments (more frequent in summer heat)
+
+#### 🎯 **Conditional Logic**
+* Only notify if status worsens (not improves)
+* Different notification recipients based on severity
+* Escalate alerts if issues persist over time
+* Smart reminders based on last maintenance date
+
+### Parameter Status Reference
+
+Understanding the status values returned by the integration helps you create better automations:
+
+| Status | Meaning | Suggested Action | Automation Use |
+|--------|---------|-----------------|----------------|
+| **Good** | Parameter is in optimal range | No action needed | Green indicator, positive notifications |
+| **OK** | Parameter is acceptable but not ideal | Monitor, no immediate action | Yellow indicator, info notifications |
+| **Check** | Parameter needs attention | Review and consider adjustment | Orange indicator, alert notifications |
+| **Adjust** | Parameter needs correction (pH specific) | Take corrective action | Red indicator, high priority alerts |
+| **Low** | Parameter is below acceptable range | Increase parameter value | Alert + equipment automation |
+| **High** | Parameter is above acceptable range | Decrease parameter value | Alert + equipment automation |
+
+**Example Status Sensors:**
+* `sensor.your_tank_temperature_status` → "Good", "OK", "Check"
+* `sensor.your_tank_ph_status` → "Good", "OK", "Adjust"
+* `sensor.your_tank_dissolved_oxygen_status` → "Good", "OK", "Low", "High"
+* `sensor.your_tank_quick_status` → "Excellent", "Good", "Needs Attention", "Critical"
+
+**Tip:** Use these status values in your automation conditions and triggers to create smart, responsive aquarium management systems.
+
+
+
 ---
 
 ## Water Change Recommendations
@@ -378,11 +745,11 @@ The AI analyzes all available information and provides:
 Example Card, conditional:
 ```
 type: markdown
-content: "{{states('sensor.marine_water_change_recommendation')}}"
+content: "{{states('sensor.your_tank_water_change_recommendation')}}"
 title: Water Change
 visibility:
   - condition: state
-    entity: binary_sensor.marine_water_change_needed
+    entity: binary_sensor.your_tank_water_change_needed
     state: "on"
 ```
 
