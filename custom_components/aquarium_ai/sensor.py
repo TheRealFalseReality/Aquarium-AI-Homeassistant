@@ -539,37 +539,24 @@ class AquariumAIStatusEmoji(AquariumAIBaseSensor):
             full_status = get_overall_status(sensor_data, self._aquarium_type)
             
             # Extract emoji from the status message
-            # The emoji is always at the end of the message
-            emoji_map = {
-                "🌟": "Excellent",
-                "👍": "Great", 
-                "👌": "Good",
-                "⚠️": "OK",
-                "🚨": "Needs Attention"
-            }
+            # Possible emojis based on aquarium status levels
+            possible_emojis = ["🌟", "👍", "👌", "⚠️", "🚨"]
             
             # Extract the emoji by finding it in the message
             extracted_emoji = "❓"  # Default if no emoji found
-            for emoji, status_text in emoji_map.items():
+            for emoji in possible_emojis:
                 if emoji in full_status:
                     extracted_emoji = emoji
                     break
             
             self._state = extracted_emoji
             
-            # Collect individual sensor statuses for context
-            individual_statuses = {}
+            # Calculate status distribution for context
             statuses = []
             for info in sensor_data:
                 status = get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
-                individual_statuses[info['name']] = {
-                    "status": status,
-                    "value": info['value'],
-                    "unit": info['unit']
-                }
                 statuses.append(status)
             
-            # Calculate status distribution
             good_count = statuses.count("Good")
             ok_count = statuses.count("OK")
             problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low", "High"]])
