@@ -97,6 +97,18 @@ async def async_setup_entry(
         )
     )
     
+    # Create status emoji sensor (extracts emoji from simple status)
+    entities.append(
+        AquariumAIStatusEmoji(
+            hass,
+            config_entry,
+            tank_name,
+            aquarium_type,
+            frequency_minutes,
+            valid_sensor_mappings,
+        )
+    )
+    
     # Create parameter status sensors for each sensor
     for sensor_entity, sensor_name in valid_sensor_mappings:
         entities.append(
@@ -472,6 +484,98 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
         except Exception as err:
             _LOGGER.error("Error updating simple status sensor: %s", err)
             self._state = "Status unavailable"
+            self._available = False
+            self._attr_extra_state_attributes = {}
+
+
+class AquariumAIStatusEmoji(AquariumAIBaseSensor):
+    """Sensor for status emoji (extracted from simple status)."""
+    
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        config_entry: ConfigEntry,
+        tank_name: str,
+        aquarium_type: str,
+        frequency_minutes: Optional[int],
+        sensor_mappings: list,
+    ):
+        """Initialize the status emoji sensor."""
+        super().__init__(hass, config_entry, tank_name, aquarium_type, frequency_minutes, sensor_mappings)
+        self._attr_name = f"{tank_name} Status Emoji"
+        self._attr_unique_id = f"{config_entry.entry_id}_status_emoji"
+        self._attr_icon = "mdi:emoticon-happy-outline"
+        self._attr_extra_state_attributes = {}
+    
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
+        
+    async def async_update(self) -> None:
+        """Update the sensor."""
+        try:
+            # Try to get shared sensor data first (more efficient)
+            shared_data = self._get_shared_data()
+            sensor_data = shared_data["sensor_data"]
+            
+            # If no shared data, get fresh sensor data
+            if not sensor_data:
+                sensor_data = []
+                for sensor_entity, sensor_name in self._sensor_mappings:
+                    sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
+                    if sensor_info:
+                        sensor_data.append(sensor_info)
+            
+            if not sensor_data:
+                self._state = "❓"
+                self._available = False
+                self._attr_extra_state_attributes = {}
+                return
+                
+            self._available = True
+            
+            # Use existing simple status logic to get the full status message
+            full_status = get_overall_status(sensor_data, self._aquarium_type)
+            
+            # Extract emoji from the status message
+            # Possible emojis based on aquarium status levels
+            possible_emojis = ["🌟", "👍", "👌", "⚠️", "🚨"]
+            
+            # Extract the emoji by finding it in the message
+            extracted_emoji = "❓"  # Default if no emoji found
+            for emoji in possible_emojis:
+                if emoji in full_status:
+                    extracted_emoji = emoji
+                    break
+            
+            self._state = extracted_emoji
+            
+            # Calculate status distribution for context
+            statuses = []
+            for info in sensor_data:
+                status = get_simple_status(info['name'], info['raw_value'], info['unit'], self._aquarium_type)
+                statuses.append(status)
+            
+            good_count = statuses.count("Good")
+            ok_count = statuses.count("OK")
+            problem_count = len([s for s in statuses if s in ["Check", "Adjust", "Low", "High"]])
+            
+            self._attr_extra_state_attributes = {
+                "full_status_message": full_status,
+                "status_summary": {
+                    "good": good_count,
+                    "ok": ok_count,
+                    "problems": problem_count,
+                    "total": len(statuses)
+                },
+                "aquarium_type": self._aquarium_type,
+                "last_updated": shared_data.get("last_update"),
+            }
+                
+        except Exception as err:
+            _LOGGER.error("Error updating status emoji sensor: %s", err)
+            self._state = "❓"
             self._available = False
             self._attr_extra_state_attributes = {}
 
