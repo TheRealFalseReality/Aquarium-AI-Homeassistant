@@ -37,6 +37,8 @@ from .const import (
     CONF_ANALYZE_WATER_LEVEL,
     CONF_ANALYZE_ORP,
     CONF_ANALYZE_CAMERA,
+    CONF_ANALYZE_WATER_CHANGE,
+    CONF_ANALYZE_OVERALL,
     CONF_PROMPT_MAIN_INSTRUCTIONS,
     CONF_PROMPT_PARAMETER_GUIDELINES,
     CONF_PROMPT_CAMERA_INSTRUCTIONS,
@@ -55,6 +57,8 @@ from .const import (
     DEFAULT_ANALYZE_WATER_LEVEL,
     DEFAULT_ANALYZE_ORP,
     DEFAULT_ANALYZE_CAMERA,
+    DEFAULT_ANALYZE_WATER_CHANGE,
+    DEFAULT_ANALYZE_OVERALL,
     DEFAULT_PROMPT_MAIN_INSTRUCTIONS,
     DEFAULT_PROMPT_PARAMETER_GUIDELINES,
     DEFAULT_PROMPT_CAMERA_INSTRUCTIONS,
@@ -556,27 +560,37 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     conditions_list.append(f"- {info['name']}: {info['raw_value']} (no units)")
             conditions_str = "\n".join(conditions_list)
             
-            # Add overall analysis to both structures
-            analysis_structure_sensors["overall_analysis"] = {
-                "description": "Brief 1-2 sentence overall aquarium health assessment (under 200 characters).",
-                "required": True,
-                "selector": {"text": None}
-            }
-            analysis_structure_sensors["water_change_recommended"] = {
-                "description": "Simple yes or no answer on whether a water change is recommended based on current parameters, bioload, and water change schedule. Answer with 'Yes' or 'No' followed by a brief reason (under 150 characters total).",
-                "required": True,
-                "selector": {"text": None}
-            }
-            analysis_structure_notification["overall_notification_analysis"] = {
-                "description": "Comprehensive overall aquarium health assessment. Provide detailed summary of all parameters, their relationships, overall tank health, and any recommendations for improvement.",
-                "required": True,
-                "selector": {"text": None}
-            }
-            analysis_structure_notification["water_change_recommendation"] = {
-                "description": "Concise water change recommendation. If recommended, state the percentage and timing (e.g., '30% within 2-3 days' or '25% this week'). If not needed, state when next scheduled change is due based on maintenance schedule. Do not include generic benefits or explanations about why water changes are important - focus only on whether it's needed and when.",
-                "required": True,
-                "selector": {"text": None}
-            }
+            # Add overall analysis to both structures (if enabled)
+            analyze_overall_enabled = entry.data.get(CONF_ANALYZE_OVERALL, DEFAULT_ANALYZE_OVERALL)
+            if analyze_overall_enabled:
+                analysis_structure_sensors["overall_analysis"] = {
+                    "description": "Brief 1-2 sentence overall aquarium health assessment (under 200 characters).",
+                    "required": True,
+                    "selector": {"text": None}
+                }
+                analysis_structure_notification["overall_notification_analysis"] = {
+                    "description": "Comprehensive overall aquarium health assessment. Provide detailed summary of all parameters, their relationships, overall tank health, and any recommendations for improvement.",
+                    "required": True,
+                    "selector": {"text": None}
+                }
+            else:
+                _LOGGER.debug("Skipping overall analysis for %s (toggle disabled)", tank_name)
+            
+            # Add water change analysis to both structures (if enabled)
+            analyze_water_change_enabled = entry.data.get(CONF_ANALYZE_WATER_CHANGE, DEFAULT_ANALYZE_WATER_CHANGE)
+            if analyze_water_change_enabled:
+                analysis_structure_sensors["water_change_recommended"] = {
+                    "description": "Simple yes or no answer on whether a water change is recommended based on current parameters, bioload, and water change schedule. Answer with 'Yes' or 'No' followed by a brief reason (under 150 characters total).",
+                    "required": True,
+                    "selector": {"text": None}
+                }
+                analysis_structure_notification["water_change_recommendation"] = {
+                    "description": "Concise water change recommendation. If recommended, state the percentage and timing (e.g., '30% within 2-3 days' or '25% this week'). If not needed, state when next scheduled change is due based on maintenance schedule. Do not include generic benefits or explanations about why water changes are important - focus only on whether it's needed and when.",
+                    "required": True,
+                    "selector": {"text": None}
+                }
+            else:
+                _LOGGER.debug("Skipping water change analysis for %s (toggle disabled)", tank_name)
             
             # Combine both structures for the AI task
             combined_analysis_structure = {**analysis_structure_sensors, **analysis_structure_notification}
