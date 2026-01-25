@@ -139,6 +139,7 @@ These `sensor` entities contain AI-generated text analysis limited to 1-2 senten
 These `sensor` entities provide quick status information:
 
 * `sensor.[tank_name]_simple_status`: Overall status message with emoji (e.g., "Your Marine Aquarium is Excellent! 🌟").
+* `sensor.[tank_name]_status_emoji`: Status emoji only (e.g., "🌟", "👍", "👌", "⚠️", "🚨").
 * `sensor.[tank_name]_quick_status`: One or two-word status (e.g., "Excellent", "Good", "Needs Attention").
 * `sensor.[tank_name]_[sensor_name]_status`: Status for each parameter with current value (e.g., "Good (24.5°C)").
 
