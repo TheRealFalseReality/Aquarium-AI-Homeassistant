@@ -25,6 +25,8 @@ from .const import (
     CONF_ANALYZE_WATER_LEVEL,
     CONF_ANALYZE_ORP,
     CONF_ANALYZE_CAMERA,
+    CONF_ANALYZE_WATER_CHANGE,
+    CONF_ANALYZE_OVERALL,
     DEFAULT_RUN_ANALYSIS_ON_STARTUP,
     DEFAULT_AUTO_NOTIFICATIONS,
     DEFAULT_ANALYZE_TEMPERATURE,
@@ -34,6 +36,8 @@ from .const import (
     DEFAULT_ANALYZE_WATER_LEVEL,
     DEFAULT_ANALYZE_ORP,
     DEFAULT_ANALYZE_CAMERA,
+    DEFAULT_ANALYZE_WATER_CHANGE,
+    DEFAULT_ANALYZE_OVERALL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,6 +95,26 @@ async def async_setup_entry(
                     icon,
                 )
             )
+    
+    # Create switches for always-available analysis types (water change and overall)
+    # These don't require a sensor to be configured
+    always_available_switches = [
+        (CONF_ANALYZE_WATER_CHANGE, "Water Change", DEFAULT_ANALYZE_WATER_CHANGE, "mdi:water-sync"),
+        (CONF_ANALYZE_OVERALL, "Overall Health", DEFAULT_ANALYZE_OVERALL, "mdi:heart-pulse"),
+    ]
+    
+    for analyze_conf, param_name, default_value, icon in always_available_switches:
+        entities.append(
+            ParameterAnalysisSwitch(
+                hass,
+                config_entry,
+                tank_name,
+                analyze_conf,
+                param_name,
+                default_value,
+                icon,
+            )
+        )
     
     async_add_entities(entities)
 
