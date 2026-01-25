@@ -429,21 +429,15 @@ class AquariumAISimpleStatus(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Try to get shared sensor data first (more efficient)
+            # Get shared sensor data (already filtered by parameter toggles)
             shared_data = self._get_shared_data()
             sensor_data = shared_data["sensor_data"]
             
-            # If no shared data, get fresh sensor data
+            # Only use sensor data that was included in AI analysis (respects toggles)
+            # Do not rebuild from _sensor_mappings to ensure toggle settings are respected
             if not sensor_data:
-                sensor_data = []
-                for sensor_entity, sensor_name in self._sensor_mappings:
-                    sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
-                    if sensor_info:
-                        sensor_data.append(sensor_info)
-            
-            if not sensor_data:
-                self._state = "No sensors configured"
-                self._available = False
+                self._state = "No analysis run yet"
+                self._available = True
                 self._attr_extra_state_attributes = {}
                 return
                 
@@ -515,21 +509,15 @@ class AquariumAIStatusEmoji(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Try to get shared sensor data first (more efficient)
+            # Get shared sensor data (already filtered by parameter toggles)
             shared_data = self._get_shared_data()
             sensor_data = shared_data["sensor_data"]
             
-            # If no shared data, get fresh sensor data
-            if not sensor_data:
-                sensor_data = []
-                for sensor_entity, sensor_name in self._sensor_mappings:
-                    sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
-                    if sensor_info:
-                        sensor_data.append(sensor_info)
-            
+            # Only use sensor data that was included in AI analysis (respects toggles)
+            # Do not rebuild from _sensor_mappings to ensure toggle settings are respected
             if not sensor_data:
                 self._state = "❓"
-                self._available = False
+                self._available = True
                 self._attr_extra_state_attributes = {}
                 return
                 
@@ -680,21 +668,15 @@ class AquariumAIQuickStatus(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Try to get shared sensor data first (more efficient)
+            # Get shared sensor data (already filtered by parameter toggles)
             shared_data = self._get_shared_data()
             sensor_data = shared_data["sensor_data"]
             
-            # If no shared data, get fresh sensor data
-            if not sensor_data:
-                sensor_data = []
-                for sensor_entity, sensor_name in self._sensor_mappings:
-                    sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
-                    if sensor_info:
-                        sensor_data.append(sensor_info)
-            
+            # Only use sensor data that was included in AI analysis (respects toggles)
+            # Do not rebuild from _sensor_mappings to ensure toggle settings are respected
             if not sensor_data:
                 self._state = "No Data"
-                self._available = False
+                self._available = True
                 self._attr_extra_state_attributes = {}
                 return
                 
