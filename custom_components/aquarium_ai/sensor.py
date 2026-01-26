@@ -40,6 +40,17 @@ from . import get_sensor_info, get_simple_status, get_overall_status
 
 _LOGGER = logging.getLogger(__name__)
 
+# Mapping between sensor names and their analyze configuration keys
+# Used to determine if a parameter should be included in overall analysis
+PARAMETER_ANALYZE_CONFIG_MAP = {
+    "Temperature": (CONF_ANALYZE_TEMPERATURE, DEFAULT_ANALYZE_TEMPERATURE),
+    "pH": (CONF_ANALYZE_PH, DEFAULT_ANALYZE_PH),
+    "Salinity": (CONF_ANALYZE_SALINITY, DEFAULT_ANALYZE_SALINITY),
+    "Dissolved Oxygen": (CONF_ANALYZE_DISSOLVED_OXYGEN, DEFAULT_ANALYZE_DISSOLVED_OXYGEN),
+    "Water Level": (CONF_ANALYZE_WATER_LEVEL, DEFAULT_ANALYZE_WATER_LEVEL),
+    "ORP": (CONF_ANALYZE_ORP, DEFAULT_ANALYZE_ORP),
+}
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -360,22 +371,14 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Mapping between sensor names and their analyze configuration keys
-            analyze_config_map = {
-                "Temperature": (CONF_ANALYZE_TEMPERATURE, DEFAULT_ANALYZE_TEMPERATURE),
-                "pH": (CONF_ANALYZE_PH, DEFAULT_ANALYZE_PH),
-                "Salinity": (CONF_ANALYZE_SALINITY, DEFAULT_ANALYZE_SALINITY),
-                "Dissolved Oxygen": (CONF_ANALYZE_DISSOLVED_OXYGEN, DEFAULT_ANALYZE_DISSOLVED_OXYGEN),
-                "Water Level": (CONF_ANALYZE_WATER_LEVEL, DEFAULT_ANALYZE_WATER_LEVEL),
-                "ORP": (CONF_ANALYZE_ORP, DEFAULT_ANALYZE_ORP),
-            }
-            
             # Get all sensor data to check availability, respecting parameter switches
             sensor_data = []
             for sensor_entity, sensor_name in self._sensor_mappings:
                 # Check if this parameter's analysis switch is enabled
-                if sensor_name in analyze_config_map:
-                    analyze_conf, default_analyze = analyze_config_map[sensor_name]
+                # Only sensors with analyze config switches are checked; 
+                # other sensors (if any) are included by default
+                if sensor_name in PARAMETER_ANALYZE_CONFIG_MAP:
+                    analyze_conf, default_analyze = PARAMETER_ANALYZE_CONFIG_MAP[sensor_name]
                     analyze_enabled = self._config_entry.data.get(analyze_conf, default_analyze)
                     
                     if not analyze_enabled:
