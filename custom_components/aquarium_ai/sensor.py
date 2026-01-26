@@ -22,11 +22,34 @@ from .const import (
     CONF_CAMERA,
     CONF_UPDATE_FREQUENCY,
     CONF_AI_TASK,
+    CONF_ANALYZE_TEMPERATURE,
+    CONF_ANALYZE_PH,
+    CONF_ANALYZE_SALINITY,
+    CONF_ANALYZE_DISSOLVED_OXYGEN,
+    CONF_ANALYZE_WATER_LEVEL,
+    CONF_ANALYZE_ORP,
+    DEFAULT_ANALYZE_TEMPERATURE,
+    DEFAULT_ANALYZE_PH,
+    DEFAULT_ANALYZE_SALINITY,
+    DEFAULT_ANALYZE_DISSOLVED_OXYGEN,
+    DEFAULT_ANALYZE_WATER_LEVEL,
+    DEFAULT_ANALYZE_ORP,
     UPDATE_FREQUENCIES,
 )
 from . import get_sensor_info, get_simple_status, get_overall_status
 
 _LOGGER = logging.getLogger(__name__)
+
+# Mapping between sensor names and their analyze configuration keys
+# Used to determine if a parameter should be included in overall analysis
+PARAMETER_ANALYZE_CONFIG_MAP = {
+    "Temperature": (CONF_ANALYZE_TEMPERATURE, DEFAULT_ANALYZE_TEMPERATURE),
+    "pH": (CONF_ANALYZE_PH, DEFAULT_ANALYZE_PH),
+    "Salinity": (CONF_ANALYZE_SALINITY, DEFAULT_ANALYZE_SALINITY),
+    "Dissolved Oxygen": (CONF_ANALYZE_DISSOLVED_OXYGEN, DEFAULT_ANALYZE_DISSOLVED_OXYGEN),
+    "Water Level": (CONF_ANALYZE_WATER_LEVEL, DEFAULT_ANALYZE_WATER_LEVEL),
+    "ORP": (CONF_ANALYZE_ORP, DEFAULT_ANALYZE_ORP),
+}
 
 
 async def async_setup_entry(
@@ -348,9 +371,23 @@ class AquariumAIOverallAnalysis(AquariumAIBaseSensor):
     async def async_update(self) -> None:
         """Update the sensor."""
         try:
-            # Get all sensor data to check availability
+            # Get all sensor data to check availability, respecting parameter switches
             sensor_data = []
             for sensor_entity, sensor_name in self._sensor_mappings:
+                # Check if this parameter's analysis switch is enabled
+                # Only sensors with analyze config switches are checked; 
+                # other sensors (if any) are included by default
+                if sensor_name in PARAMETER_ANALYZE_CONFIG_MAP:
+                    analyze_conf, default_analyze = PARAMETER_ANALYZE_CONFIG_MAP[sensor_name]
+                    analyze_enabled = self._config_entry.data.get(analyze_conf, default_analyze)
+                    
+                    if not analyze_enabled:
+                        _LOGGER.debug(
+                            "Skipping %s in overall analysis (toggle disabled)", 
+                            sensor_name
+                        )
+                        continue
+                
                 sensor_info = get_sensor_info(self._hass, sensor_entity, sensor_name)
                 if sensor_info:
                     sensor_data.append(sensor_info)
