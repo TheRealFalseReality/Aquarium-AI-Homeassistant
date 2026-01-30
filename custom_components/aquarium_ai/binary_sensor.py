@@ -154,6 +154,7 @@ class AquariumAIAnalysisAvailable(BinarySensorEntity):
         self._attr_name = f"{tank_name} AI Analysis Available"
         self._attr_unique_id = f"{config_entry.entry_id}_ai_analysis_available"
         self._attr_icon = "mdi:robot"
+        self._attr_device_class = "update"
         self._state = False
         self._available = True
         self._attr_extra_state_attributes = {}
