@@ -29,7 +29,7 @@ This integration takes the guesswork out of maintaining a healthy aquatic enviro
 * **Water Change Recommendations**: AI evaluates when water changes are needed based on parameters, bioload, filtration, and maintenance schedule.
 * **Context-Aware Analysis**: Optionally provide tank volume, filtration details, inhabitants, and maintenance history for more accurate recommendations.
 * **Camera Visual Analysis**: Optional camera integration for AI-powered visual monitoring of water clarity, fish health, plant condition, and maintenance needs.
-* **Binary Sensors**: Simple on/off indicators for water change needs and other critical conditions.
+* **Binary Sensors**: Simple on/off indicators for water change needs and AI analysis availability, enabling automations based on analysis status.
 * **UI Configuration**: Simple setup process through the Home Assistant UI. No YAML configuration is required.
 * **Customizable Polling**: Choose how often the AI analysis should run, from every hour to once a day.
 * **On-Demand Updates**: Trigger an analysis at any time using a service call, perfect for automations and custom schedules.
@@ -148,6 +148,7 @@ These `sensor` entities provide quick status information:
 These `binary_sensor` entities provide simple on/off states:
 
 * `binary_sensor.[tank_name]_water_change_needed`: Indicates whether a water change is currently recommended (On = Yes, Off = No).
+* `binary_sensor.[tank_name]_ai_analysis_available`: Indicates whether AI analysis data is available (On = Analysis available, Off = No analysis yet). Includes `last_updated` attribute with the timestamp of the latest analysis. This is useful for creating automations that trigger when new AI analysis is available.
 
 ### Parameter Analysis Toggle Switches
 
@@ -342,6 +343,32 @@ automation:
           message: >
             Water change recommended for {{ state_attr('binary_sensor.my_aquarium_water_change_needed', 'recommendation') }}
 ```
+
+#### Run Actions When New AI Analysis is Available
+
+Trigger actions whenever new AI analysis data becomes available:
+
+```yaml
+automation:
+  - alias: "Log When AI Analysis Updates"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.my_aquarium_ai_analysis_available
+        to: "on"
+    action:
+      - service: logbook.log
+        data:
+          name: "Aquarium AI"
+          message: >
+            AI analysis updated at {{ state_attr('binary_sensor.my_aquarium_ai_analysis_available', 'last_updated') }}
+            Overall Status: {{ states('sensor.my_aquarium_quick_status') }}
+```
+
+This is useful for creating automations that need to react immediately when AI analysis completes, such as:
+* Sending custom notifications based on analysis results
+* Updating dashboard cards or displays
+* Triggering other automations based on the analysis findings
+* Logging analysis history for trend tracking
 
 #### Update Last Water Change After Maintenance
 
