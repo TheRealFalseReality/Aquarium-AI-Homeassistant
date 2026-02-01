@@ -208,8 +208,10 @@ class AquariumAIAnalysisAvailable(BinarySensorEntity):
             sensor_analysis = shared_data["sensor_analysis"]
             last_update = shared_data.get("last_update")
             
-            # Check if AI analysis is available (sensor_analysis has data and last_update exists)
-            if sensor_analysis and last_update:
+            # Check if AI analysis is available
+            # Must have actual AI-generated content (non-empty dict) and a valid timestamp
+            # Empty dict means fallback/no AI, so sensor should be OFF
+            if sensor_analysis and len(sensor_analysis) > 0 and last_update is not None:
                 self._state = True
                 self._available = True
                 
@@ -218,12 +220,12 @@ class AquariumAIAnalysisAvailable(BinarySensorEntity):
                     "last_updated": last_update,
                 }
             else:
-                # No analysis available yet
+                # No AI analysis available yet
                 self._state = False
                 self._available = True
-                self._attr_extra_state_attributes = {
-                    "last_updated": None,
-                }
+                # Don't include last_updated attribute when no analysis is available
+                # to avoid showing "unknown" in the UI
+                self._attr_extra_state_attributes = {}
                 
         except Exception as err:
             _LOGGER.error("Error updating AI analysis available binary sensor: %s", err)
