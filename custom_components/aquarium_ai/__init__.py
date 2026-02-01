@@ -470,6 +470,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Get run_analysis_on_startup setting, default to False
     run_analysis_on_startup = entry.data.get(CONF_RUN_ANALYSIS_ON_STARTUP, DEFAULT_RUN_ANALYSIS_ON_STARTUP)
     
+    # Initialize hass.data early so binary sensors can access it during setup
+    # This must be done BEFORE platforms are set up
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = {
+        "tank_name": tank_name,
+        "aquarium_type": aquarium_type,
+        "temp_sensor": temp_sensor,
+        "ph_sensor": ph_sensor,
+        "salinity_sensor": salinity_sensor,
+        "dissolved_oxygen_sensor": dissolved_oxygen_sensor,
+        "water_level_sensor": water_level_sensor,
+        "orp_sensor": orp_sensor,
+        "camera": camera,
+        "frequency_minutes": frequency_minutes,
+        "ai_task": ai_task,
+        "auto_notifications": auto_notifications,
+        "notification_format": notification_format,
+        "tank_volume": tank_volume,
+        "filtration": filtration,
+        "water_change_frequency": water_change_frequency,
+        "inhabitants": inhabitants,
+        "last_water_change": last_water_change,
+        "misc_info": misc_info,
+        # Initialize sensor_analysis and last_update as None to indicate no AI analysis yet
+        "sensor_analysis": {},
+        "last_update": None,
+    }
+    
     # Set up sensor, binary_sensor, switch, select, and button platforms
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "binary_sensor", "switch", "select", "button"])
     
@@ -762,30 +790,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             except Exception as fallback_err:
                 _LOGGER.error("Error sending fallback notification: %s", fallback_err)
     
-    # Store the data in hass.data
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {
-        "tank_name": tank_name,
-        "aquarium_type": aquarium_type,
-        "temp_sensor": temp_sensor,
-        "ph_sensor": ph_sensor,
-        "salinity_sensor": salinity_sensor,
-        "dissolved_oxygen_sensor": dissolved_oxygen_sensor,
-        "water_level_sensor": water_level_sensor,
-        "orp_sensor": orp_sensor,
-        "camera": camera,
-        "frequency_minutes": frequency_minutes,
-        "ai_task": ai_task,
-        "auto_notifications": auto_notifications,
-        "notification_format": notification_format,
-        "tank_volume": tank_volume,
-        "filtration": filtration,
-        "water_change_frequency": water_change_frequency,
-        "inhabitants": inhabitants,
-        "last_water_change": last_water_change,
-        "misc_info": misc_info,
-        "analysis_function": send_ai_aquarium_analysis,
-    }
+    # Add the analysis function to hass.data
+    hass.data[DOMAIN][entry.entry_id]["analysis_function"] = send_ai_aquarium_analysis
     
     # Schedule delayed AI analysis on startup to ensure HA is fully ready (only if enabled via switch)
     async def delayed_startup_analysis(now):
