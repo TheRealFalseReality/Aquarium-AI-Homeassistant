@@ -110,10 +110,11 @@ class AquariumAIAnalysisAvailable(BinarySensorEntity):
         try:
             # Get shared analysis data
             shared_data = self._get_shared_data()
-            sensor_analysis = shared_data["sensor_analysis"]
+            sensor_analysis = shared_data.get("sensor_analysis", {})
             last_update = shared_data.get("last_update")
             
             # Check if analysis data is available
+            # Analysis is available if we have a non-empty sensor_analysis dict and a last_update timestamp
             if sensor_analysis and last_update:
                 self._state = True
                 self._available = True
@@ -129,7 +130,7 @@ class AquariumAIAnalysisAvailable(BinarySensorEntity):
                 self._attr_extra_state_attributes = {}
                 
         except Exception as err:
-            _LOGGER.error("Error updating analysis available binary sensor: %s", err)
+            _LOGGER.error("Error updating analysis available binary sensor: %s", err, exc_info=True)
             self._state = False
             self._available = False
             self._attr_extra_state_attributes = {}
