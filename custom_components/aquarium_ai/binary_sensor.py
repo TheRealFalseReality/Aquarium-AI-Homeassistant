@@ -22,6 +22,9 @@ from . import get_sensor_info, get_simple_status
 
 _LOGGER = logging.getLogger(__name__)
 
+# Status values that indicate no problem (healthy parameters)
+HEALTHY_STATUSES = ["Good", "OK"]
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -260,7 +263,7 @@ class AquariumAIParameterProblem(BinarySensorEntity):
             
             # Set state to True (problem) if status is NOT "Good" or "OK"
             # Problem statuses include: "Check", "Adjust", "Low", "High", "Unavailable", etc.
-            self._state = status not in ["Good", "OK"]
+            self._state = status not in HEALTHY_STATUSES
             
             # Add sensor data as attributes
             self._attr_extra_state_attributes = {
