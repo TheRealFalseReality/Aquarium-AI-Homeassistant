@@ -1,0 +1,210 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Aquarium AI Setup - Basisinstellingen",
+        "description": "Configureer de basisinstellingen van het aquarium en de AI-voorkeuren. Vervolgens selecteer je sensoren en voeg je optionele aquariuminformatie toe.",
+        "data": {
+          "tank_name": "Aquarium Naam",
+          "aquarium_type": "Aquarium Type",
+          "update_frequency": "Updatefrequentie",
+          "ai_task": "AI-taaktype",
+          "auto_notifications": "Automatisch meldingen verzenden",
+          "notification_format": "Meldingsindeling",
+          "run_analysis_on_startup": "Voer een analyse uit bij het opstarten van Home Assistant."
+        },
+        "data_description": {
+          "tank_name": "Geef uw aquarium een ​​eigen naam (bijv. 'Hoofdaquarium', 'Rifopstelling', 'Gezelschapsaquarium'). Deze naam verschijnt in meldingen en serviceaanvragen.",
+          "aquarium_type": "Geef het type aquarium op om context te bieden voor de AI-analyse. Veelvoorkomende typen zijn zoetwater, zeewater, brakwater, of aangepaste typen zoals 'cichlidenbak' of 'rifaquarium'.",
+          "update_frequency": "Selecteer hoe vaak de AI uw aquariumsensoren moet analyseren en meldingen moet verzenden. Kies op basis van uw monitoringbehoeften: vaker voor gevoelige systemen, minder vaak voor stabiele systemen.",
+          "ai_task": "Selecteer een AI-taakentiteit uit uw Home Assistant-configuratie (bijv. ai_task.google_ai_task of ai_task.openai_ai_task).",
+          "auto_notifications": "Indien ingeschakeld, worden meldingen automatisch verzonden met de ingestelde frequentie. Indien uitgeschakeld, worden meldingen alleen verzonden wanneer deze handmatig via de service worden geactiveerd.",
+          "notification_format": "Kies het detailniveau voor notificatieberichten. De volledige weergave biedt een uitgebreide parameteranalyse, de beknopte weergave toont een korte analyse en de minimale weergave toont alleen parameterwaarden met een algemene beoordeling.",
+          "run_analysis_on_startup": "Wanneer deze functie is ingeschakeld, wordt de AI-analyse 60 seconden na het opstarten van Home Assistant uitgevoerd (naast het reguliere, geplande interval). Wanneer deze functie is uitgeschakeld (standaard), wordt de analyse alleen uitgevoerd volgens het geplande interval of wanneer deze handmatig wordt geactiveerd."
+        }
+      },
+      "sensors": {
+        "title": "Aquarium AI Setup - Sensoren",
+        "description": "Selecteer de sensoren die u nodig hebt om uw aquarium te bewaken (minimaal één is vereist). U kunt optioneel ook een camera toevoegen voor visuele analyse.",
+        "data": {
+          "temperature_sensor": "Temperatuursensor (optioneel)",
+          "ph_sensor": "pH-sensor (optioneel)",
+          "salinity_sensor": "Zoutgehaltesensor (optioneel)",
+          "dissolved_oxygen_sensor": "Sensor voor opgeloste zuurstof (optioneel)",
+          "water_level_sensor": "Waterniveausensor (optioneel)",
+          "orp_sensor": "ORP-sensor (optioneel)",
+          "camera": "Aquariumcamera (optioneel)"
+        },
+        "data_description": {
+          "temperature_sensor": "Kies de temperatuursensor die uw aquarium meet. Temperatuursensoren met de juiste apparaatklasse hebben de voorkeur.",
+          "ph_sensor": "Kies een sensor die de pH-waarde in uw aquarium meet. pH heeft mogelijk geen eenheid.",
+          "salinity_sensor": "Kies een sensor die het zoutgehalte of de soortelijke massa in uw aquarium meet.",
+          "dissolved_oxygen_sensor": "Kies een sensor die het zuurstofgehalte in het aquariumwater meet.",
+          "water_level_sensor": "Kies een sensor die het waterpeil meet. Dit kan numeriek zijn (bijv. 80%) of tekstueel (bijv. Normaal/Hoog/Laag).",
+          "orp_sensor": "Kies een sensor die de oxidatie-reductiepotentiaal (ORP/redox) in uw aquarium meet. ORP geeft de waterkwaliteit en de balans tussen oxiderende en reducerende stoffen aan.",
+          "camera": "Selecteer een camera die zicht biedt op uw aquarium. De AI analyseert het beeld op waterhelderheid, gezondheid van de vissen, conditie van de planten en algemene onderhoudsbehoeften van het aquarium. Visuele analyse vormt een aanvulling op de sensorgegevens voor een uitgebreide monitoring."
+        }
+      },
+      "tank_info": {
+        "title": "Aquarium AI Setup - Tank Informatie",
+        "description": "Optioneel: Voeg tankdetails toe voor een betere AI-analyse. Deze informatie helpt de AI om nauwkeurigere aanbevelingen te doen.",
+        "data": {
+          "tank_volume": "Tankinhoud (optioneel)",
+          "filtration": "Filtersysteem (optioneel)",
+          "water_change_frequency": "Frequentie van waterverversing (optioneel)",
+          "inhabitants": "Aquariumbewoners (optioneel)",
+          "last_water_change": "Datum laatste waterverversing (optioneel)",
+          "misc_info": "Aanvullende informatie (optioneel)"
+        },
+        "data_description": {
+          "tank_volume": "Voer het totale watervolume van uw aquarium in (bijv. '100 liter', '50 gallons', '200L'). De AI gebruikt deze informatie om contextafhankelijke aanbevelingen te geven voor waterverversingen en de optimale bezetting van het aquarium.",
+          "filtration": "Beschrijf uw filtersysteem, inclusief type, doorstroomsnelheid en filtermateriaal (bijv. 'Buitenfilter 1200 l/u met keramisch filtermateriaal, actieve kool en bioballen'). Dit helpt de AI te beoordelen of uw filtersysteem geschikt is voor uw aquarium.",
+          "water_change_frequency": "Geef aan hoe vaak u water ververst (bijv. '25% wekelijks', '20% om de 2 weken', '10% tweemaal per week'). De AI houdt hier rekening mee bij het beoordelen van de waterkwaliteit en het doen van aanbevelingen.",
+          "inhabitants": "Geef een lijst van de bewoners van uw aquarium met de geschatte aantallen (bijv. '10 neontetra's, 5 Corydoras-meervallen, 2 maanvissen, 10 kersengarnalen'). De AI gebruikt deze informatie om de biologische belasting, compatibiliteit en parametervereisten te beoordelen.",
+          "last_water_change": "Selecteer een input_datetime helper (aanbevolen) of een datum-/tijdsensor die bijhoudt wanneer u voor het laatst een waterverversing hebt uitgevoerd. De AI houdt rekening met de verstreken tijd bij het doen van aanbevelingen voor waterverversing. Zie de README voor installatie-instructies.",
+          "misc_info": "Voeg alle aanvullende informatie over uw aquarium toe die de AI kan helpen bij een betere analyse (bijv. 'Recent nieuwe vissen toegevoegd', 'CO2-injectie gebruikt', 'Behandeld tegen witte stip', 'Veel beplanting'). Deze context helpt de AI om bijzondere omstandigheden te begrijpen."
+        }
+      },
+      "ai_prompts": {
+        "title": "Aquarium AI Setup - AI Prompts",
+        "description": "Optioneel: Pas de AI-prompts voor analyse aan. Standaardprompts worden meegeleverd en kunnen naar behoefte worden bewerkt.",
+        "data": {
+          "prompt_main_instructions": "Hoofdinstructies",
+          "prompt_parameter_guidelines": "Parameterrichtlijnen",
+          "prompt_camera_instructions": "Instructies voor camera-analyse",
+          "prompt_brief_analysis": "Korte analysevorm",
+          "prompt_detailed_analysis": "Gedetailleerde analysevorm",
+          "prompt_water_change": "Instructies voor het verversen van het water",
+          "prompt_overall_analysis": "Algemeen analyseformaat"
+        },
+        "data_description": {
+          "prompt_main_instructions": "Belangrijkste instructies voor AI-analyse. Inclusief algemene richtlijnen voor het analyseren van het aquarium. Gebruik de placeholder {aquarium_type} waar nodig.",
+          "prompt_parameter_guidelines": "Richtlijnen voor parameterbereiken en eenheden. Definieer gezonde bereiken voor temperatuur, pH, zoutgehalte, opgeloste zuurstof, ORP en waterpeil.",
+          "prompt_camera_instructions": "Instructies voor het analyseren van camerabeelden. Definieer waarnaar de AI moet zoeken in aquariumfoto's.",
+          "prompt_brief_analysis": "Instructies voor korte sensoranalysevelden (eindigend op '_analysis'). Definieer formaat- en lengtebeperkingen.",
+          "prompt_detailed_analysis": "Instructies voor gedetailleerde velden voor notificatieanalyse (eindigend op '_notification_analysis'). Definieer welke details moeten worden opgenomen.",
+          "prompt_water_change": "Instructies voor aanbevelingen voor waterverversing. Definieer hoe de velden water_change_recommended en water_change_recommendation moeten worden opgemaakt.",
+          "prompt_overall_analysis": "Instructies voor algemene gezondheidsbeoordelingen. Definieer het formaat voor de velden overall_analysis en overall_notification_analysis."
+        }
+      }
+    },
+    "error": {
+      "sensor_not_found": "De geselecteerde sensor is niet gevonden. Selecteer een geldige sensor.",
+      "sensor_required": "Selecteer een temperatuursensor om uw aquarium te bewaken.",
+      "invalid_sensor": "De geselecteerde sensor is geen geldige sensor.",
+      "no_sensors": "Geen sensoren gevonden. Zorg ervoor dat u sensoren hebt ingesteld in Home Assistant voordat u deze integratie configureert.",
+      "at_least_one_sensor": "Er moet minimaal één sensor geconfigureerd zijn. Selecteer minimaal één sensor om te bewaken.",
+      "ai_task_required": "Selecteer een AI-taak die u voor de analyse wilt gebruiken."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Aquarium AI Opties",
+        "description": "Kies welke instellingen u wilt wijzigen",
+        "menu_options": {
+          "basic_settings": "Basisinstellingen",
+          "sensors": "Sensoren & Camera",
+          "tank_info": "Tankinformatie",
+          "ai_prompts": "AI Prompts"
+        }
+      },
+      "basic_settings": {
+        "title": "Basisinstellingen",
+        "description": "Configureer de tanknaam, AI-voorkeuren en meldingsinstellingen.",
+        "data": {
+          "tank_name": "Aquarium Naam",
+          "aquarium_type": "Aquarium Type",
+          "update_frequency": "Updatefrequentie",
+          "ai_task": "AI Taak Type",
+          "auto_notifications": "Automatisch meldingen verzenden",
+          "notification_format": "Meldingsindeling",
+          "run_analysis_on_startup": "Voer een analyse uit na het opstarten van Home Assistant."
+        },
+        "data_description": {
+          "tank_name": "Wijzig de naam van uw aquarium. Deze naam verschijnt in alle meldingen en kan helpen bij het identificeren van meerdere aquariums.",
+          "aquarium_type": "Wijzig het type aquarium om de nauwkeurigheid van de AI-analyse te verbeteren. De AI geeft namelijk verschillende aanbevelingen op basis van het type aquarium (bijvoorbeeld: zeeaquaria vereisen andere parameterwaarden dan zoetwateraquaria).",
+          "update_frequency": "Pas de meldingsfrequentie aan uw behoeften aan. Gebruik kortere intervallen tijdens kritieke periodes (waterverversingen, nieuwe vissen) of langere intervallen voor stabiele, ingedraaide aquaria.",
+          "ai_task": "Wijzig welke AI-taakentiteit u wilt gebruiken voor de analyse. Selecteer een van de beschikbare AI-taakentiteiten in uw Home Assistant-instellingen.",
+          "auto_notifications": "Automatische meldingen in- of uitschakelen. Indien uitgeschakeld, worden meldingen alleen verzonden wanneer deze handmatig via de service worden geactiveerd.",
+          "notification_format": "Kies hoe gedetailleerd de notificatieberichten moeten zijn. De volledige weergave bevat een uitgebreide analyse, de verkorte weergave een korte analyse en de minimale weergave alleen parameters en een algemene beoordeling.",
+          "run_analysis_on_startup": "Schakel de optie in of uit dat de AI-analyse wordt uitgevoerd wanneer Home Assistant start. Indien ingeschakeld, wordt de analyse 60 seconden na het opstarten uitgevoerd. Indien uitgeschakeld (standaard), wordt de analyse alleen uitgevoerd met het geplande interval of wanneer deze handmatig wordt geactiveerd."
+        }
+      },
+      "sensors": {
+        "title": "Sensoren & Camera",
+        "description": "Sensoren en camera's bijwerken voor monitoring",
+        "data": {
+          "temperature_sensor": "Temperatuursensor (Optioneel)",
+          "ph_sensor": "pH-sensor (Optioneel)",
+          "salinity_sensor": "Zoutgehaltesensor (Optioneel)",
+          "dissolved_oxygen_sensor": "Sensor voor opgeloste zuurstof (Optioneel)",
+          "water_level_sensor": "Water Level Sensor (Optional)",
+          "orp_sensor": "ORP-sensor (Optioneel)",
+          "camera": "Aquarium Camera (Optioneel)"
+        },
+        "data_description": {
+          "temperature_sensor": "Schakel over naar een andere temperatuursensor als u nieuwe sensoren hebt toegevoegd of een andere locatie in uw aquarium wilt bewaken.",
+          "ph_sensor": "Update of vervang de pH-sensor voor de monitoring van uw aquarium.",
+          "salinity_sensor": "Update of vervang de zoutgehaltesensor voor uw aquariummonitoring.",
+          "dissolved_oxygen_sensor": "Vervang of update de sensor voor het opgeloste zuurstofgehalte in uw aquarium.",
+          "water_level_sensor": "Vervang of update de waterniveausensor voor de monitoring van uw aquarium.",
+          "orp_sensor": "Update of vervang de ORP-sensor voor de monitoring van uw aquarium.",
+          "camera": "Update of vervang de camera voor visuele monitoring van het aquarium. De AI analyseert de camerabeelden op waterkwaliteit, gezondheid van de vissen en onderhoudsbehoeften."
+        }
+      },
+      "tank_info": {
+        "title": "Tank Informatie",
+        "description": "Update de tankdetails voor een betere AI-analyse.",
+        "data": {
+          "tank_volume": "Tankinhoud (Optioneel)",
+          "filtration": "Filtersysteem (Optioneel)",
+          "water_change_frequency": "Water Change Frequency (Optional)",
+          "inhabitants": "Aquariumbewoners (Optioneel)",
+          "last_water_change": "Datum laatste waterverversing (Optioneel)",
+          "misc_info": "Aanvullende informatie (Optioneel)"
+        },
+        "data_description": {
+          "tank_volume": "Werk het totale watervolume van je aquarium bij. De AI gebruikt dit voor waterverversingsberekeningen en aanbevelingen voor de bezetting van het aquarium.",
+          "filtration": "Update de details van het filtersysteem. De AI beoordeelt of uw filtercapaciteit overeenkomt met de biologische belasting en de vereisten van uw aquarium.",
+          "water_change_frequency": "Werk uw schema voor waterverversing bij. De AI houdt hier rekening mee bij het evalueren van trends in de waterkwaliteit en het doen van onderhoudsaanbevelingen.",
+          "inhabitants": "Werk de lijst met bewoners van je aquarium bij. De AI gebruikt deze informatie om de biologische belasting, de parametervereisten en de compatibiliteit te beoordelen.",
+          "last_water_change": "Update de helper of sensor die uw laatste waterverversing registreert. De AI gebruikt de verstreken tijd om tijdig aanbevelingen voor waterverversing te doen.",
+          "misc_info": "Voeg extra contextinformatie over de tanks toe, zodat de AI betere analyses kan uitvoeren. Vermeld eventuele bijzondere omstandigheden of recente wijzigingen."
+        }
+      },
+      "ai_prompts": {
+        "title": "AI Prompts",
+        "description": "Pas AI-prompts aan voor analyse.",
+        "data": {
+          "prompt_main_instructions": "Hoofdinstructies",
+          "prompt_parameter_guidelines": "Parameter Guidelines",
+          "prompt_camera_instructions": "Instructies voor camera-analyse",
+          "prompt_brief_analysis": "Korte analysevorm",
+          "prompt_detailed_analysis": "Gedetailleerde analysevorm",
+          "prompt_water_change": "Instructies voor het verversen van het water",
+          "prompt_overall_analysis": "Algemeen analyseformaat"
+        },
+        "data_description": {
+          "prompt_main_instructions": "De instructies voor de hoofdanalyse kunnen worden aangepast. Gebruik de placeholder {aquarium_type} om het aquariumtype dynamisch in te voegen.",
+          "prompt_parameter_guidelines": "Pas parameterbereiken en richtlijnen voor de bediening van eenheden aan voor temperatuur, pH, zoutgehalte, opgeloste zuurstof, ORP en waterniveau.",
+          "prompt_camera_instructions": "Stel zelf in hoe de AI de camerabeelden van uw aquarium moet analyseren.",
+          "prompt_brief_analysis": "Instructies voor korte sensoranalysevelden kunnen worden aangepast. Het formaat en de beperkingen kunnen worden gedefinieerd.",
+          "prompt_detailed_analysis": "Instructies voor gedetailleerde analysevelden van meldingen kunnen worden aangepast. Definieer welk detailniveau moet worden opgenomen.",
+          "prompt_water_change": "Pas het formaat en de logica van de aanbevelingen voor waterverversing aan.",
+          "prompt_overall_analysis": "Pas het format voor de algehele gezondheidsbeoordeling aan voor zowel de korte als de gedetailleerde versie."
+        }
+      }
+    },
+    "error": {
+      "at_least_one_sensor": "Er moet minimaal één sensor geconfigureerd zijn. Selecteer minimaal één sensor om te bewaken.",
+      "ai_task_required": "Selecteer een AI-taak die u voor de analyse wilt gebruiken."
+    }
+  },
+  "services": {
+    "run_analysis": {
+      "name": "AI-analyse uitvoeren",
+      "description": "Start handmatig een directe AI-analyse voor alle geconfigureerde aquariumintegraties. Dit is handig voor analyses op aanvraag na waterverversingen, aanpassingen aan apparatuur of bij het maken van automatiseringen."
+    }
+  }
+}
